@@ -6,6 +6,16 @@ version = 4
 name = "autospy"
 version = "0.1.0"
 dependencies = [
+<<<<<<< HEAD
+=======
+ "autospy_macro",
+]
+
+[[package]]
+name = "autospy_macro"
+version = "0.1.0"
+dependencies = [
+>>>>>>> 18a4225 (refactor into autospy_macro and autospy)
  "proc-macro2",
  "quote",
  "syn",

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
@@ -59,3 +60,10 @@ pub fn autospy(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     TokenStream::from(expanded)
 }
+=======
+mod spy_function;
+
+pub use spy_function::SpyFunction;
+
+pub use autospy_macro::autospy;
+>>>>>>> 18a4225 (refactor into autospy_macro and autospy)

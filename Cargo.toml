@@ -3,6 +3,7 @@ name = "autospy"
 version = "0.1.0"
 edition = "2024"
 
+<<<<<<< HEAD
 [lib]
 proc-macro = true
 
@@ -10,3 +11,10 @@ proc-macro = true
 quote = { version = "*", default-features = false }
 syn = { version = "*", default-features = false, features = ["parsing", "proc-macro", "full"] }
 proc-macro2 = { version = "*", default-features = false }
+=======
+[workspace]
+members = ["autospy_macro"]
+
+[dependencies]
+autospy_macro = { path = "autospy_macro" }
+>>>>>>> 18a4225 (refactor into autospy_macro and autospy)
