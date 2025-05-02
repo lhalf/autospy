@@ -5,6 +5,22 @@ trait SimpleTrait {
     fn function(&self, argument: String);
 }
 
+// expected generated code
+// trait SimpleTrait {
+//     fn function(&self, argument: String);
+// }
+
+// struct SimpleTraitSpy {
+//     pub function: SpyFunction<String>
+// }
+
+// impl SimpleTrait for SimpleTraitSpy {
+//     fn function(&self, argument: String) {
+//         self.function.spy(argument)
+//     }
+// }
+
+
 #[cfg(test)]
 mod tests {
     use super::{SimpleTrait, SimpleTraitSpy};
