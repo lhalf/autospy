@@ -1,5 +1,5 @@
 use quote::{format_ident, quote};
-use syn::{ItemTrait, FnArg, Pat, TraitItem, Type};
+use syn::{FnArg, ItemTrait, Pat, TraitItem, Type};
 
 pub fn generate(item: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     let _trait: ItemTrait = syn::parse2(item.clone()).unwrap();
@@ -15,7 +15,6 @@ pub fn generate(item: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             let arguments = &method.sig.inputs;
 
             if let Some(FnArg::Typed(pat_type)) = arguments.iter().nth(1) {
-
                 let argument_name = if let Pat::Ident(ref pat_ident) = *pat_type.pat {
                     &pat_ident.ident
                 } else {
@@ -26,7 +25,10 @@ pub fn generate(item: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
 
                 let (dereference_type, count) = remove_reference(&argument_type);
 
-                let dereferences: proc_macro2::TokenStream = "* ".repeat(count.saturating_sub(1) as usize).parse().expect("impossible to fail");
+                let dereferences: proc_macro2::TokenStream = "* "
+                    .repeat(count.saturating_sub(1) as usize)
+                    .parse()
+                    .expect("impossible to fail");
 
                 spy_fields.push(quote! {
                     pub #method_name: autospy::SpyFunction<<#dereference_type as ToOwned>::Owned>
@@ -60,85 +62,100 @@ fn remove_reference(argument_type: &Type) -> (Type, u8) {
         Type::Reference(referenced_argument) => {
             let (dereferenced_argument, count) = remove_reference(&referenced_argument.elem);
             (dereferenced_argument, count + 1)
-        },
+        }
         argument_type => (argument_type.clone(), 0),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use quote::quote;
     use crate::generate::generate;
+    use quote::quote;
 
     #[test]
     fn single_owned_argument_non_public_sync_trait() {
-        assert_eq!(quote!{
-            trait TestTrait {
-                fn function(&self, argument: String);
-            }
+        assert_eq!(
+            quote! {
+                trait TestTrait {
+                    fn function(&self, argument: String);
+                }
 
-            #[derive(Default, Clone)]
-            struct TestTraitSpy {
-                pub function: autospy::SpyFunction<<String as ToOwned>::Owned>
-            }
+                #[derive(Default, Clone)]
+                struct TestTraitSpy {
+                    pub function: autospy::SpyFunction<<String as ToOwned>::Owned>
+                }
 
-            impl TestTrait for TestTraitSpy {
-                fn function(&self, argument: String) {
-                    self.function.spy((argument).to_owned())
+                impl TestTrait for TestTraitSpy {
+                    fn function(&self, argument: String) {
+                        self.function.spy((argument).to_owned())
+                    }
                 }
             }
-        }.to_string(), generate(quote!{
-            trait TestTrait {
-                fn function(&self, argument: String);
-            }
-        }).to_string())
+            .to_string(),
+            generate(quote! {
+                trait TestTrait {
+                    fn function(&self, argument: String);
+                }
+            })
+            .to_string()
+        )
     }
 
     #[test]
     fn single_borrowed_argument_non_public_sync_trait() {
-        assert_eq!(quote!{
-            trait TestTrait {
-                fn function(&self, argument: &str);
-            }
+        assert_eq!(
+            quote! {
+                trait TestTrait {
+                    fn function(&self, argument: &str);
+                }
 
-            #[derive(Default, Clone)]
-            struct TestTraitSpy {
-                pub function: autospy::SpyFunction<<str as ToOwned>::Owned>
-            }
+                #[derive(Default, Clone)]
+                struct TestTraitSpy {
+                    pub function: autospy::SpyFunction<<str as ToOwned>::Owned>
+                }
 
-            impl TestTrait for TestTraitSpy {
-                fn function(&self, argument: &str) {
-                    self.function.spy((argument).to_owned())
+                impl TestTrait for TestTraitSpy {
+                    fn function(&self, argument: &str) {
+                        self.function.spy((argument).to_owned())
+                    }
                 }
             }
-        }.to_string(), generate(quote!{
-            trait TestTrait {
-                fn function(&self, argument: &str);
-            }
-        }).to_string())
+            .to_string(),
+            generate(quote! {
+                trait TestTrait {
+                    fn function(&self, argument: &str);
+                }
+            })
+            .to_string()
+        )
     }
 
     #[test]
     fn single_multiple_referenced_argument_non_public_sync_trait() {
-        assert_eq!(quote!{
-            trait TestTrait {
-                fn function(&self, argument: &&&str);
-            }
+        assert_eq!(
+            quote! {
+                trait TestTrait {
+                    fn function(&self, argument: &&&str);
+                }
 
-            #[derive(Default, Clone)]
-            struct TestTraitSpy {
-                pub function: autospy::SpyFunction<<str as ToOwned>::Owned>
-            }
+                #[derive(Default, Clone)]
+                struct TestTraitSpy {
+                    pub function: autospy::SpyFunction<<str as ToOwned>::Owned>
+                }
 
-            impl TestTrait for TestTraitSpy {
-                fn function(&self, argument: & & &str) {
-                    self.function.spy((** argument).to_owned())
+                impl TestTrait for TestTraitSpy {
+                    fn function(&self, argument: & & &str) {
+                        self.function.spy((** argument).to_owned())
+                    }
                 }
             }
-        }.to_string(), generate(quote!{
-            trait TestTrait {
-                fn function(&self, argument: &&&str);
-            }
-        }).to_string())
+            .to_string(),
+            generate(quote! {
+                trait TestTrait {
+                    fn function(&self, argument: &&&str);
+                }
+            })
+            .to_string()
+        )
     }
 }
