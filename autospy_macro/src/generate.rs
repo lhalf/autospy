@@ -7,11 +7,11 @@ pub fn generate(item: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     let spy_name = format_ident!("{}Spy", trait_name);
 
     let mut spy_fields = Vec::new();
-    let mut trait_impls = Vec::new();
+    let mut spy_trait_impls = Vec::new();
 
     for item in &_trait.items {
         if let TraitItem::Fn(method) = item {
-            let method_name = &method.sig.ident;
+            let function_name = &method.sig.ident;
             let arguments = &method.sig.inputs;
 
             if let Some(FnArg::Typed(pat_type)) = arguments.iter().nth(1) {
@@ -31,17 +31,17 @@ pub fn generate(item: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                     .expect("impossible to fail");
 
                 spy_fields.push(quote! {
-                    pub #method_name: autospy::SpyFunction<<#dereference_type as ToOwned>::Owned>
+                    pub #function_name: autospy::SpyFunction<<#dereference_type as ToOwned>::Owned>
                 });
 
-                trait_impls.push(quote! {
-                    fn #method_name(&self, #argument_name: #argument_type) {
-                        self.#method_name.spy((#dereferences #argument_name).to_owned())
+                spy_trait_impls.push(quote! {
+                    fn #function_name(&self, #argument_name: #argument_type) {
+                        self.#function_name.spy((#dereferences #argument_name).to_owned())
                     }
                 });
             } else {
-                trait_impls.push(quote! {
-                    fn #method_name(&self) {}
+                spy_trait_impls.push(quote! {
+                    fn #function_name(&self) {}
                 })
             }
         }
@@ -56,7 +56,7 @@ pub fn generate(item: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         }
 
         impl #trait_name for #spy_name {
-            #(#trait_impls)*
+            #(#spy_trait_impls)*
         }
     }
 }
