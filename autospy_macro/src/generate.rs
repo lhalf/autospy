@@ -39,6 +39,10 @@ pub fn generate(item: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                         self.#method_name.spy((#dereferences #argument_name).to_owned())
                     }
                 });
+            } else {
+                trait_impls.push(quote! {
+                    fn #method_name(&self) {}
+                })
             }
         }
     }
@@ -71,6 +75,31 @@ fn remove_reference(argument_type: &Type) -> (Type, u8) {
 mod tests {
     use crate::generate::generate;
     use quote::quote;
+
+    #[test]
+    fn no_arguments_non_public_sync_trait() {
+        assert_eq!(
+            quote! {
+                trait TestTrait {
+                    fn function(&self);
+                }
+
+                #[derive(Default, Clone)]
+                struct TestTraitSpy {}
+
+                impl TestTrait for TestTraitSpy {
+                    fn function(&self) {}
+                }
+            }
+            .to_string(),
+            generate(quote! {
+                trait TestTrait {
+                    fn function(&self);
+                }
+            }) 
+            .to_string()
+        )
+    }
 
     #[test]
     fn single_owned_argument_non_public_sync_trait() {
