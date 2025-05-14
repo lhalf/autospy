@@ -10,26 +10,26 @@ pub fn generate(item: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     let mut spy_function_definitions = Vec::new();
 
     for function in trait_functions(&item_trait) {
-        let function_name = &function.sig.ident;
-        let arguments = &function.sig.inputs;
+        let signature = &function.sig;
+
         let (owned_types, owned_values) = extract_argument_spy_types(function);
 
         if !owned_types.is_empty() {
+            let function_name = &function.sig.ident;
             let spy_argument_type = tuple_or_single(&owned_types);
             let values_to_spy = tuple_or_single(&owned_values);
 
             spy_fields.push(quote! {
                 pub #function_name: autospy::SpyFunction<#spy_argument_type>
             });
-
             spy_function_definitions.push(quote! {
-                fn #function_name(#arguments) {
+                #signature {
                     self.#function_name.spy(#values_to_spy)
                 }
             });
         } else {
             spy_function_definitions.push(quote! {
-                fn #function_name(&self) {}
+                #signature {}
             });
         }
     }
