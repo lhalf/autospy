@@ -26,20 +26,15 @@ pub fn generate(item: TokenStream) -> TokenStream {
 }
 
 fn trait_spy_fields(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {
-    inspect::trait_functions(item_trait).filter_map(function_as_spy_field)
+    inspect::trait_functions(item_trait).map(function_as_spy_field)
 }
 
-fn function_as_spy_field(function: &TraitItemFn) -> Option<TokenStream> {
+fn function_as_spy_field(function: &TraitItemFn) -> TokenStream {
     let function_name = &function.sig.ident;
-    let mut spyable_arguments = inspect::spyable_arguments(function).peekable();
-
-    if spyable_arguments.peek().is_none() {
-        None
-    } else {
-        let spy_argument_type = tuple_or_single(spyable_arguments.map(argument_owned_type));
-        Some(quote! {
-            pub #function_name: autospy::SpyFunction<#spy_argument_type, ()>
-        })
+    let spy_argument_type =
+        tuple_or_single(inspect::spyable_arguments(function).map(argument_owned_type));
+    quote! {
+        pub #function_name: autospy::SpyFunction<#spy_argument_type, ()>
     }
 }
 
@@ -50,19 +45,11 @@ fn trait_spy_function_definitions(item_trait: &ItemTrait) -> impl Iterator<Item 
 fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
     let function_signature = &function.sig;
     let function_name = &function.sig.ident;
-    let mut spy_arguments = inspect::spyable_arguments(function)
-        .map(argument_to_owned_expression)
-        .peekable();
-    if spy_arguments.peek().is_some() {
-        let spy_arguments = tuple_or_single(spy_arguments);
-        quote! {
-            #function_signature {
-                self.#function_name.spy(#spy_arguments)
-            }
-        }
-    } else {
-        quote! {
-            #function_signature {}
+    let spy_arguments =
+        tuple_or_single(inspect::spyable_arguments(function).map(argument_to_owned_expression));
+    quote! {
+        #function_signature {
+            self.#function_name.spy(#spy_arguments)
         }
     }
 }
@@ -103,10 +90,14 @@ mod tests {
                 }
 
                 #[derive(Default, Clone)]
-                struct TestTraitSpy {}
+                struct TestTraitSpy {
+                    pub function: autospy::SpyFunction< (), ()>
+                }
 
                 impl TestTrait for TestTraitSpy {
-                    fn function(&self) {}
+                    fn function(&self) {
+                        self.function.spy(())
+                    }
                 }
             }
             .to_string(),
