@@ -1,13 +1,20 @@
-use syn::{FnArg, Ident, Pat, PatType, TraitItemFn, Type};
+use syn::{FnArg, Ident, ItemTrait, Pat, PatType, TraitItem, TraitItemFn, Type};
+
+pub fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemFn> {
+    item_trait.items.iter().filter_map(|item| match item {
+        TraitItem::Fn(function) => Some(function),
+        _ => None,
+    })
+}
+
+pub fn spyable_arguments(function: &TraitItemFn) -> impl Iterator<Item = SpyableArgument> {
+    non_self_function_arguments(function).filter_map(spyable_argument)
+}
 
 pub struct SpyableArgument {
     pub name: Ident,
     pub dereferenced_type: Type,
     pub dereference_count: u8,
-}
-
-pub fn spyable_arguments(function: &TraitItemFn) -> impl Iterator<Item = SpyableArgument> {
-    non_self_function_arguments(function).filter_map(spyable_argument)
 }
 
 fn non_self_function_arguments(function: &TraitItemFn) -> impl Iterator<Item = &PatType> {
