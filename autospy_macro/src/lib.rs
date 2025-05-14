@@ -1,9 +1,9 @@
 extern crate proc_macro;
 
 mod generate;
+mod inspect;
 
 use generate::generate;
-
 use proc_macro::TokenStream;
 
 #[proc_macro_attribute]

@@ -1,38 +1,15 @@
 use quote::{format_ident, quote};
-use syn::{FnArg, ItemTrait, Pat, PatType, TraitItem, TraitItemFn, Type};
+use syn::{ItemTrait, TraitItem, TraitItemFn};
 
-pub fn generate(item: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+use crate::inspect::{SpyableArgument, spyable_arguments};
+use proc_macro2::TokenStream;
+
+pub fn generate(item: TokenStream) -> TokenStream {
     let item_trait: ItemTrait = syn::parse2(item.clone()).unwrap();
     let trait_name = &item_trait.ident;
     let spy_name = format_ident!("{}Spy", trait_name);
-
-    let mut spy_fields = Vec::new();
-    let mut spy_function_definitions = Vec::new();
-
-    for function in trait_functions(&item_trait) {
-        let signature = &function.sig;
-
-        let (owned_types, owned_values) = extract_argument_spy_types(function);
-
-        if !owned_types.is_empty() {
-            let function_name = &function.sig.ident;
-            let spy_argument_type = tuple_or_single(&owned_types);
-            let values_to_spy = tuple_or_single(&owned_values);
-
-            spy_fields.push(quote! {
-                pub #function_name: autospy::SpyFunction<#spy_argument_type>
-            });
-            spy_function_definitions.push(quote! {
-                #signature {
-                    self.#function_name.spy(#values_to_spy)
-                }
-            });
-        } else {
-            spy_function_definitions.push(quote! {
-                #signature {}
-            });
-        }
-    }
+    let spy_fields = trait_spy_fields(&item_trait);
+    let spy_function_definitions = trait_spy_function_definitions(&item_trait);
 
     quote! {
         #item
@@ -48,6 +25,48 @@ pub fn generate(item: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     }
 }
 
+fn trait_spy_fields(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {
+    trait_functions(item_trait).filter_map(function_as_spy_field)
+}
+
+fn function_as_spy_field(function: &TraitItemFn) -> Option<TokenStream> {
+    let function_name = &function.sig.ident;
+    let mut spyable_arguments = spyable_arguments(function).peekable();
+
+    if spyable_arguments.peek().is_none() {
+        None
+    } else {
+        let spy_argument_type = tuple_or_single(spyable_arguments.map(argument_owned_type));
+        Some(quote! {
+            pub #function_name: autospy::SpyFunction<#spy_argument_type>
+        })
+    }
+}
+
+fn trait_spy_function_definitions(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {
+    trait_functions(item_trait).map(function_as_spy_function)
+}
+
+fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
+    let function_signature = &function.sig;
+    let function_name = &function.sig.ident;
+    let mut spy_arguments = spyable_arguments(function)
+        .map(argument_to_owned_expression)
+        .peekable();
+    if spy_arguments.peek().is_some() {
+        let spy_arguments = tuple_or_single(spy_arguments);
+        quote! {
+            #function_signature {
+                self.#function_name.spy(#spy_arguments)
+            }
+        }
+    } else {
+        quote! {
+            #function_signature {}
+        }
+    }
+}
+
 fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemFn> {
     item_trait.items.iter().filter_map(|item| match item {
         TraitItem::Fn(function) => Some(function),
@@ -55,54 +74,25 @@ fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemFn>
     })
 }
 
-fn extract_argument_spy_types(
-    function: &TraitItemFn,
-) -> (Vec<proc_macro2::TokenStream>, Vec<proc_macro2::TokenStream>) {
-    let mut owned_types = Vec::new();
-    let mut owned_values = Vec::new();
-
-    for argument in non_self_function_arguments(function) {
-        let argument_name = match *argument.pat {
-            Pat::Ident(ref pat_ident) => &pat_ident.ident,
-            _ => continue,
-        };
-
-        let (dereferenced_type, count) = remove_references(&argument.ty);
-
-        let dereferences: proc_macro2::TokenStream = "* "
-            .repeat(count.saturating_sub(1) as usize)
-            .parse()
-            .expect("impossible to fail");
-
-        owned_types.push(quote! { <#dereferenced_type as ToOwned>::Owned });
-        owned_values.push(quote! { (#dereferences #argument_name).to_owned() });
-    }
-
-    (owned_types, owned_values)
+fn argument_owned_type(argument: SpyableArgument) -> proc_macro2::TokenStream {
+    let dereferenced_type = &argument.dereferenced_type;
+    quote! { <#dereferenced_type as ToOwned>::Owned }
 }
 
-fn non_self_function_arguments(function: &TraitItemFn) -> impl Iterator<Item = &PatType> {
-    function.sig.inputs.iter().filter_map(|input| match input {
-        FnArg::Typed(argument) => Some(argument),
-        _ => None,
-    })
+fn argument_to_owned_expression(argument: SpyableArgument) -> proc_macro2::TokenStream {
+    let argument_name = &argument.name;
+    let dereferences: proc_macro2::TokenStream = "* "
+        .repeat(argument.dereference_count.saturating_sub(1) as usize)
+        .parse()
+        .expect("always valid token stream");
+    quote! { (#dereferences #argument_name).to_owned() }
 }
 
-fn tuple_or_single(inputs: &[proc_macro2::TokenStream]) -> proc_macro2::TokenStream {
-    if inputs.len() == 1 {
-        quote! { #(#inputs)* }
-    } else {
-        quote! { ( #(#inputs),* ) }
-    }
-}
-
-fn remove_references(argument_type: &Type) -> (Type, u8) {
-    match argument_type {
-        Type::Reference(referenced_argument) => {
-            let (dereferenced_argument, count) = remove_references(&referenced_argument.elem);
-            (dereferenced_argument, count + 1)
-        }
-        argument_type => (argument_type.clone(), 0),
+fn tuple_or_single(mut items: impl Iterator<Item = TokenStream>) -> proc_macro2::TokenStream {
+    match (items.next(), items.next(), items) {
+        (None, _, _) => quote! { () },
+        (Some(first), None, _) => quote! { #first },
+        (Some(first), Some(second), remainder) => quote! { ( #first , #second #(, #remainder)* ) },
     }
 }
 
