@@ -1,5 +1,5 @@
-use quote::{format_ident, quote};
-use syn::{ItemTrait, TraitItemFn};
+use quote::{ToTokens, format_ident, quote};
+use syn::{ItemTrait, ReturnType, TraitItemFn};
 
 use crate::inspect;
 use proc_macro2::TokenStream;
@@ -33,8 +33,12 @@ fn function_as_spy_field(function: &TraitItemFn) -> TokenStream {
     let function_name = &function.sig.ident;
     let spy_argument_type =
         tuple_or_single(inspect::spyable_arguments(function).map(argument_owned_type));
+    let return_type = match &function.sig.output {
+        ReturnType::Default => quote! { () },
+        ReturnType::Type(_arrow, return_type) => return_type.to_token_stream(),
+    };
     quote! {
-        pub #function_name: autospy::SpyFunction<#spy_argument_type, ()>
+        pub #function_name: autospy::SpyFunction<#spy_argument_type, #return_type>
     }
 }
 
@@ -104,6 +108,35 @@ mod tests {
             generate(quote! {
                 trait TestTrait {
                     fn function(&self);
+                }
+            })
+            .to_string()
+        )
+    }
+
+    #[test]
+    fn no_arguments_non_public_sync_trait_with_return_type() {
+        assert_eq!(
+            quote! {
+                trait TestTrait {
+                    fn function(&self) -> bool;
+                }
+
+                #[derive(Default, Clone)]
+                struct TestTraitSpy {
+                    pub function: autospy::SpyFunction< (), bool>
+                }
+
+                impl TestTrait for TestTraitSpy {
+                    fn function(&self) -> bool {
+                        self.function.spy(())
+                    }
+                }
+            }
+            .to_string(),
+            generate(quote! {
+                trait TestTrait {
+                    fn function(&self) -> bool;
                 }
             })
             .to_string()
