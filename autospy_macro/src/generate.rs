@@ -1,7 +1,7 @@
 use quote::{format_ident, quote};
-use syn::{ItemTrait, TraitItem, TraitItemFn};
+use syn::{ItemTrait, TraitItemFn};
 
-use crate::inspect::{SpyableArgument, spyable_arguments};
+use crate::inspect;
 use proc_macro2::TokenStream;
 
 pub fn generate(item: TokenStream) -> TokenStream {
@@ -26,12 +26,12 @@ pub fn generate(item: TokenStream) -> TokenStream {
 }
 
 fn trait_spy_fields(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {
-    trait_functions(item_trait).filter_map(function_as_spy_field)
+    inspect::trait_functions(item_trait).filter_map(function_as_spy_field)
 }
 
 fn function_as_spy_field(function: &TraitItemFn) -> Option<TokenStream> {
     let function_name = &function.sig.ident;
-    let mut spyable_arguments = spyable_arguments(function).peekable();
+    let mut spyable_arguments = inspect::spyable_arguments(function).peekable();
 
     if spyable_arguments.peek().is_none() {
         None
@@ -44,13 +44,13 @@ fn function_as_spy_field(function: &TraitItemFn) -> Option<TokenStream> {
 }
 
 fn trait_spy_function_definitions(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {
-    trait_functions(item_trait).map(function_as_spy_function)
+    inspect::trait_functions(item_trait).map(function_as_spy_function)
 }
 
 fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
     let function_signature = &function.sig;
     let function_name = &function.sig.ident;
-    let mut spy_arguments = spyable_arguments(function)
+    let mut spy_arguments = inspect::spyable_arguments(function)
         .map(argument_to_owned_expression)
         .peekable();
     if spy_arguments.peek().is_some() {
@@ -67,19 +67,12 @@ fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
     }
 }
 
-fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemFn> {
-    item_trait.items.iter().filter_map(|item| match item {
-        TraitItem::Fn(function) => Some(function),
-        _ => None,
-    })
-}
-
-fn argument_owned_type(argument: SpyableArgument) -> proc_macro2::TokenStream {
+fn argument_owned_type(argument: inspect::SpyableArgument) -> proc_macro2::TokenStream {
     let dereferenced_type = &argument.dereferenced_type;
     quote! { <#dereferenced_type as ToOwned>::Owned }
 }
 
-fn argument_to_owned_expression(argument: SpyableArgument) -> proc_macro2::TokenStream {
+fn argument_to_owned_expression(argument: inspect::SpyableArgument) -> proc_macro2::TokenStream {
     let argument_name = &argument.name;
     let dereferences: proc_macro2::TokenStream = "* "
         .repeat(argument.dereference_count.saturating_sub(1) as usize)
