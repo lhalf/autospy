@@ -12,6 +12,7 @@ fn single_owned_argument_sync_trait() {
     }
 
     let spy = TestTraitSpy::default();
+    spy.function.returns.push_back(());
 
     use_test_trait(spy.clone());
 
@@ -30,6 +31,7 @@ fn single_borrowed_argument_sync_trait() {
     }
 
     let spy = TestTraitSpy::default();
+    spy.function.returns.push_back(());
 
     use_test_trait(spy.clone());
 
@@ -48,6 +50,7 @@ fn single_multiple_reference_argument_sync_trait() {
     }
 
     let spy = TestTraitSpy::default();
+    spy.function.returns.push_back(());
 
     use_test_trait(spy.clone());
 
@@ -66,10 +69,14 @@ fn mutliple_owned_argument_sync_trait() {
     }
 
     let spy = TestTraitSpy::default();
+    spy.function.returns.push_back(());
 
     use_test_trait(spy.clone());
 
-    assert_eq!(vec![("hello1".to_string(), "hello2".to_string())], spy.function.arguments.take_all())
+    assert_eq!(
+        vec![("hello1".to_string(), "hello2".to_string())],
+        spy.function.arguments.take_all()
+    )
 }
 
 #[test]
@@ -84,10 +91,14 @@ fn multiple_borrowed_argument_sync_trait() {
     }
 
     let spy = TestTraitSpy::default();
+    spy.function.returns.push_back(());
 
     use_test_trait(spy.clone());
 
-    assert_eq!(vec![("hello1".to_string(), "hello2".to_string())], spy.function.arguments.take_all())
+    assert_eq!(
+        vec![("hello1".to_string(), "hello2".to_string())],
+        spy.function.arguments.take_all()
+    )
 }
 
 #[test]
@@ -102,8 +113,12 @@ fn multiple_multiple_reference_argument_sync_trait() {
     }
 
     let spy = TestTraitSpy::default();
+    spy.function.returns.push_back(());
 
     use_test_trait(spy.clone());
 
-    assert_eq!(vec![("hello1".to_string(), "hello2".to_string())], spy.function.arguments.take_all())
+    assert_eq!(
+        vec![("hello1".to_string(), "hello2".to_string())],
+        spy.function.arguments.take_all()
+    )
 }
