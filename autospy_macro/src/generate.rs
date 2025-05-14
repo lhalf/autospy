@@ -38,7 +38,7 @@ fn function_as_spy_field(function: &TraitItemFn) -> Option<TokenStream> {
     } else {
         let spy_argument_type = tuple_or_single(spyable_arguments.map(argument_owned_type));
         Some(quote! {
-            pub #function_name: autospy::SpyFunction<#spy_argument_type>
+            pub #function_name: autospy::SpyFunction<#spy_argument_type, ()>
         })
     }
 }
@@ -129,7 +129,7 @@ mod tests {
 
                 #[derive(Default, Clone)]
                 struct TestTraitSpy {
-                    pub function: autospy::SpyFunction< <String as ToOwned>::Owned>
+                    pub function: autospy::SpyFunction< <String as ToOwned>::Owned, ()>
                 }
 
                 impl TestTrait for TestTraitSpy {
@@ -158,7 +158,7 @@ mod tests {
 
                 #[derive(Default, Clone)]
                 struct TestTraitSpy {
-                    pub function: autospy::SpyFunction< <str as ToOwned>::Owned>
+                    pub function: autospy::SpyFunction< <str as ToOwned>::Owned, ()>
                 }
 
                 impl TestTrait for TestTraitSpy {
@@ -187,7 +187,7 @@ mod tests {
 
                 #[derive(Default, Clone)]
                 struct TestTraitSpy {
-                    pub function: autospy::SpyFunction< <str as ToOwned>::Owned>
+                    pub function: autospy::SpyFunction< <str as ToOwned>::Owned, ()>
                 }
 
                 impl TestTrait for TestTraitSpy {
@@ -215,7 +215,7 @@ mod tests {
 
             #[derive(Default, Clone)]
             struct TestTraitSpy {
-                pub function: autospy::SpyFunction<(<String as ToOwned>::Owned, <String as ToOwned>::Owned)>
+                pub function: autospy::SpyFunction<(<String as ToOwned>::Owned, <String as ToOwned>::Owned), ()>
             }
 
             impl TestTrait for TestTraitSpy {
@@ -239,7 +239,7 @@ mod tests {
 
             #[derive(Default, Clone)]
             struct TestTraitSpy {
-                pub function: autospy::SpyFunction<(<str as ToOwned>::Owned, <str as ToOwned>::Owned)>
+                pub function: autospy::SpyFunction<(<str as ToOwned>::Owned, <str as ToOwned>::Owned), ()>
             }
 
             impl TestTrait for TestTraitSpy {
@@ -263,7 +263,7 @@ mod tests {
 
             #[derive(Default, Clone)]
             struct TestTraitSpy {
-                pub function: autospy::SpyFunction<(<str as ToOwned>::Owned, <str as ToOwned>::Owned)>
+                pub function: autospy::SpyFunction<(<str as ToOwned>::Owned, <str as ToOwned>::Owned), ()>
             }
 
             impl TestTrait for TestTraitSpy {
