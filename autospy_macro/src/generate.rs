@@ -6,6 +6,7 @@ use proc_macro2::TokenStream;
 
 pub fn generate(item: TokenStream) -> TokenStream {
     let item_trait: ItemTrait = syn::parse2(item.clone()).unwrap();
+    let visibility = &item_trait.vis;
     let trait_name = &item_trait.ident;
     let spy_name = format_ident!("{}Spy", trait_name);
     let spy_fields = trait_spy_fields(&item_trait);
@@ -15,7 +16,7 @@ pub fn generate(item: TokenStream) -> TokenStream {
         #item
 
         #[derive(Default, Clone)]
-        struct #spy_name {
+        #visibility struct #spy_name {
             #(#spy_fields),*
         }
 
@@ -111,6 +112,64 @@ mod tests {
                 }
             })
             .to_string()
+        )
+    }
+
+    #[test]
+    fn no_arguments_public_sync_trait() {
+        assert_eq!(
+            quote! {
+                pub trait TestTrait {
+                    fn function(&self);
+                }
+
+                #[derive(Default, Clone)]
+                pub struct TestTraitSpy {
+                    pub function: autospy::SpyFunction< (), ()>
+                }
+
+                impl TestTrait for TestTraitSpy {
+                    fn function(&self) {
+                        self.function.spy(())
+                    }
+                }
+            }
+                .to_string(),
+            generate(quote! {
+                pub trait TestTrait {
+                    fn function(&self);
+                }
+            })
+                .to_string()
+        )
+    }
+
+    #[test]
+    fn no_arguments_restricted_sync_trait() {
+        assert_eq!(
+            quote! {
+                pub(crate) trait TestTrait {
+                    fn function(&self);
+                }
+
+                #[derive(Default, Clone)]
+                pub(crate) struct TestTraitSpy {
+                    pub function: autospy::SpyFunction< (), ()>
+                }
+
+                impl TestTrait for TestTraitSpy {
+                    fn function(&self) {
+                        self.function.spy(())
+                    }
+                }
+            }
+                .to_string(),
+            generate(quote! {
+                pub(crate) trait TestTrait {
+                    fn function(&self);
+                }
+            })
+                .to_string()
         )
     }
 
