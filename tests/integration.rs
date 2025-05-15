@@ -58,6 +58,25 @@ fn single_multiple_reference_argument_sync_trait() {
 }
 
 #[test]
+fn single_static_impl_argument_sync_trait() {
+    #[autospy]
+    trait TestTrait {
+        fn function(&self, argument: impl ToString + 'static);
+    }
+
+    fn use_test_trait<T: TestTrait>(trait_object: T) {
+        trait_object.function("hello");
+    }
+
+    let spy = TestTraitSpy::default();
+    spy.function.returns.push_back(());
+
+    use_test_trait(spy.clone());
+
+    assert_eq!("hello", spy.function.arguments.take_all()[0].to_string())
+}
+
+#[test]
 fn mutliple_owned_argument_sync_trait() {
     #[autospy]
     trait TestTrait {

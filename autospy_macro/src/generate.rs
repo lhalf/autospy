@@ -1,5 +1,5 @@
 use quote::{ToTokens, format_ident, quote};
-use syn::{ItemTrait, ReturnType, TraitItemFn};
+use syn::{ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait};
 
 use crate::inspect;
 use proc_macro2::TokenStream;
@@ -59,21 +59,28 @@ fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
     }
 }
 
-fn argument_owned_type(argument: inspect::SpyableArgument) -> proc_macro2::TokenStream {
+fn argument_owned_type(argument: inspect::SpyableArgument) -> TokenStream {
     let dereferenced_type = &argument.dereferenced_type;
-    quote! { <#dereferenced_type as ToOwned>::Owned }
+    match argument.dereferenced_type {
+        Type::ImplTrait(TypeImplTrait{bounds, ..}) => quote! { Box<dyn #bounds> },
+        _ => quote! { <#dereferenced_type as ToOwned>::Owned }
+    }
 }
 
-fn argument_to_owned_expression(argument: inspect::SpyableArgument) -> proc_macro2::TokenStream {
+fn argument_to_owned_expression(argument: inspect::SpyableArgument) -> TokenStream {
     let argument_name = &argument.name;
-    let dereferences: proc_macro2::TokenStream = "* "
+    let dereferences: TokenStream = "* "
         .repeat(argument.dereference_count.saturating_sub(1) as usize)
         .parse()
         .expect("always valid token stream");
-    quote! { (#dereferences #argument_name).to_owned() }
+
+    match argument.dereferenced_type {
+        Type::ImplTrait(_) => quote! { Box::new(#argument_name) },
+        _ => quote! { (#dereferences #argument_name).to_owned() },
+    }
 }
 
-fn tuple_or_single(mut items: impl Iterator<Item = TokenStream>) -> proc_macro2::TokenStream {
+fn tuple_or_single(mut items: impl Iterator<Item = TokenStream>) -> TokenStream {
     match (items.next(), items.next(), items) {
         (None, _, _) => quote! { () },
         (Some(first), None, _) => quote! { #first },
@@ -359,5 +366,63 @@ mod tests {
                  fn function(&self, argument1: &&&&str, argument2: &&&str);
              }
          }).to_string())
+    }
+
+    #[test]
+    fn single_static_impl_argument_non_public_sync_trait() {
+        assert_eq!(
+            quote! {
+                trait TestTrait {
+                    fn function(&self, argument: impl ToString + 'static);
+                }
+
+                #[derive(Default, Clone)]
+                struct TestTraitSpy {
+                    pub function: autospy::SpyFunction< Box<dyn ToString + 'static>, ()>
+                }
+
+                impl TestTrait for TestTraitSpy {
+                    fn function(&self, argument: impl ToString + 'static) {
+                        self.function.spy(Box::new(argument))
+                    }
+                }
+            }
+                .to_string(),
+            generate(quote! {
+                trait TestTrait {
+                    fn function(&self, argument: impl ToString + 'static);
+                }
+            })
+                .to_string()
+        )
+    }
+
+    #[test]
+    fn multiple_impl_bounds_static_argument_non_public_sync_trait() {
+        assert_eq!(
+            quote! {
+                trait TestTrait {
+                    fn function(&self, argument: impl ToString + Debug + 'static);
+                }
+
+                #[derive(Default, Clone)]
+                struct TestTraitSpy {
+                    pub function: autospy::SpyFunction< Box<dyn ToString + Debug + 'static>, ()>
+                }
+
+                impl TestTrait for TestTraitSpy {
+                    fn function(&self, argument: impl ToString + Debug + 'static) {
+                        self.function.spy(Box::new(argument))
+                    }
+                }
+            }
+                .to_string(),
+            generate(quote! {
+                trait TestTrait {
+                    fn function(&self, argument: impl ToString + Debug + 'static);
+                }
+            })
+                .to_string()
+        )
     }
 }
