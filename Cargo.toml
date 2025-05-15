@@ -2,6 +2,14 @@
 name = "autospy"
 version = "0.0.1"
 edition = "2024"
+description = "A test spy object library."
+license = "MIT"
+license-file = "LICENSE"
+repository = "https://github.com/lhalf/autospy"
+keywords = ["mock", "testing", "spy", "mocking", "fake"]
+categories = ["development-tools::testing"]
+readme = "README.md"
+exclude = ["tests/*"]
 
 [workspace]
 members = ["autospy_macro"]
