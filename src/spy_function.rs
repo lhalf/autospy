@@ -82,3 +82,9 @@ impl<R> Returns<R> {
         self.0.lock().expect("mutex poisoned").pop_front()
     }
 }
+
+impl<R: Clone> Returns<R> {
+    pub fn push_back_n(&self, value: R, count: usize) {
+        std::iter::repeat_n(value, count).for_each(|value| self.push_back(value));
+    }
+}

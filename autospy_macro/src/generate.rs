@@ -109,6 +109,16 @@ mod tests {
     }
 
     #[test]
+    fn multiple_methods_with_no_arguments() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                fn function1(&self);
+                fn function2(&self);
+            }
+        }));
+    }
+
+    #[test]
     fn trait_with_non_pub_crate_visibility() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
