@@ -109,7 +109,7 @@ mod tests {
     }
 
     #[test]
-    fn if_trait_is_private_then_spy_is_private() {
+    fn trait_with_non_pub_crate_visibility() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 fn function(&self);
@@ -118,7 +118,7 @@ mod tests {
     }
 
     #[test]
-    fn if_trait_is_public_then_spy_is_public() {
+    fn trait_with_pub_visibility() {
         insta::assert_snapshot!(generate_pretty(quote! {
             pub trait TestTrait {
                 fn function(&self);
@@ -127,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    fn if_trait_is_pub_crate_then_spy_is_pub_crate() {
+    fn trait_with_pub_crate_visibility() {
         insta::assert_snapshot!(generate_pretty(quote! {
             pub(crate) trait TestTrait {
                 fn function(&self);
@@ -145,7 +145,7 @@ mod tests {
     }
 
     #[test]
-    fn method_with_single_owned_argument_is_moved_into_spy() {
+    fn single_owned_argument_is_moved_into_spy() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 fn function(&self, argument: String);
@@ -154,7 +154,7 @@ mod tests {
     }
 
     #[test]
-    fn method_with_single_borrowed_argument_has_coverted_to_owned_type_in_spy() {
+    fn single_borrowed_argument_has_coverted_to_owned_type_in_spy() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 fn function(&self, argument: &str);
@@ -163,7 +163,7 @@ mod tests {
     }
 
     #[test]
-    fn method_with_multiple_nested_references_on_argument_still_converted_to_owned_type_in_spy() {
+    fn multiple_nested_references_on_argument_still_converted_to_owned_type_in_spy() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 fn function(&self, argument: &&&str);
@@ -172,7 +172,7 @@ mod tests {
     }
 
     #[test]
-    fn method_with_multiple_owned_arguments() {
+    fn multiple_owned_arguments_moved_in_spy() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 fn function(&self, argument1: String, argument2: String);
@@ -181,7 +181,7 @@ mod tests {
     }
 
     #[test]
-    fn multiple_borrowed_arguments_converted_to_owned() {
+    fn multiple_borrowed_arguments_converted_to_owned_in_spy() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 fn function(&self, argument1: &str, argument2: &str);
@@ -199,7 +199,7 @@ mod tests {
     }
 
     #[test]
-    fn single_static_impl_argument_converted_to_boxed_dyn() {
+    fn single_static_impl_argument_converted_to_boxed_dyn_in_spy() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 fn function(&self, argument: impl ToString + 'static);
@@ -208,7 +208,7 @@ mod tests {
     }
 
     #[test]
-    fn multiple_impl_bounds_static_argument_converted_to_boxed_dyn() {
+    fn multiple_impl_bounds_static_argument_converted_to_boxed_dyn_in_spy() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 fn function(&self, argument: impl ToString + Debug + 'static);
