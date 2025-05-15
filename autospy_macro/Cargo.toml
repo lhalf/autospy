@@ -2,6 +2,16 @@
 name = "autospy_macro"
 version = "0.0.1"
 edition = "2024"
+description = "Procedural macros for autospy."
+license = "MIT"
+repository = "https://github.com/lhalf/autospy"
+keywords = ["mock", "testing", "spy", "mocking", "fake"]
+categories = ["development-tools::testing"]
+readme = "README.md"
+
+[package.metadata.release]
+tag = false
+push = false
 
 [lib]
 proc-macro = true
