@@ -62,8 +62,8 @@ fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
 fn argument_owned_type(argument: inspect::SpyableArgument) -> TokenStream {
     let dereferenced_type = &argument.dereferenced_type;
     match argument.dereferenced_type {
-        Type::ImplTrait(TypeImplTrait{bounds, ..}) => quote! { Box<dyn #bounds> },
-        _ => quote! { <#dereferenced_type as ToOwned>::Owned }
+        Type::ImplTrait(TypeImplTrait { bounds, .. }) => quote! { Box<dyn #bounds> },
+        _ => quote! { <#dereferenced_type as ToOwned>::Owned },
     }
 }
 
@@ -141,13 +141,13 @@ mod tests {
                     }
                 }
             }
-                .to_string(),
+            .to_string(),
             generate(quote! {
                 pub trait TestTrait {
                     fn function(&self);
                 }
             })
-                .to_string()
+            .to_string()
         )
     }
 
@@ -170,13 +170,13 @@ mod tests {
                     }
                 }
             }
-                .to_string(),
+            .to_string(),
             generate(quote! {
                 pub(crate) trait TestTrait {
                     fn function(&self);
                 }
             })
-                .to_string()
+            .to_string()
         )
     }
 
@@ -387,13 +387,13 @@ mod tests {
                     }
                 }
             }
-                .to_string(),
+            .to_string(),
             generate(quote! {
                 trait TestTrait {
                     fn function(&self, argument: impl ToString + 'static);
                 }
             })
-                .to_string()
+            .to_string()
         )
     }
 
@@ -416,13 +416,13 @@ mod tests {
                     }
                 }
             }
-                .to_string(),
+            .to_string(),
             generate(quote! {
                 trait TestTrait {
                     fn function(&self, argument: impl ToString + Debug + 'static);
                 }
             })
-                .to_string()
+            .to_string()
         )
     }
 }
