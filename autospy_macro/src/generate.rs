@@ -74,15 +74,21 @@ fn argument_owned_type(argument: inspect::SpyableArgument) -> TokenStream {
 
 fn argument_to_owned_expression(argument: inspect::SpyableArgument) -> TokenStream {
     let argument_name = &argument.name;
-    let dereferences: TokenStream = "* "
-        .repeat(argument.dereference_count.saturating_sub(1) as usize)
+
+    if let Type::ImplTrait(_) = argument.dereferenced_type {
+        return quote! { Box::new(#argument_name) };
+    }
+
+    if argument.dereference_count <= 1 {
+        return quote! { #argument_name.to_owned() };
+    }
+
+    let dereferences: TokenStream = "*"
+        .repeat((argument.dereference_count - 1) as usize)
         .parse()
         .expect("always valid token stream");
 
-    match argument.dereferenced_type {
-        Type::ImplTrait(_) => quote! { Box::new(#argument_name) },
-        _ => quote! { (#dereferences #argument_name).to_owned() },
-    }
+    quote! { (#dereferences #argument_name).to_owned() }
 }
 
 fn tuple_or_single(mut items: impl Iterator<Item = TokenStream>) -> TokenStream {

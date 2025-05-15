@@ -14,6 +14,6 @@ struct TestTraitSpy {
 }
 impl TestTrait for TestTraitSpy {
     fn function(&self, argument1: &str, argument2: &str) {
-        self.function.spy(((argument1).to_owned(), (argument2).to_owned()))
+        self.function.spy((argument1.to_owned(), argument2.to_owned()))
     }
 }
