@@ -4,7 +4,6 @@ version = "0.0.1"
 edition = "2024"
 description = "A test spy object library."
 license = "MIT"
-license-file = "LICENSE"
 repository = "https://github.com/lhalf/autospy"
 keywords = ["mock", "testing", "spy", "mocking", "fake"]
 categories = ["development-tools::testing"]
@@ -15,4 +14,4 @@ exclude = ["/tests/"]
 members = ["autospy_macro"]
 
 [dependencies]
-autospy_macro = { version = "0.0.1", path = "autospy_macro" }
+autospy_macro = { path = "autospy_macro", version = "0.0.1" }
