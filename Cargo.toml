@@ -9,7 +9,7 @@ repository = "https://github.com/lhalf/autospy"
 keywords = ["mock", "testing", "spy", "mocking", "fake"]
 categories = ["development-tools::testing"]
 readme = "README.md"
-exclude = ["tests/*"]
+exclude = ["/tests/"]
 
 [workspace]
 members = ["autospy_macro"]
