@@ -8,7 +8,7 @@ fn use_test_trait<T: MyTrait>(trait_object: T) {
 }
 
 #[test]
-fn borrowed_argument_coverted_to_owned() {
+fn arguments_marked_with_nospy_attribute_are_no_captured() {
     let spy = MyTraitSpy::default();
     spy.function.returns.push_back(());
 
