@@ -143,7 +143,29 @@ fn multiple_multiple_reference_argument_sync_trait() {
 }
 
 #[test]
-fn single_function_trait_with_no_arguments_returning_u8() {
+fn mutliple_owned_and_static_impl_argument_sync_trait() {
+    #[autospy]
+    trait TestTrait {
+        fn function(&self, argument1: String, argument2: impl ToString + 'static);
+    }
+
+    fn use_test_trait<T: TestTrait>(trait_object: T) {
+        trait_object.function("hello1".to_string(), "hello2");
+    }
+
+    let spy = TestTraitSpy::default();
+    spy.function.returns.push_back(());
+
+    use_test_trait(spy.clone());
+    
+    let arguments = &spy.function.arguments.take_all()[0];
+
+    assert_eq!("hello1", arguments.0);
+    assert_eq!("hello2", arguments.1.to_string())
+}
+
+#[test]
+fn no_arguments_sync_trait_returning_u8() {
     #[autospy]
     trait TestTrait {
         fn function(&self) -> u8;
