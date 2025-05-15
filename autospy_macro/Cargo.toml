@@ -18,6 +18,6 @@ proc-macro = true
 doctest = false
 
 [dependencies]
-quote = { version = "*", default-features = false }
-syn = { version = "*", default-features = false, features = ["parsing", "proc-macro", "full", "printing", "clone-impls"] }
-proc-macro2 = { version = "*", default-features = false }
+quote = { version = "1.0.40", default-features = false }
+syn = { version = "2.0.101", default-features = false, features = ["parsing", "proc-macro", "full", "printing", "clone-impls"] }
+proc-macro2 = { version = "1.0.95", default-features = false }
