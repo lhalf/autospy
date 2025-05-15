@@ -1,0 +1,16 @@
+---
+source: autospy_macro/src/generate.rs
+expression: "generate_pretty(quote! { trait TestTrait { fn function(&self) -> bool; } })"
+---
+trait TestTrait {
+    fn function(&self) -> bool;
+}
+#[derive(Default, Clone)]
+struct TestTraitSpy {
+    pub function: autospy::SpyFunction<(), bool>,
+}
+impl TestTrait for TestTraitSpy {
+    fn function(&self) -> bool {
+        self.function.spy(())
+    }
+}
