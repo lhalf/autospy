@@ -1,4 +1,7 @@
-use syn::{FnArg, Ident, ItemTrait, Pat, PatType, TraitItem, TraitItemFn, Type};
+use quote::ToTokens;
+use syn::{
+    AttrStyle, Attribute, FnArg, Ident, ItemTrait, Pat, PatType, TraitItem, TraitItemFn, Type,
+};
 
 pub fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemFn> {
     item_trait.items.iter().filter_map(|item| match item {
@@ -9,6 +12,15 @@ pub fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitIte
 
 pub fn spyable_arguments(function: &TraitItemFn) -> impl Iterator<Item = SpyableArgument> {
     non_self_function_arguments(function).filter_map(spyable_argument)
+}
+
+pub fn is_argument_marked_as_no_spy(argument: &PatType) -> bool {
+    argument.attrs.iter().any(is_no_spy_attribute)
+}
+
+pub fn is_no_spy_attribute(attribute: &Attribute) -> bool {
+    matches!(attribute.style, AttrStyle::Outer)
+        && attribute.meta.path().to_token_stream().to_string() == "nospy"
 }
 
 pub struct SpyableArgument {
@@ -29,6 +41,10 @@ fn spyable_argument(argument: &PatType) -> Option<SpyableArgument> {
         Pat::Ident(ref pat_ident) => pat_ident.ident.clone(),
         _ => return None,
     };
+
+    if is_argument_marked_as_no_spy(argument) {
+        return None;
+    }
 
     let (dereferenced_type, dereference_count) = remove_references(&argument.ty);
 

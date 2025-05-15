@@ -1,7 +1,7 @@
 use quote::{ToTokens, format_ident, quote};
 use syn::{ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait};
 
-use crate::inspect;
+use crate::{edit, inspect};
 use proc_macro2::TokenStream;
 
 pub fn generate(item: TokenStream) -> TokenStream {
@@ -12,8 +12,10 @@ pub fn generate(item: TokenStream) -> TokenStream {
     let spy_fields = trait_spy_fields(&item_trait);
     let spy_function_definitions = trait_spy_function_definitions(&item_trait);
 
+    let stripped_item_trait = edit::strip_no_spy_from_trait(item_trait.clone());
+
     quote! {
-        #item
+        #stripped_item_trait
 
         #[derive(Default, Clone)]
         #visibility struct #spy_name {
@@ -48,12 +50,15 @@ fn trait_spy_function_definitions(item_trait: &ItemTrait) -> impl Iterator<Item 
 }
 
 fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
-    let function_signature = &function.sig;
     let function_name = &function.sig.ident;
     let spy_arguments =
         tuple_or_single(inspect::spyable_arguments(function).map(argument_to_owned_expression));
+
+    let mut signature = function.sig.clone();
+    edit::ignore_no_spy_arguments_in_signature(&mut signature);
+
     quote! {
-        #function_signature {
+        #signature {
             self.#function_name.spy(#spy_arguments)
         }
     }
@@ -97,6 +102,15 @@ mod tests {
     fn generate_pretty(tokens: TokenStream) -> String {
         let expanded = generate(tokens).to_string();
         prettyplease::unparse(&syn::parse_file(&expanded).unwrap())
+    }
+
+    #[test]
+    fn arguments_marked_with_nospy_attribute_are_not_captured() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                fn function(&self, #[nospy] ignored: &str, captured: &str);
+            }
+        }));
     }
 
     #[test]

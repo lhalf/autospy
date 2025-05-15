@@ -1,5 +1,6 @@
 extern crate proc_macro;
 
+mod edit;
 mod generate;
 mod inspect;
 
