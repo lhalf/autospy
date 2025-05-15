@@ -7,4 +7,4 @@ edition = "2024"
 members = ["autospy_macro"]
 
 [dependencies]
-autospy_macro = { path = "autospy_macro" }
+autospy_macro = { version = "0.0.1", path = "autospy_macro" }
