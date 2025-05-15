@@ -91,338 +91,128 @@ fn tuple_or_single(mut items: impl Iterator<Item = TokenStream>) -> TokenStream 
 #[cfg(test)]
 mod tests {
     use crate::generate::generate;
+    use proc_macro2::TokenStream;
     use quote::quote;
 
-    #[test]
-    fn no_arguments_non_public_sync_trait() {
-        assert_eq!(
-            quote! {
-                trait TestTrait {
-                    fn function(&self);
-                }
-
-                #[derive(Default, Clone)]
-                struct TestTraitSpy {
-                    pub function: autospy::SpyFunction< (), ()>
-                }
-
-                impl TestTrait for TestTraitSpy {
-                    fn function(&self) {
-                        self.function.spy(())
-                    }
-                }
-            }
-            .to_string(),
-            generate(quote! {
-                trait TestTrait {
-                    fn function(&self);
-                }
-            })
-            .to_string()
-        )
+    fn generate_pretty(tokens: TokenStream) -> String {
+        let expanded = generate(tokens).to_string();
+        prettyplease::unparse(&syn::parse_file(&expanded).unwrap())
     }
 
     #[test]
-    fn no_arguments_public_sync_trait() {
-        assert_eq!(
-            quote! {
-                pub trait TestTrait {
-                    fn function(&self);
-                }
-
-                #[derive(Default, Clone)]
-                pub struct TestTraitSpy {
-                    pub function: autospy::SpyFunction< (), ()>
-                }
-
-                impl TestTrait for TestTraitSpy {
-                    fn function(&self) {
-                        self.function.spy(())
-                    }
-                }
+    fn single_method_with_no_arguments() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                fn function(&self);
             }
-            .to_string(),
-            generate(quote! {
-                pub trait TestTrait {
-                    fn function(&self);
-                }
-            })
-            .to_string()
-        )
+        }));
     }
 
     #[test]
-    fn no_arguments_restricted_sync_trait() {
-        assert_eq!(
-            quote! {
-                pub(crate) trait TestTrait {
-                    fn function(&self);
-                }
-
-                #[derive(Default, Clone)]
-                pub(crate) struct TestTraitSpy {
-                    pub function: autospy::SpyFunction< (), ()>
-                }
-
-                impl TestTrait for TestTraitSpy {
-                    fn function(&self) {
-                        self.function.spy(())
-                    }
-                }
+    fn if_trait_is_private_then_spy_is_private() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                fn function(&self);
             }
-            .to_string(),
-            generate(quote! {
-                pub(crate) trait TestTrait {
-                    fn function(&self);
-                }
-            })
-            .to_string()
-        )
+        }));
     }
 
     #[test]
-    fn no_arguments_non_public_sync_trait_with_return_type() {
-        assert_eq!(
-            quote! {
-                trait TestTrait {
-                    fn function(&self) -> bool;
-                }
-
-                #[derive(Default, Clone)]
-                struct TestTraitSpy {
-                    pub function: autospy::SpyFunction< (), bool>
-                }
-
-                impl TestTrait for TestTraitSpy {
-                    fn function(&self) -> bool {
-                        self.function.spy(())
-                    }
-                }
+    fn if_trait_is_public_then_spy_is_public() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            pub trait TestTrait {
+                fn function(&self);
             }
-            .to_string(),
-            generate(quote! {
-                trait TestTrait {
-                    fn function(&self) -> bool;
-                }
-            })
-            .to_string()
-        )
+        }))
     }
 
     #[test]
-    fn single_owned_argument_non_public_sync_trait() {
-        assert_eq!(
-            quote! {
-                trait TestTrait {
-                    fn function(&self, argument: String);
-                }
-
-                #[derive(Default, Clone)]
-                struct TestTraitSpy {
-                    pub function: autospy::SpyFunction< <String as ToOwned>::Owned, ()>
-                }
-
-                impl TestTrait for TestTraitSpy {
-                    fn function(&self, argument: String) {
-                        self.function.spy((argument).to_owned())
-                    }
-                }
+    fn if_trait_is_pub_crate_then_spy_is_pub_crate() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            pub(crate) trait TestTrait {
+                fn function(&self);
             }
-            .to_string(),
-            generate(quote! {
-                trait TestTrait {
-                    fn function(&self, argument: String);
-                }
-            })
-            .to_string()
-        )
+        }))
     }
 
     #[test]
-    fn single_borrowed_argument_non_public_sync_trait() {
-        assert_eq!(
-            quote! {
-                trait TestTrait {
-                    fn function(&self, argument: &str);
-                }
-
-                #[derive(Default, Clone)]
-                struct TestTraitSpy {
-                    pub function: autospy::SpyFunction< <str as ToOwned>::Owned, ()>
-                }
-
-                impl TestTrait for TestTraitSpy {
-                    fn function(&self, argument: &str) {
-                        self.function.spy((argument).to_owned())
-                    }
-                }
+    fn method_with_non_void_return_type() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                fn function(&self) -> bool;
             }
-            .to_string(),
-            generate(quote! {
-                trait TestTrait {
-                    fn function(&self, argument: &str);
-                }
-            })
-            .to_string()
-        )
+        }))
     }
 
     #[test]
-    fn single_multiple_referenced_argument_non_public_sync_trait() {
-        assert_eq!(
-            quote! {
-                trait TestTrait {
-                    fn function(&self, argument: &&&str);
-                }
-
-                #[derive(Default, Clone)]
-                struct TestTraitSpy {
-                    pub function: autospy::SpyFunction< <str as ToOwned>::Owned, ()>
-                }
-
-                impl TestTrait for TestTraitSpy {
-                    fn function(&self, argument: & & &str) {
-                        self.function.spy((** argument).to_owned())
-                    }
-                }
+    fn method_with_single_owned_argument_is_moved_into_spy() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                fn function(&self, argument: String);
             }
-            .to_string(),
-            generate(quote! {
-                trait TestTrait {
-                    fn function(&self, argument: &&&str);
-                }
-            })
-            .to_string()
-        )
+        }))
     }
 
     #[test]
-    fn multiple_owned_arguments_non_public_sync_trait() {
-        assert_eq!(quote!{
+    fn method_with_single_borrowed_argument_has_coverted_to_owned_type_in_spy() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                fn function(&self, argument: &str);
+            }
+        }))
+    }
+
+    #[test]
+    fn method_with_multiple_nested_references_on_argument_still_converted_to_owned_type_in_spy() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                fn function(&self, argument: &&&str);
+            }
+        }))
+    }
+
+    #[test]
+    fn method_with_multiple_owned_arguments() {
+        insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 fn function(&self, argument1: String, argument2: String);
             }
-
-            #[derive(Default, Clone)]
-            struct TestTraitSpy {
-                pub function: autospy::SpyFunction<(<String as ToOwned>::Owned, <String as ToOwned>::Owned), ()>
-            }
-
-            impl TestTrait for TestTraitSpy {
-                fn function(&self, argument1: String, argument2: String) {
-                    self.function.spy(((argument1).to_owned(), (argument2).to_owned()))
-                }
-            }
-         }.to_string(), generate(quote!{
-             trait TestTrait {
-                 fn function(&self, argument1: String, argument2: String);
-             }
-         }).to_string())
+        }))
     }
 
     #[test]
-    fn multiple_borrowed_arguments_non_public_sync_trait() {
-        assert_eq!(quote!{
+    fn multiple_borrowed_arguments_converted_to_owned() {
+        insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 fn function(&self, argument1: &str, argument2: &str);
             }
-
-            #[derive(Default, Clone)]
-            struct TestTraitSpy {
-                pub function: autospy::SpyFunction<(<str as ToOwned>::Owned, <str as ToOwned>::Owned), ()>
-            }
-
-            impl TestTrait for TestTraitSpy {
-                fn function(&self, argument1: &str, argument2: &str) {
-                    self.function.spy(((argument1).to_owned(), (argument2).to_owned()))
-                }
-            }
-         }.to_string(), generate(quote!{
-             trait TestTrait {
-                 fn function(&self, argument1: &str, argument2: &str);
-             }
-         }).to_string())
+        }))
     }
 
     #[test]
-    fn multiple_multiple_reference_arguments_non_public_sync_trait() {
-        assert_eq!(quote!{
+    fn multiple_arguments_that_are_nested_references_converted_to_owned_in_spy() {
+        insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 fn function(&self, argument1: &&&&str, argument2: &&&str);
             }
-
-            #[derive(Default, Clone)]
-            struct TestTraitSpy {
-                pub function: autospy::SpyFunction<(<str as ToOwned>::Owned, <str as ToOwned>::Owned), ()>
-            }
-
-            impl TestTrait for TestTraitSpy {
-                fn function(&self, argument1: & & & &str, argument2: & & &str) {
-                    self.function.spy(((*** argument1).to_owned(), (** argument2).to_owned()))
-                }
-            }
-         }.to_string(), generate(quote!{
-             trait TestTrait {
-                 fn function(&self, argument1: &&&&str, argument2: &&&str);
-             }
-         }).to_string())
+        }))
     }
 
     #[test]
-    fn single_static_impl_argument_non_public_sync_trait() {
-        assert_eq!(
-            quote! {
-                trait TestTrait {
-                    fn function(&self, argument: impl ToString + 'static);
-                }
-
-                #[derive(Default, Clone)]
-                struct TestTraitSpy {
-                    pub function: autospy::SpyFunction< Box<dyn ToString + 'static>, ()>
-                }
-
-                impl TestTrait for TestTraitSpy {
-                    fn function(&self, argument: impl ToString + 'static) {
-                        self.function.spy(Box::new(argument))
-                    }
-                }
+    fn single_static_impl_argument_converted_to_boxed_dyn() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                fn function(&self, argument: impl ToString + 'static);
             }
-            .to_string(),
-            generate(quote! {
-                trait TestTrait {
-                    fn function(&self, argument: impl ToString + 'static);
-                }
-            })
-            .to_string()
-        )
+        }))
     }
 
     #[test]
-    fn multiple_impl_bounds_static_argument_non_public_sync_trait() {
-        assert_eq!(
-            quote! {
-                trait TestTrait {
-                    fn function(&self, argument: impl ToString + Debug + 'static);
-                }
-
-                #[derive(Default, Clone)]
-                struct TestTraitSpy {
-                    pub function: autospy::SpyFunction< Box<dyn ToString + Debug + 'static>, ()>
-                }
-
-                impl TestTrait for TestTraitSpy {
-                    fn function(&self, argument: impl ToString + Debug + 'static) {
-                        self.function.spy(Box::new(argument))
-                    }
-                }
+    fn multiple_impl_bounds_static_argument_converted_to_boxed_dyn() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                fn function(&self, argument: impl ToString + Debug + 'static);
             }
-            .to_string(),
-            generate(quote! {
-                trait TestTrait {
-                    fn function(&self, argument: impl ToString + Debug + 'static);
-                }
-            })
-            .to_string()
-        )
+        }))
     }
 }
