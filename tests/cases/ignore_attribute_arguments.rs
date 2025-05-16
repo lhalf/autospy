@@ -1,6 +1,6 @@
 #[autospy::autospy]
 trait MyTrait {
-    fn function(&self, #[ignore] ignored: &str, captured: &str);
+    fn function(&self, #[autospy(ignore)] ignored: &str, captured: &str);
 }
 
 fn use_test_trait<T: MyTrait>(trait_object: T) {

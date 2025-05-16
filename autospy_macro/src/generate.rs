@@ -119,7 +119,7 @@ mod tests {
     fn arguments_marked_with_ignore_attribute_are_not_captured() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
-                fn function(&self, #[ignore] ignored: &str, captured: &str);
+                fn function(&self, #[autospy(ignore)] ignored: &str, captured: &str);
             }
         }));
     }

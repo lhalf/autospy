@@ -1,13 +1,12 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
-    AttrStyle, Attribute, FnArg, Ident, ItemTrait, Meta, MetaList, MetaNameValue, Pat, PatType,
-    TraitItem, TraitItemFn, Type,
+    Attribute, FnArg, Ident, ItemTrait, Meta, MetaList, MetaNameValue, Pat, PatType, TraitItem,
+    TraitItemFn, Type,
 };
 
 const IGNORE_TOKEN: &str = "ignore";
 const RETURNS_TOKEN: &str = "returns";
-
 const AUTOSPY_TOKEN: &str = "autospy";
 
 pub fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemFn> {
@@ -21,18 +20,22 @@ pub fn spyable_arguments(function: &TraitItemFn) -> impl Iterator<Item = Spyable
     non_self_function_arguments(function).filter_map(spyable_argument)
 }
 
+pub struct SpyableArgument {
+    pub name: Ident,
+    pub dereferenced_type: Type,
+    pub dereference_count: u8,
+}
+
 pub fn is_argument_marked_as_ignore(argument: &PatType) -> bool {
     argument.attrs.iter().any(is_ignore_attribute)
 }
 
 pub fn is_ignore_attribute(attribute: &Attribute) -> bool {
-    matches!(attribute.style, AttrStyle::Outer) && attribute.meta.path().is_ident(IGNORE_TOKEN)
-}
-
-pub struct SpyableArgument {
-    pub name: Ident,
-    pub dereferenced_type: Type,
-    pub dereference_count: u8,
+    matches!(
+        &attribute.meta,
+        Meta::List(MetaList { path, tokens, ..})
+            if path.is_ident(AUTOSPY_TOKEN) && tokens.to_string() == IGNORE_TOKEN
+    )
 }
 
 pub fn is_returns_attribute(attribute: &Attribute) -> bool {
