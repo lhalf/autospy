@@ -125,6 +125,15 @@ mod tests {
     }
 
     #[test]
+    fn arguments_marked_with_multiple_attributes_retain_non_autospy_attributes() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                fn function(&self, #[some_attribute] #[autospy(ignore)] ignored: &str, captured: &str);
+            }
+        }));
+    }
+
+    #[test]
     fn method_with_no_arguments() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
@@ -255,6 +264,17 @@ mod tests {
     fn functions_marked_with_return_attribute_have_their_return_types_changed() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
+                #[autospy(returns = String)]
+                fn function(&self) -> impl ToString;
+            }
+        }))
+    }
+
+    #[test]
+    fn functions_marked_with_multiple_attributes_retain_non_autospy_attributes() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                #[some_attribute]
                 #[autospy(returns = String)]
                 fn function(&self) -> impl ToString;
             }
