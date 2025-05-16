@@ -14,5 +14,5 @@ fn returns_values_in_order() {
     spy.function.returns.push_back("second_return".to_string());
 
     assert_eq!("first_return", use_trait(spy.clone()));
-    assert_eq!("second_return", use_trait(spy.clone()));
+    assert_eq!("second_return", use_trait(spy));
 }
