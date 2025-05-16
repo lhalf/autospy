@@ -1,0 +1,19 @@
+---
+source: autospy_macro/src/generate.rs
+expression: "generate_pretty(quote!\n{\n    trait TestTrait\n    {\n        fn\n        function(&self, #[autospy(ignore)] ignored1: &str, #[autospy(ignore)]\n        ignored2: &str, captured1: &str, captured2: &str);\n    }\n})"
+---
+trait TestTrait {
+    fn function(&self, ignored1: &str, ignored2: &str, captured1: &str, captured2: &str);
+}
+#[derive(Default, Clone)]
+struct TestTraitSpy {
+    pub function: autospy::SpyFunction<
+        (<str as ToOwned>::Owned, <str as ToOwned>::Owned),
+        (),
+    >,
+}
+impl TestTrait for TestTraitSpy {
+    fn function(&self, _: &str, _: &str, captured1: &str, captured2: &str) {
+        self.function.spy((captured1.to_owned(), captured2.to_owned()))
+    }
+}
