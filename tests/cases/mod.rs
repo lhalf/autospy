@@ -6,3 +6,4 @@ mod multiple_trait_methods;
 mod owned_arguments;
 mod owned_returns;
 mod trait_arguments;
+mod type_attribute_returns;

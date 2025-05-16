@@ -2,8 +2,8 @@ use syn::{FnArg, ItemTrait, PatType, Signature, TraitItem, TraitItemFn, parse_qu
 
 use crate::inspect;
 
-pub fn strip_ignore_from_trait(mut item_trait: ItemTrait) -> ItemTrait {
-    trait_functions_mut(&mut item_trait).for_each(strip_ignore_from_function);
+pub fn strip_attributes_from_trait(mut item_trait: ItemTrait) -> ItemTrait {
+    trait_functions_mut(&mut item_trait).for_each(strip_attributes_from_function);
     item_trait
 }
 
@@ -16,8 +16,15 @@ pub fn clean_ignored_arguments_in_signature(signature: &mut Signature) {
     }
 }
 
-fn strip_ignore_from_function(function: &mut TraitItemFn) {
+fn strip_attributes_from_function(function: &mut TraitItemFn) {
+    strip_function_return_attribute(function);
     non_self_function_arguments_mut(&mut function.sig).for_each(strip_ignore_from_argument);
+}
+
+fn strip_function_return_attribute(function: &mut TraitItemFn) {
+    function
+        .attrs
+        .retain(|attribute| !inspect::is_returns_attribute(attribute));
 }
 
 fn strip_ignore_from_argument(argument: &mut PatType) {
