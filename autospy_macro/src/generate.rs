@@ -11,7 +11,7 @@ pub fn generate(item: TokenStream) -> TokenStream {
     let spy_name = format_ident!("{}Spy", trait_name);
     let spy_fields = trait_spy_fields(&item_trait);
     let spy_function_definitions = trait_spy_function_definitions(&item_trait);
-    let stripped_item_trait = edit::strip_ignore_from_trait(item_trait.clone());
+    let stripped_item_trait = edit::strip_attributes_from_trait(item_trait.clone());
 
     quote! {
         #stripped_item_trait
@@ -33,12 +33,18 @@ fn trait_spy_fields(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream>
 
 fn function_as_spy_field(function: &TraitItemFn) -> TokenStream {
     let function_name = &function.sig.ident;
+
     let spy_argument_type =
         tuple_or_single(inspect::spyable_arguments(function).map(argument_owned_type));
-    let return_type = match &function.sig.output {
-        ReturnType::Default => quote! { () },
-        ReturnType::Type(_arrow, return_type) => return_type.to_token_stream(),
+
+    let return_type = match inspect::get_return_attribute_type(&function.attrs) {
+        Some(return_type) => return_type,
+        None => match &function.sig.output {
+            ReturnType::Default => quote! { () },
+            ReturnType::Type(_arrow, return_type) => return_type.to_token_stream(),
+        },
     };
+
     quote! {
         pub #function_name: autospy::SpyFunction<#spy_argument_type, #return_type>
     }
@@ -241,6 +247,16 @@ mod tests {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 fn function(&self, argument: impl ToString + Debug + 'static);
+            }
+        }))
+    }
+
+    #[test]
+    fn functions_marked_with_return_attribute_have_their_return_types_changed() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                #[autospy(returns = String)]
+                fn function(&self) -> impl ToString;
             }
         }))
     }

@@ -1,9 +1,14 @@
+use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
-    AttrStyle, Attribute, FnArg, Ident, ItemTrait, Pat, PatType, TraitItem, TraitItemFn, Type,
+    AttrStyle, Attribute, FnArg, Ident, ItemTrait, Meta, MetaList, MetaNameValue, Pat, PatType,
+    TraitItem, TraitItemFn, Type,
 };
 
 const IGNORE_TOKEN: &str = "ignore";
+const RETURNS_TOKEN: &str = "returns";
+
+const AUTOSPY_TOKEN: &str = "autospy";
 
 pub fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemFn> {
     item_trait.items.iter().filter_map(|item| match item {
@@ -21,14 +26,46 @@ pub fn is_argument_marked_as_ignore(argument: &PatType) -> bool {
 }
 
 pub fn is_ignore_attribute(attribute: &Attribute) -> bool {
-    matches!(attribute.style, AttrStyle::Outer)
-        && attribute.meta.path().to_token_stream().to_string() == IGNORE_TOKEN
+    matches!(attribute.style, AttrStyle::Outer) && attribute.meta.path().is_ident(IGNORE_TOKEN)
 }
 
 pub struct SpyableArgument {
     pub name: Ident,
     pub dereferenced_type: Type,
     pub dereference_count: u8,
+}
+
+pub fn is_returns_attribute(attribute: &Attribute) -> bool {
+    matches!(
+        &attribute.meta,
+        Meta::List(MetaList { path, ..})
+            if path.is_ident(AUTOSPY_TOKEN)
+    )
+}
+
+pub fn get_return_attribute_type(attributes: &[Attribute]) -> Option<TokenStream> {
+    attributes
+        .iter()
+        .find_map(autospy_attribute)
+        .and_then(returns_attribute_type)
+}
+
+fn autospy_attribute(attribute: &Attribute) -> Option<TokenStream> {
+    match &attribute.meta {
+        Meta::List(MetaList { path, tokens, .. }) if path.is_ident(AUTOSPY_TOKEN) => {
+            Some(tokens.clone())
+        }
+        _ => None,
+    }
+}
+
+fn returns_attribute_type(tokens: TokenStream) -> Option<TokenStream> {
+    match syn::parse2::<MetaNameValue>(tokens) {
+        Ok(MetaNameValue { path, value, .. }) if path.is_ident(RETURNS_TOKEN) => {
+            Some(value.to_token_stream())
+        }
+        _ => None,
+    }
 }
 
 fn non_self_function_arguments(function: &TraitItemFn) -> impl Iterator<Item = &PatType> {
