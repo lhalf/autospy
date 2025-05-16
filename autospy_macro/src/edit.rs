@@ -7,20 +7,21 @@ pub fn strip_attributes_from_trait(mut item_trait: ItemTrait) -> ItemTrait {
     item_trait
 }
 
-pub fn clean_ignored_arguments_in_signature(signature: &mut Signature) {
-    for argument in non_self_function_arguments_mut(signature)
+pub fn underscore_ignored_arguments_in_signature(signature: &mut Signature) {
+    non_self_signature_arguments_mut(signature)
         .filter(|argument| inspect::is_argument_marked_as_ignore(argument))
-    {
+        .for_each(rename_argument_to_underscore);
+}
+
+pub fn strip_attributes_from_signature(signature: &mut Signature) {
+    for argument in non_self_signature_arguments_mut(signature) {
         strip_autospy_attributes(&mut argument.attrs);
-        rename_argument_to_underscore(argument);
     }
 }
 
 fn strip_attributes_from_function(function: &mut TraitItemFn) {
     strip_autospy_attributes(&mut function.attrs);
-    for argument in non_self_function_arguments_mut(&mut function.sig) {
-        strip_autospy_attributes(&mut argument.attrs);
-    }
+    strip_attributes_from_signature(&mut function.sig);
 }
 
 fn strip_autospy_attributes(attributes: &mut Vec<Attribute>) {
@@ -38,7 +39,7 @@ fn trait_functions_mut(item_trait: &mut ItemTrait) -> impl Iterator<Item = &mut 
     })
 }
 
-fn non_self_function_arguments_mut(
+fn non_self_signature_arguments_mut(
     signature: &mut Signature,
 ) -> impl Iterator<Item = &mut PatType> {
     signature.inputs.iter_mut().filter_map(|input| match input {

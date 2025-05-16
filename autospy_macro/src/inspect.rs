@@ -5,9 +5,10 @@ use syn::{
     TraitItemFn, Type,
 };
 
+const AUTOSPY_TOKEN: &str = "autospy";
 const IGNORE_TOKEN: &str = "ignore";
 const RETURNS_TOKEN: &str = "returns";
-const AUTOSPY_TOKEN: &str = "autospy";
+const INTO_TOKEN: &str = "into";
 
 pub fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemFn> {
     item_trait.items.iter().filter_map(|item| match item {
@@ -22,6 +23,7 @@ pub fn spyable_arguments(function: &TraitItemFn) -> impl Iterator<Item = Spyable
 
 pub struct SpyableArgument {
     pub name: Ident,
+    pub into_type: Option<TokenStream>,
     pub dereferenced_type: Type,
     pub dereference_count: u8,
 }
@@ -85,9 +87,27 @@ fn spyable_argument(argument: &PatType) -> Option<SpyableArgument> {
 
     Some(SpyableArgument {
         name,
+        into_type: argument_attribute_into_type(argument),
         dereferenced_type,
         dereference_count,
     })
+}
+
+fn argument_attribute_into_type(argument: &PatType) -> Option<TokenStream> {
+    argument
+        .attrs
+        .iter()
+        .find_map(autospy_attribute)
+        .and_then(into_attribute_type)
+}
+
+fn into_attribute_type(tokens: &TokenStream) -> Option<TokenStream> {
+    match syn::parse2::<MetaNameValue>(tokens.clone()) {
+        Ok(MetaNameValue { path, value, .. }) if path.is_ident(INTO_TOKEN) => {
+            Some(value.to_token_stream())
+        }
+        _ => None,
+    }
 }
 
 fn remove_references(argument_type: &Type) -> (Type, u8) {

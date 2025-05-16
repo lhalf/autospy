@@ -1,0 +1,17 @@
+---
+source: autospy_macro/src/generate.rs
+expression: "generate_pretty(quote!\n{\n    #[autospy::autospy] trait MyTrait\n    {\n        fn\n        function(&self, #[autospy(with=std::io::read_to_string)] file: &mut\n        impl Read);\n    }\n})"
+---
+#[autospy::autospy]
+trait MyTrait {
+    fn function(&self, file: &mut impl Read);
+}
+#[derive(Default, Clone)]
+struct MyTraitSpy {
+    pub function: autospy::SpyFunction<Box<dyn Read>, ()>,
+}
+impl MyTrait for MyTraitSpy {
+    fn function(&self, #[autospy(with = std::io::read_to_string)] file: &mut impl Read) {
+        self.function.spy(Box::new(file))
+    }
+}
