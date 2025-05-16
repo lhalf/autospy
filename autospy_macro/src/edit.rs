@@ -2,31 +2,31 @@ use syn::{FnArg, ItemTrait, PatType, Signature, TraitItem, TraitItemFn, parse_qu
 
 use crate::inspect;
 
-pub fn strip_no_spy_from_trait(mut item_trait: ItemTrait) -> ItemTrait {
-    trait_functions_mut(&mut item_trait).for_each(strip_no_spy_from_function);
+pub fn strip_ignore_from_trait(mut item_trait: ItemTrait) -> ItemTrait {
+    trait_functions_mut(&mut item_trait).for_each(strip_ignore_from_function);
     item_trait
 }
 
-pub fn ignore_no_spy_arguments_in_signature(signature: &mut Signature) {
+pub fn clean_ignored_arguments_in_signature(signature: &mut Signature) {
     for argument in non_self_function_arguments_mut(signature)
-        .filter(|argument| inspect::is_argument_marked_as_no_spy(argument))
+        .filter(|argument| inspect::is_argument_marked_as_ignore(argument))
     {
-        strip_no_spy_from_argument(argument);
-        rename_argument_to_ignored(argument);
+        strip_ignore_from_argument(argument);
+        rename_argument_to_underscore(argument);
     }
 }
 
-fn strip_no_spy_from_function(function: &mut TraitItemFn) {
-    non_self_function_arguments_mut(&mut function.sig).for_each(strip_no_spy_from_argument);
+fn strip_ignore_from_function(function: &mut TraitItemFn) {
+    non_self_function_arguments_mut(&mut function.sig).for_each(strip_ignore_from_argument);
 }
 
-fn strip_no_spy_from_argument(argument: &mut PatType) {
+fn strip_ignore_from_argument(argument: &mut PatType) {
     argument
         .attrs
-        .retain(|attribute| !super::inspect::is_no_spy_attribute(attribute));
+        .retain(|attribute| !inspect::is_ignore_attribute(attribute));
 }
 
-fn rename_argument_to_ignored(argument: &mut PatType) {
+fn rename_argument_to_underscore(argument: &mut PatType) {
     argument.pat = parse_quote! { _ };
 }
 
