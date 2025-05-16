@@ -34,7 +34,7 @@ fn trait_spy_fields(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream>
 fn function_as_spy_field(function: &TraitItemFn) -> TokenStream {
     let function_name = &function.sig.ident;
     let spy_argument_type =
-        tuple_or_single(inspect::spyable_arguments(function).map(argument_owned_type));
+        tuple_or_single(inspect::spyable_arguments(function).map(argument_spy_type));
     let return_type = function_return_type(function);
 
     quote! {
@@ -60,10 +60,11 @@ fn trait_spy_function_definitions(item_trait: &ItemTrait) -> impl Iterator<Item 
 fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
     let function_name = &function.sig.ident;
     let spy_arguments =
-        tuple_or_single(inspect::spyable_arguments(function).map(argument_to_owned_expression));
+        tuple_or_single(inspect::spyable_arguments(function).map(argument_to_spy_expression));
 
     let mut signature = function.sig.clone();
-    edit::clean_ignored_arguments_in_signature(&mut signature);
+    edit::underscore_ignored_arguments_in_signature(&mut signature);
+    edit::strip_attributes_from_signature(&mut signature);
 
     quote! {
         #signature {
@@ -72,7 +73,11 @@ fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
     }
 }
 
-fn argument_owned_type(argument: inspect::SpyableArgument) -> TokenStream {
+fn argument_spy_type(argument: inspect::SpyableArgument) -> TokenStream {
+    if let Some(into_type) = argument.into_type {
+        return quote! { #into_type };
+    }
+
     let dereferenced_type = &argument.dereferenced_type;
     match argument.dereferenced_type {
         Type::ImplTrait(TypeImplTrait { bounds, .. }) => quote! { Box<dyn #bounds> },
@@ -80,8 +85,12 @@ fn argument_owned_type(argument: inspect::SpyableArgument) -> TokenStream {
     }
 }
 
-fn argument_to_owned_expression(argument: inspect::SpyableArgument) -> TokenStream {
+fn argument_to_spy_expression(argument: inspect::SpyableArgument) -> TokenStream {
     let argument_name = &argument.name;
+
+    if argument.into_type.is_some() {
+        return quote! { #argument_name.into() };
+    }
 
     if let Type::ImplTrait(_) = argument.dereferenced_type {
         return quote! { Box::new(#argument_name) };
@@ -91,12 +100,14 @@ fn argument_to_owned_expression(argument: inspect::SpyableArgument) -> TokenStre
         return quote! { #argument_name.to_owned() };
     }
 
-    let dereferences: TokenStream = "*"
-        .repeat((argument.dereference_count - 1) as usize)
-        .parse()
-        .expect("always valid token stream");
-
+    let dereferences = dereference_tokens(&argument);
     quote! { (#dereferences #argument_name).to_owned() }
+}
+
+fn dereference_tokens(argument: &inspect::SpyableArgument) -> TokenStream {
+    "*".repeat((argument.dereference_count - 1) as usize)
+        .parse()
+        .expect("always valid token stream")
 }
 
 fn tuple_or_single(mut items: impl Iterator<Item = TokenStream>) -> TokenStream {
@@ -116,6 +127,16 @@ mod tests {
     fn generate_pretty(tokens: TokenStream) -> String {
         let expanded = generate(tokens).to_string();
         prettyplease::unparse(&syn::parse_file(&expanded).unwrap())
+    }
+
+    #[test]
+    fn arguments_marked_with_into_attribute_are_captured() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            #[autospy::autospy]
+            trait MyTrait {
+                fn function(&self, #[autospy(into=IpAddr)] ip: [u8; 4]);
+            }
+        }));
     }
 
     #[test]

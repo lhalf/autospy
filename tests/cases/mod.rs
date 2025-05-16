@@ -1,9 +1,10 @@
 mod array_arguments;
 mod borrowed_arguments;
 mod function_arguments;
-mod ignore_attribute_arguments;
+mod ignore_argument_attribute;
+mod into_argument_attribute;
 mod multiple_trait_methods;
 mod owned_arguments;
 mod owned_returns;
+mod return_type_attribute;
 mod trait_arguments;
-mod type_attribute_returns;

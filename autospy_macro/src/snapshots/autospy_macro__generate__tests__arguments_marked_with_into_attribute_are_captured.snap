@@ -1,0 +1,17 @@
+---
+source: autospy_macro/src/generate.rs
+expression: "generate_pretty(quote!\n{\n    #[autospy::autospy] trait MyTrait\n    { fn function(&self, #[autospy(into=IpAddr)] ip: [u8; 4]); }\n})"
+---
+#[autospy::autospy]
+trait MyTrait {
+    fn function(&self, ip: [u8; 4]);
+}
+#[derive(Default, Clone)]
+struct MyTraitSpy {
+    pub function: autospy::SpyFunction<IpAddr, ()>,
+}
+impl MyTrait for MyTraitSpy {
+    fn function(&self, ip: [u8; 4]) {
+        self.function.spy(ip.into())
+    }
+}
