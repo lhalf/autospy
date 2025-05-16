@@ -1,4 +1,4 @@
-use syn::{FnArg, ItemTrait, PatType, Signature, TraitItem, TraitItemFn, parse_quote};
+use syn::{Attribute, FnArg, ItemTrait, PatType, Signature, TraitItem, TraitItemFn, parse_quote};
 
 use crate::inspect;
 
@@ -11,26 +11,20 @@ pub fn clean_ignored_arguments_in_signature(signature: &mut Signature) {
     for argument in non_self_function_arguments_mut(signature)
         .filter(|argument| inspect::is_argument_marked_as_ignore(argument))
     {
-        strip_ignore_from_argument(argument);
+        strip_autospy_attributes(&mut argument.attrs);
         rename_argument_to_underscore(argument);
     }
 }
 
 fn strip_attributes_from_function(function: &mut TraitItemFn) {
-    strip_function_return_attribute(function);
-    non_self_function_arguments_mut(&mut function.sig).for_each(strip_ignore_from_argument);
+    strip_autospy_attributes(&mut function.attrs);
+    for argument in non_self_function_arguments_mut(&mut function.sig) {
+        strip_autospy_attributes(&mut argument.attrs);
+    }
 }
 
-fn strip_function_return_attribute(function: &mut TraitItemFn) {
-    function
-        .attrs
-        .retain(|attribute| !inspect::is_returns_attribute(attribute));
-}
-
-fn strip_ignore_from_argument(argument: &mut PatType) {
-    argument
-        .attrs
-        .retain(|attribute| !inspect::is_ignore_attribute(attribute));
+fn strip_autospy_attributes(attributes: &mut Vec<Attribute>) {
+    attributes.retain(|attribute| !inspect::is_autospy_attribute(attribute));
 }
 
 fn rename_argument_to_underscore(argument: &mut PatType) {

@@ -26,24 +26,12 @@ pub struct SpyableArgument {
     pub dereference_count: u8,
 }
 
+pub fn is_autospy_attribute(attribute: &Attribute) -> bool {
+    autospy_attribute(attribute).is_some()
+}
+
 pub fn is_argument_marked_as_ignore(argument: &PatType) -> bool {
     argument.attrs.iter().any(is_ignore_attribute)
-}
-
-pub fn is_ignore_attribute(attribute: &Attribute) -> bool {
-    matches!(
-        &attribute.meta,
-        Meta::List(MetaList { path, tokens, ..})
-            if path.is_ident(AUTOSPY_TOKEN) && tokens.to_string() == IGNORE_TOKEN
-    )
-}
-
-pub fn is_returns_attribute(attribute: &Attribute) -> bool {
-    matches!(
-        &attribute.meta,
-        Meta::List(MetaList { path, ..})
-            if path.is_ident(AUTOSPY_TOKEN)
-    )
 }
 
 pub fn get_return_attribute_type(attributes: &[Attribute]) -> Option<TokenStream> {
@@ -53,17 +41,22 @@ pub fn get_return_attribute_type(attributes: &[Attribute]) -> Option<TokenStream
         .and_then(returns_attribute_type)
 }
 
-fn autospy_attribute(attribute: &Attribute) -> Option<TokenStream> {
+fn is_ignore_attribute(attribute: &Attribute) -> bool {
+    match autospy_attribute(attribute) {
+        Some(tokens) => tokens.to_string() == IGNORE_TOKEN,
+        None => false,
+    }
+}
+
+fn autospy_attribute(attribute: &Attribute) -> Option<&TokenStream> {
     match &attribute.meta {
-        Meta::List(MetaList { path, tokens, .. }) if path.is_ident(AUTOSPY_TOKEN) => {
-            Some(tokens.clone())
-        }
+        Meta::List(MetaList { path, tokens, .. }) if path.is_ident(AUTOSPY_TOKEN) => Some(tokens),
         _ => None,
     }
 }
 
-fn returns_attribute_type(tokens: TokenStream) -> Option<TokenStream> {
-    match syn::parse2::<MetaNameValue>(tokens) {
+fn returns_attribute_type(tokens: &TokenStream) -> Option<TokenStream> {
+    match syn::parse2::<MetaNameValue>(tokens.clone()) {
         Ok(MetaNameValue { path, value, .. }) if path.is_ident(RETURNS_TOKEN) => {
             Some(value.to_token_stream())
         }
