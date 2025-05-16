@@ -3,6 +3,8 @@ use syn::{
     AttrStyle, Attribute, FnArg, Ident, ItemTrait, Pat, PatType, TraitItem, TraitItemFn, Type,
 };
 
+const IGNORE_TOKEN: &str = "ignore";
+
 pub fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemFn> {
     item_trait.items.iter().filter_map(|item| match item {
         TraitItem::Fn(function) => Some(function),
@@ -14,13 +16,13 @@ pub fn spyable_arguments(function: &TraitItemFn) -> impl Iterator<Item = Spyable
     non_self_function_arguments(function).filter_map(spyable_argument)
 }
 
-pub fn is_argument_marked_as_no_spy(argument: &PatType) -> bool {
-    argument.attrs.iter().any(is_no_spy_attribute)
+pub fn is_argument_marked_as_ignore(argument: &PatType) -> bool {
+    argument.attrs.iter().any(is_ignore_attribute)
 }
 
-pub fn is_no_spy_attribute(attribute: &Attribute) -> bool {
+pub fn is_ignore_attribute(attribute: &Attribute) -> bool {
     matches!(attribute.style, AttrStyle::Outer)
-        && attribute.meta.path().to_token_stream().to_string() == "nospy"
+        && attribute.meta.path().to_token_stream().to_string() == IGNORE_TOKEN
 }
 
 pub struct SpyableArgument {
@@ -42,7 +44,7 @@ fn spyable_argument(argument: &PatType) -> Option<SpyableArgument> {
         _ => return None,
     };
 
-    if is_argument_marked_as_no_spy(argument) {
+    if is_argument_marked_as_ignore(argument) {
         return None;
     }
 

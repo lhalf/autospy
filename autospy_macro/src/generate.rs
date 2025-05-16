@@ -11,8 +11,7 @@ pub fn generate(item: TokenStream) -> TokenStream {
     let spy_name = format_ident!("{}Spy", trait_name);
     let spy_fields = trait_spy_fields(&item_trait);
     let spy_function_definitions = trait_spy_function_definitions(&item_trait);
-
-    let stripped_item_trait = edit::strip_no_spy_from_trait(item_trait.clone());
+    let stripped_item_trait = edit::strip_ignore_from_trait(item_trait.clone());
 
     quote! {
         #stripped_item_trait
@@ -55,7 +54,7 @@ fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
         tuple_or_single(inspect::spyable_arguments(function).map(argument_to_owned_expression));
 
     let mut signature = function.sig.clone();
-    edit::ignore_no_spy_arguments_in_signature(&mut signature);
+    edit::clean_ignored_arguments_in_signature(&mut signature);
 
     quote! {
         #signature {
@@ -111,10 +110,10 @@ mod tests {
     }
 
     #[test]
-    fn arguments_marked_with_nospy_attribute_are_not_captured() {
+    fn arguments_marked_with_ignore_attribute_are_not_captured() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
-                fn function(&self, #[nospy] ignored: &str, captured: &str);
+                fn function(&self, #[ignore] ignored: &str, captured: &str);
             }
         }));
     }
