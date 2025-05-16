@@ -8,7 +8,7 @@ fn use_test_trait<T: MyTrait>(trait_object: T) {
 }
 
 #[test]
-fn arguments_marked_with_ignore_attribute_are_no_captured() {
+fn arguments_marked_with_ignore_attribute_are_not_captured() {
     let spy = MyTraitSpy::default();
     spy.function.returns.push_back(());
 
