@@ -1,6 +1,6 @@
 ---
 source: autospy_macro/src/generate.rs
-expression: "generate_pretty(quote!\n{\n    trait TestTrait\n    { fn function(&self, #[ignore] ignored: &str, captured: &str); }\n})"
+expression: "generate_pretty(quote!\n{\n    trait TestTrait\n    { fn function(&self, #[autospy(ignore)] ignored: &str, captured: &str); }\n})"
 ---
 trait TestTrait {
     fn function(&self, ignored: &str, captured: &str);
