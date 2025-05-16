@@ -2,7 +2,7 @@ use std::net::IpAddr;
 
 #[autospy::autospy]
 trait MyTrait {
-    fn function(&self, #[autospy(into=IpAddr)] file: [u8; 4]);
+    fn function(&self, #[autospy(into=IpAddr)] ip: [u8; 4]);
 }
 
 fn use_trait<T: MyTrait>(trait_object: T) {
