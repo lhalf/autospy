@@ -134,6 +134,15 @@ mod tests {
     }
 
     #[test]
+    fn multiple_ignored_arguments_are_not_captured() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                fn function(&self, #[autospy(ignore)] ignored1: &str, #[autospy(ignore)] ignored2: &str, captured1: &str, captured2: &str);
+            }
+        }));
+    }
+
+    #[test]
     fn method_with_no_arguments() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
