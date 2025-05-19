@@ -20,6 +20,7 @@ pub fn associated_type(attributes: TokenStream) -> Option<AssociatedType> {
     }
 }
 
+#[derive(Clone)]
 pub struct AssociatedType {
     pub name: TokenStream,
     pub _type: TokenStream,

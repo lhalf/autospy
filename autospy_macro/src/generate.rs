@@ -1,13 +1,14 @@
+use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
+use syn::visit_mut::VisitMut;
 use syn::{ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait};
 
 use crate::inspect::AssociatedType;
 use crate::{edit, inspect};
-use proc_macro2::TokenStream;
 
 pub fn generate(attributes: TokenStream, item: TokenStream) -> TokenStream {
     let associated_type = inspect::associated_type(attributes);
-    let item_trait: ItemTrait = syn::parse2(item.clone()).unwrap();
+    let item_trait: ItemTrait = syn::parse2(item.clone()).expect("invalid trait definition");
     let visibility = &item_trait.vis;
     let trait_name = &item_trait.ident;
     let spy_name = format_ident!("{}Spy", trait_name);
@@ -44,26 +45,39 @@ fn function_as_spy_field(
     associated_type: &Option<AssociatedType>,
 ) -> TokenStream {
     let function_name = &function.sig.ident;
+
+    let function = replace_associated_types(function.clone(), associated_type);
+
     let spy_argument_type =
-        tuple_or_single(inspect::spyable_arguments(function).map(argument_spy_type));
-    let return_type = function_return_type(function, associated_type);
+        tuple_or_single(inspect::spyable_arguments(&function).map(argument_spy_type));
+
+    let return_type = function_return_type(&function);
 
     quote! {
         pub #function_name: autospy::SpyFunction<#spy_argument_type, #return_type>
     }
 }
 
-fn function_return_type(
-    function: &TraitItemFn,
+fn replace_associated_types(
+    function: TraitItemFn,
     associated_type: &Option<AssociatedType>,
-) -> TokenStream {
+) -> TraitItemFn {
+    if let Some(associated_type) = associated_type {
+        let mut modified_function = function.clone();
+        let mut replacer = edit::AssociatedTypeReplacer {
+            associated_type: associated_type.clone(),
+        };
+        replacer.visit_trait_item_fn_mut(&mut modified_function);
+        modified_function
+    } else {
+        function
+    }
+}
+
+fn function_return_type(function: &TraitItemFn) -> TokenStream {
     // specifying the return attribute takes precedence over associated type
     if let Some(specified_return_type) = inspect::get_return_attribute_type(&function.attrs) {
         return specified_return_type;
-    }
-
-    if let Some(associated_type) = associated_type {
-        return associated_type._type.clone();
     }
 
     match &function.sig.output {
@@ -357,6 +371,19 @@ mod tests {
                 trait TestTrait {
                     type Item;
                     fn function(&self) -> Self::Item;
+                }
+            }
+        ))
+    }
+
+    #[test]
+    fn traits_with_single_associated_type_attribute_capture_expected_type() {
+        insta::assert_snapshot!(generate_pretty_with_attributes(
+            quote! { Item = String },
+            quote! {
+                trait TestTrait {
+                    type Item;
+                    fn function(&self, argument: Self::Item);
                 }
             }
         ))
