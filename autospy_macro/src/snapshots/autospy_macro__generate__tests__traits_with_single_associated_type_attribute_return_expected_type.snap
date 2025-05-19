@@ -1,0 +1,19 @@
+---
+source: autospy_macro/src/generate.rs
+assertion_line: 354
+expression: "generate_pretty_with_attributes(quote! { Item = String }, quote!\n{ trait TestTrait { type Item; fn function(&self) -> Self::Item; } })"
+---
+trait TestTrait {
+    type Item;
+    fn function(&self) -> Self::Item;
+}
+#[derive(Default, Clone)]
+struct TestTraitSpy {
+    pub function: autospy::SpyFunction<(), String>,
+}
+impl TestTrait for TestTraitSpy {
+    type Item = String;
+    fn function(&self) -> Self::Item {
+        self.function.spy(())
+    }
+}
