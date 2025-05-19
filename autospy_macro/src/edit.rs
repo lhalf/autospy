@@ -1,6 +1,28 @@
+use crate::inspect;
+use crate::inspect::AssociatedType;
+use syn::visit_mut::VisitMut;
 use syn::{Attribute, FnArg, ItemTrait, PatType, Signature, TraitItem, TraitItemFn, parse_quote};
 
-use crate::inspect;
+pub struct AssociatedTypeReplacer {
+    pub associated_type: AssociatedType,
+}
+
+impl VisitMut for AssociatedTypeReplacer {
+    fn visit_type_path_mut(&mut self, type_path: &mut syn::TypePath) {
+        if type_path.qself.is_none() && type_path.path.segments.len() == 2 {
+            let segments = &type_path.path.segments;
+            if segments[0].ident == "Self"
+                && segments[1].ident == self.associated_type.name.to_string()
+            {
+                *type_path = syn::parse2(self.associated_type._type.clone())
+                    .expect("invalid associated type");
+                return;
+            }
+        }
+
+        syn::visit_mut::visit_type_path_mut(self, type_path);
+    }
+}
 
 pub fn strip_attributes_from_trait(mut item_trait: ItemTrait) -> ItemTrait {
     trait_functions_mut(&mut item_trait).for_each(strip_attributes_from_function);
