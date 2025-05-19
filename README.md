@@ -7,7 +7,7 @@ A test spy object library.
 
 ## Overview
 
-Spies are a type of [test double](https://en.m.wikipedia.org/wiki/Test_double) used for unit testing software. A test spy is an object providing the same interface as the production code, but which allows setting of the output before a test runs and verification of input parameters after the test run.
+Spies are a type of [test double](https://en.wikipedia.org/wiki/Test_double) used for unit testing software. A test spy is an object providing the same interface as the production code, but which allows setting of the output before a test runs and verification of input parameters after the test run.
 
 ## Usage
 
