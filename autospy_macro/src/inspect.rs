@@ -10,6 +10,21 @@ const IGNORE_TOKEN: &str = "ignore";
 const RETURNS_TOKEN: &str = "returns";
 const INTO_TOKEN: &str = "into";
 
+pub fn associated_type(attributes: TokenStream) -> Option<AssociatedType> {
+    match syn::parse2::<MetaNameValue>(attributes) {
+        Ok(MetaNameValue { path, value, .. }) => Some(AssociatedType {
+            name: path.to_token_stream(),
+            _type: value.to_token_stream(),
+        }),
+        Err(_) => None,
+    }
+}
+
+pub struct AssociatedType {
+    pub name: TokenStream,
+    pub _type: TokenStream,
+}
+
 pub fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemFn> {
     item_trait.items.iter().filter_map(|item| match item {
         TraitItem::Fn(function) => Some(function),

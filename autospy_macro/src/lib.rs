@@ -8,6 +8,8 @@ use generate::generate;
 use proc_macro::TokenStream;
 
 #[proc_macro_attribute]
-pub fn autospy(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    TokenStream::from(generate(proc_macro2::TokenStream::from(item)))
+pub fn autospy(attributes: TokenStream, item: TokenStream) -> TokenStream {
+    let attributes = proc_macro2::TokenStream::from(attributes);
+    let item = proc_macro2::TokenStream::from(item);
+    TokenStream::from(generate(attributes, item))
 }

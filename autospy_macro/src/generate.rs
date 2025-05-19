@@ -1,15 +1,18 @@
 use quote::{ToTokens, format_ident, quote};
 use syn::{ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait};
 
+use crate::inspect::AssociatedType;
 use crate::{edit, inspect};
 use proc_macro2::TokenStream;
 
-pub fn generate(item: TokenStream) -> TokenStream {
+pub fn generate(attributes: TokenStream, item: TokenStream) -> TokenStream {
+    let associated_type = inspect::associated_type(attributes);
     let item_trait: ItemTrait = syn::parse2(item.clone()).unwrap();
     let visibility = &item_trait.vis;
     let trait_name = &item_trait.ident;
     let spy_name = format_ident!("{}Spy", trait_name);
-    let spy_fields = trait_spy_fields(&item_trait);
+    let spy_fields = trait_spy_fields(&item_trait, &associated_type);
+    let associated_type_definitions = associated_type_definitions(&associated_type);
     let spy_function_definitions = trait_spy_function_definitions(&item_trait);
     let stripped_item_trait = edit::strip_attributes_from_trait(item_trait.clone());
 
@@ -22,29 +25,45 @@ pub fn generate(item: TokenStream) -> TokenStream {
         }
 
         impl #trait_name for #spy_name {
+            #associated_type_definitions
             #(#spy_function_definitions)*
         }
     }
 }
 
-fn trait_spy_fields(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {
-    inspect::trait_functions(item_trait).map(function_as_spy_field)
+fn trait_spy_fields(
+    item_trait: &ItemTrait,
+    associated_type: &Option<AssociatedType>,
+) -> impl Iterator<Item = TokenStream> {
+    inspect::trait_functions(item_trait)
+        .map(|function| function_as_spy_field(function, associated_type))
 }
 
-fn function_as_spy_field(function: &TraitItemFn) -> TokenStream {
+fn function_as_spy_field(
+    function: &TraitItemFn,
+    associated_type: &Option<AssociatedType>,
+) -> TokenStream {
     let function_name = &function.sig.ident;
     let spy_argument_type =
         tuple_or_single(inspect::spyable_arguments(function).map(argument_spy_type));
-    let return_type = function_return_type(function);
+    let return_type = function_return_type(function, associated_type);
 
     quote! {
         pub #function_name: autospy::SpyFunction<#spy_argument_type, #return_type>
     }
 }
 
-fn function_return_type(function: &TraitItemFn) -> TokenStream {
+fn function_return_type(
+    function: &TraitItemFn,
+    associated_type: &Option<AssociatedType>,
+) -> TokenStream {
+    // specifying the return attribute takes precedence over associated type
     if let Some(specified_return_type) = inspect::get_return_attribute_type(&function.attrs) {
         return specified_return_type;
+    }
+
+    if let Some(associated_type) = associated_type {
+        return associated_type._type.clone();
     }
 
     match &function.sig.output {
@@ -118,6 +137,17 @@ fn tuple_or_single(mut items: impl Iterator<Item = TokenStream>) -> TokenStream 
     }
 }
 
+fn associated_type_definitions(associated_type: &Option<AssociatedType>) -> TokenStream {
+    match associated_type {
+        Some(associated_type) => {
+            let name = associated_type.name.clone();
+            let _type = associated_type._type.clone();
+            quote! { type #name = #_type; }
+        }
+        None => TokenStream::new(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::generate::generate;
@@ -125,7 +155,12 @@ mod tests {
     use quote::quote;
 
     fn generate_pretty(tokens: TokenStream) -> String {
-        let expanded = generate(tokens).to_string();
+        let expanded = generate(TokenStream::new(), tokens).to_string();
+        prettyplease::unparse(&syn::parse_file(&expanded).unwrap())
+    }
+
+    fn generate_pretty_with_attributes(attributes: TokenStream, item: TokenStream) -> String {
+        let expanded = generate(attributes, item).to_string();
         prettyplease::unparse(&syn::parse_file(&expanded).unwrap())
     }
 
@@ -312,5 +347,18 @@ mod tests {
                 fn function(&self) -> impl ToString;
             }
         }))
+    }
+
+    #[test]
+    fn traits_with_single_associated_type_attribute_return_expected_type() {
+        insta::assert_snapshot!(generate_pretty_with_attributes(
+            quote! { Item = String },
+            quote! {
+                trait TestTrait {
+                    type Item;
+                    fn function(&self) -> Self::Item;
+                }
+            }
+        ))
     }
 }
