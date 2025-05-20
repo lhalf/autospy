@@ -1,5 +1,6 @@
 extern crate proc_macro;
 
+mod associated_types;
 mod edit;
 mod generate;
 mod generate_spy_struct;

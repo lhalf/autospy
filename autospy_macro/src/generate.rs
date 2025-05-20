@@ -1,15 +1,14 @@
+use crate::associated_types::get_associated_types;
+use crate::generate_spy_struct::generate_spy_struct;
+use crate::generate_spy_trait::generate_spy_trait;
+use crate::strip_attributes::strip_attributes;
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::ItemTrait;
 
-use crate::generate_spy_struct::generate_spy_struct;
-use crate::generate_spy_trait::generate_spy_trait;
-use crate::inspect;
-use crate::strip_attributes::strip_attributes;
-
 pub fn generate(item: TokenStream) -> TokenStream {
     let item_trait: ItemTrait = syn::parse2(item.clone()).expect("invalid trait definition");
-    let associated_type = inspect::associated_type(&item_trait);
+    let associated_type = get_associated_types(&item_trait);
     let stripped_item_trait = strip_attributes(item_trait.clone());
     let spy_struct = generate_spy_struct(&item_trait, &associated_type);
     let spy_trait = generate_spy_trait(&item_trait, &associated_type);

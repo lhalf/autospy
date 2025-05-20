@@ -1,4 +1,4 @@
-use crate::inspect::AssociatedType;
+use crate::associated_types::AssociatedType;
 use crate::strip_attributes::strip_attributes_from_signature;
 use crate::{edit, generate, inspect};
 use proc_macro2::TokenStream;

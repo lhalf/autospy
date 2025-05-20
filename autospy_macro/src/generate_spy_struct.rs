@@ -1,4 +1,4 @@
-use crate::inspect::AssociatedType;
+use crate::associated_types::AssociatedType;
 use crate::{edit, generate, inspect};
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
