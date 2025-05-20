@@ -2,27 +2,13 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
     Attribute, FnArg, Ident, ItemTrait, Meta, MetaList, MetaNameValue, Pat, PatType, TraitItem,
-    TraitItemFn, TraitItemType, Type,
+    TraitItemFn, Type,
 };
 
 const AUTOSPY_TOKEN: &str = "autospy";
 const IGNORE_TOKEN: &str = "ignore";
 const RETURNS_TOKEN: &str = "returns";
 const INTO_TOKEN: &str = "into";
-
-pub fn associated_type(item_trait: &ItemTrait) -> Option<AssociatedType> {
-    item_trait
-        .items
-        .iter()
-        .find_map(associated_types)
-        .and_then(associated_type_attribute)
-}
-
-#[derive(Clone)]
-pub struct AssociatedType {
-    pub name: TokenStream,
-    pub _type: TokenStream,
-}
 
 pub fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemFn> {
     item_trait.items.iter().filter_map(|item| match item {
@@ -57,23 +43,6 @@ pub fn get_return_attribute_type(attributes: &[Attribute]) -> Option<TokenStream
         .and_then(returns_attribute_type)
 }
 
-fn associated_types(item: &TraitItem) -> Option<TraitItemType> {
-    match item {
-        TraitItem::Type(trait_type) => Some(trait_type.clone()),
-        _ => None,
-    }
-}
-
-fn associated_type_attribute(trait_item: TraitItemType) -> Option<AssociatedType> {
-    match trait_item.attrs.iter().find_map(autospy_attribute) {
-        Some(associated_type) => Some(AssociatedType {
-            name: trait_item.ident.to_token_stream(),
-            _type: associated_type.clone(),
-        }),
-        None => None,
-    }
-}
-
 fn is_ignore_attribute(attribute: &Attribute) -> bool {
     match autospy_attribute(attribute) {
         Some(tokens) => tokens.to_string() == IGNORE_TOKEN,
@@ -81,7 +50,7 @@ fn is_ignore_attribute(attribute: &Attribute) -> bool {
     }
 }
 
-fn autospy_attribute(attribute: &Attribute) -> Option<&TokenStream> {
+pub fn autospy_attribute(attribute: &Attribute) -> Option<&TokenStream> {
     match &attribute.meta {
         Meta::List(MetaList { path, tokens, .. }) if path.is_ident(AUTOSPY_TOKEN) => Some(tokens),
         _ => None,

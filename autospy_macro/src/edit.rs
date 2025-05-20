@@ -1,5 +1,5 @@
+use crate::associated_types::AssociatedType;
 use crate::inspect;
-use crate::inspect::AssociatedType;
 use syn::visit_mut::VisitMut;
 use syn::{FnArg, PatType, Signature, parse_quote};
 
