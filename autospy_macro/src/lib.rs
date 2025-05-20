@@ -3,6 +3,7 @@ extern crate proc_macro;
 mod edit;
 mod generate;
 mod inspect;
+mod strip_attributes;
 
 use generate::generate;
 use proc_macro::TokenStream;

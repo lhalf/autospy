@@ -4,6 +4,7 @@ use syn::visit_mut::VisitMut;
 use syn::{ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait};
 
 use crate::inspect::AssociatedType;
+use crate::strip_attributes::{strip_attributes, strip_attributes_from_signature};
 use crate::{edit, inspect};
 
 pub fn generate(item: TokenStream) -> TokenStream {
@@ -15,7 +16,7 @@ pub fn generate(item: TokenStream) -> TokenStream {
     let spy_fields = trait_spy_fields(&item_trait, &associated_type);
     let associated_type_definitions = associated_type_definitions(&associated_type);
     let spy_function_definitions = trait_spy_function_definitions(&item_trait);
-    let stripped_item_trait = edit::strip_attributes_from_trait(item_trait.clone());
+    let stripped_item_trait = strip_attributes(item_trait.clone());
 
     quote! {
         #stripped_item_trait
@@ -97,7 +98,7 @@ fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
 
     let mut signature = function.sig.clone();
     edit::underscore_ignored_arguments_in_signature(&mut signature);
-    edit::strip_attributes_from_signature(&mut signature);
+    strip_attributes_from_signature(&mut signature);
 
     quote! {
         #signature {
