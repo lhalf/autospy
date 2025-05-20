@@ -9,6 +9,12 @@ pub fn strip_attributes(mut item_trait: ItemTrait) -> ItemTrait {
     item_trait
 }
 
+pub fn strip_attributes_from_signature(signature: &mut Signature) {
+    for argument in edit::non_self_signature_arguments_mut(signature) {
+        strip_autospy_attributes(&mut argument.attrs);
+    }
+}
+
 fn strip_attributes_from_item(item: &mut TraitItem) {
     match item {
         TraitItem::Fn(function) => {
@@ -22,12 +28,6 @@ fn strip_attributes_from_item(item: &mut TraitItem) {
 
 fn strip_autospy_attributes(attributes: &mut Vec<Attribute>) {
     attributes.retain(|attribute| !inspect::is_autospy_attribute(attribute));
-}
-
-pub fn strip_attributes_from_signature(signature: &mut Signature) {
-    for argument in edit::non_self_signature_arguments_mut(signature) {
-        strip_autospy_attributes(&mut argument.attrs);
-    }
 }
 
 #[cfg(test)]
