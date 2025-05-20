@@ -1,7 +1,7 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 354
-expression: "generate_pretty_with_attributes(quote! { Item = String }, quote!\n{ trait TestTrait { type Item; fn function(&self) -> Self::Item; } })"
+assertion_line: 363
+expression: "generate_pretty(quote!\n{\n    trait TestTrait\n    { #[autospy(String)] type Item; fn function(&self) -> Self::Item; }\n})"
 ---
 trait TestTrait {
     type Item;

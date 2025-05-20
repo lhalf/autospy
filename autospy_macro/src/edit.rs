@@ -1,7 +1,7 @@
 use crate::inspect;
 use crate::inspect::AssociatedType;
 use syn::visit_mut::VisitMut;
-use syn::{Attribute, FnArg, ItemTrait, PatType, Signature, TraitItem, TraitItemFn, parse_quote};
+use syn::{Attribute, FnArg, ItemTrait, PatType, Signature, TraitItem, parse_quote};
 
 pub struct AssociatedTypeReplacer {
     pub associated_type: AssociatedType,
@@ -25,7 +25,10 @@ impl VisitMut for AssociatedTypeReplacer {
 }
 
 pub fn strip_attributes_from_trait(mut item_trait: ItemTrait) -> ItemTrait {
-    trait_functions_mut(&mut item_trait).for_each(strip_attributes_from_function);
+    item_trait
+        .items
+        .iter_mut()
+        .for_each(strip_attributes_from_item);
     item_trait
 }
 
@@ -41,9 +44,15 @@ pub fn strip_attributes_from_signature(signature: &mut Signature) {
     }
 }
 
-fn strip_attributes_from_function(function: &mut TraitItemFn) {
-    strip_autospy_attributes(&mut function.attrs);
-    strip_attributes_from_signature(&mut function.sig);
+fn strip_attributes_from_item(item: &mut TraitItem) {
+    match item {
+        TraitItem::Fn(function) => {
+            strip_autospy_attributes(&mut function.attrs);
+            strip_attributes_from_signature(&mut function.sig);
+        }
+        TraitItem::Type(_type) => strip_autospy_attributes(&mut _type.attrs),
+        _ => todo!(),
+    }
 }
 
 fn strip_autospy_attributes(attributes: &mut Vec<Attribute>) {
@@ -52,13 +61,6 @@ fn strip_autospy_attributes(attributes: &mut Vec<Attribute>) {
 
 fn rename_argument_to_underscore(argument: &mut PatType) {
     argument.pat = parse_quote! { _ };
-}
-
-fn trait_functions_mut(item_trait: &mut ItemTrait) -> impl Iterator<Item = &mut TraitItemFn> {
-    item_trait.items.iter_mut().filter_map(|item| match item {
-        TraitItem::Fn(function) => Some(function),
-        _ => None,
-    })
 }
 
 fn non_self_signature_arguments_mut(
