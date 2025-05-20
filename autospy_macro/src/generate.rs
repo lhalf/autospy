@@ -1,8 +1,8 @@
 use proc_macro2::TokenStream;
-use quote::{ToTokens, format_ident, quote};
-use syn::visit_mut::VisitMut;
-use syn::{ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait};
+use quote::{format_ident, quote};
+use syn::{ItemTrait, TraitItemFn, Type};
 
+use crate::generate_spy::generate_spy;
 use crate::inspect::AssociatedType;
 use crate::strip_attributes::{strip_attributes, strip_attributes_from_signature};
 use crate::{edit, inspect};
@@ -10,10 +10,9 @@ use crate::{edit, inspect};
 pub fn generate(item: TokenStream) -> TokenStream {
     let item_trait: ItemTrait = syn::parse2(item.clone()).expect("invalid trait definition");
     let associated_type = inspect::associated_type(&item_trait);
-    let visibility = &item_trait.vis;
     let trait_name = &item_trait.ident;
     let spy_name = format_ident!("{}Spy", trait_name);
-    let spy_fields = trait_spy_fields(&item_trait, &associated_type);
+    let spy_struct = generate_spy(&item_trait, &associated_type);
     let associated_type_definitions = associated_type_definitions(&associated_type);
     let spy_function_definitions = trait_spy_function_definitions(&item_trait);
     let stripped_item_trait = strip_attributes(item_trait.clone());
@@ -21,69 +20,12 @@ pub fn generate(item: TokenStream) -> TokenStream {
     quote! {
         #stripped_item_trait
 
-        #[derive(Default, Clone)]
-        #visibility struct #spy_name {
-            #(#spy_fields),*
-        }
+        #spy_struct
 
         impl #trait_name for #spy_name {
             #associated_type_definitions
             #(#spy_function_definitions)*
         }
-    }
-}
-
-fn trait_spy_fields(
-    item_trait: &ItemTrait,
-    associated_type: &Option<AssociatedType>,
-) -> impl Iterator<Item = TokenStream> {
-    inspect::trait_functions(item_trait)
-        .map(|function| function_as_spy_field(function, associated_type))
-}
-
-fn function_as_spy_field(
-    function: &TraitItemFn,
-    associated_type: &Option<AssociatedType>,
-) -> TokenStream {
-    let function_name = &function.sig.ident;
-
-    let function = replace_associated_types(function.clone(), associated_type);
-
-    let spy_argument_type =
-        tuple_or_single(inspect::spyable_arguments(&function).map(argument_spy_type));
-
-    let return_type = function_return_type(&function);
-
-    quote! {
-        pub #function_name: autospy::SpyFunction<#spy_argument_type, #return_type>
-    }
-}
-
-fn replace_associated_types(
-    function: TraitItemFn,
-    associated_type: &Option<AssociatedType>,
-) -> TraitItemFn {
-    if let Some(associated_type) = associated_type {
-        let mut modified_function = function.clone();
-        let mut replacer = edit::AssociatedTypeReplacer {
-            associated_type: associated_type.clone(),
-        };
-        replacer.visit_trait_item_fn_mut(&mut modified_function);
-        modified_function
-    } else {
-        function
-    }
-}
-
-fn function_return_type(function: &TraitItemFn) -> TokenStream {
-    // specifying the return attribute takes precedence over associated type
-    if let Some(specified_return_type) = inspect::get_return_attribute_type(&function.attrs) {
-        return specified_return_type;
-    }
-
-    match &function.sig.output {
-        ReturnType::Default => quote! { () },
-        ReturnType::Type(_arrow, return_type) => return_type.to_token_stream(),
     }
 }
 
@@ -104,18 +46,6 @@ fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
         #signature {
             self.#function_name.spy(#spy_arguments)
         }
-    }
-}
-
-fn argument_spy_type(argument: inspect::SpyableArgument) -> TokenStream {
-    if let Some(into_type) = argument.into_type {
-        return quote! { #into_type };
-    }
-
-    let dereferenced_type = &argument.dereferenced_type;
-    match argument.dereferenced_type {
-        Type::ImplTrait(TypeImplTrait { bounds, .. }) => quote! { Box<dyn #bounds> },
-        _ => quote! { <#dereferenced_type as ToOwned>::Owned },
     }
 }
 
