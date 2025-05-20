@@ -6,9 +6,9 @@ use syn::{ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait};
 use crate::inspect::AssociatedType;
 use crate::{edit, inspect};
 
-pub fn generate(attributes: TokenStream, item: TokenStream) -> TokenStream {
-    let associated_type = inspect::associated_type(attributes);
+pub fn generate(item: TokenStream) -> TokenStream {
     let item_trait: ItemTrait = syn::parse2(item.clone()).expect("invalid trait definition");
+    let associated_type = inspect::associated_type(&item_trait);
     let visibility = &item_trait.vis;
     let trait_name = &item_trait.ident;
     let spy_name = format_ident!("{}Spy", trait_name);
@@ -169,12 +169,7 @@ mod tests {
     use quote::quote;
 
     fn generate_pretty(tokens: TokenStream) -> String {
-        let expanded = generate(TokenStream::new(), tokens).to_string();
-        prettyplease::unparse(&syn::parse_file(&expanded).unwrap())
-    }
-
-    fn generate_pretty_with_attributes(attributes: TokenStream, item: TokenStream) -> String {
-        let expanded = generate(attributes, item).to_string();
+        let expanded = generate(tokens).to_string();
         prettyplease::unparse(&syn::parse_file(&expanded).unwrap())
     }
 
@@ -365,27 +360,21 @@ mod tests {
 
     #[test]
     fn traits_with_single_associated_type_attribute_return_expected_type() {
-        insta::assert_snapshot!(generate_pretty_with_attributes(
-            quote! { Item = String },
-            quote! {
-                trait TestTrait {
-                    type Item;
-                    fn function(&self) -> Self::Item;
-                }
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                #[autospy(String)] type Item;
+                fn function(&self) -> Self::Item;
             }
-        ))
+        }))
     }
 
     #[test]
     fn traits_with_single_associated_type_attribute_capture_expected_type() {
-        insta::assert_snapshot!(generate_pretty_with_attributes(
-            quote! { Item = String },
-            quote! {
-                trait TestTrait {
-                    type Item;
-                    fn function(&self, argument: Self::Item);
-                }
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                #[autospy(String)] type Item;
+                fn function(&self, argument: Self::Item);
             }
-        ))
+        }))
     }
 }

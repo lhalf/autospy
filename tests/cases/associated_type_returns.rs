@@ -1,5 +1,6 @@
-#[autospy::autospy(Item = String)]
+#[autospy::autospy]
 trait TestTrait {
+    #[autospy(String)]
     type Item;
     fn function(&self) -> Self::Item;
 }
