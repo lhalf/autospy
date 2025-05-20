@@ -89,6 +89,7 @@ fn function_return_type(function: &TraitItemFn) -> TokenStream {
 
 #[cfg(test)]
 mod tests {
+    use crate::associated_types::AssociatedType;
     use crate::generate_spy_struct::generate_spy_struct;
     use quote::{ToTokens, quote};
     use syn::ItemTrait;
@@ -132,7 +133,7 @@ mod tests {
     }
 
     #[test]
-    fn generated_spy_struct_captures_owned_return_values() {
+    fn generated_spy_struct_handles_owned_return_values() {
         let input: ItemTrait = syn::parse2(quote! {
             trait Example {
                 fn foo(&self) -> String;
@@ -169,6 +170,64 @@ mod tests {
         };
 
         let actual = generate_spy_struct(&input, &None);
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn generated_spy_struct_captures_associated_type_arguments() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                #[autospy(String)]
+                type Item;
+                fn foo(&self, argument: Self::Item);
+            }
+        })
+        .unwrap();
+
+        let expected = quote! {
+            #[derive(Default, Clone)]
+            struct ExampleSpy {
+                pub foo: autospy::SpyFunction< < String as ToOwned > :: Owned , () >
+            }
+        };
+
+        let actual = generate_spy_struct(
+            &input,
+            &Some(AssociatedType {
+                name: quote! { Item },
+                _type: quote! { String },
+            }),
+        );
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn generated_spy_struct_handles_associated_type_returns() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                #[autospy(String)]
+                type Item;
+                fn foo(&self) -> Self::Item;
+            }
+        })
+        .unwrap();
+
+        let expected = quote! {
+            #[derive(Default, Clone)]
+            struct ExampleSpy {
+                pub foo: autospy::SpyFunction< (), String >
+            }
+        };
+
+        let actual = generate_spy_struct(
+            &input,
+            &Some(AssociatedType {
+                name: quote! { Item },
+                _type: quote! { String },
+            }),
+        );
 
         assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
     }
