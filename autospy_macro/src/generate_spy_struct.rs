@@ -1,5 +1,5 @@
 use crate::inspect::AssociatedType;
-use crate::{edit, inspect};
+use crate::{edit, generate, inspect};
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
 use syn::visit_mut::VisitMut;
@@ -38,7 +38,7 @@ fn function_as_spy_field(
     let function = replace_associated_types(function.clone(), associated_type);
 
     let spy_argument_type =
-        tuple_or_single(inspect::spyable_arguments(&function).map(argument_spy_type));
+        generate::tuple_or_single(inspect::spyable_arguments(&function).map(argument_spy_type));
 
     let return_type = function_return_type(&function);
 
@@ -72,14 +72,6 @@ fn argument_spy_type(argument: inspect::SpyableArgument) -> TokenStream {
     match argument.dereferenced_type {
         Type::ImplTrait(TypeImplTrait { bounds, .. }) => quote! { Box<dyn #bounds> },
         _ => quote! { <#dereferenced_type as ToOwned>::Owned },
-    }
-}
-
-fn tuple_or_single(mut items: impl Iterator<Item = TokenStream>) -> TokenStream {
-    match (items.next(), items.next(), items) {
-        (None, _, _) => quote! { () },
-        (Some(first), None, _) => quote! { #first },
-        (Some(first), Some(second), remainder) => quote! { ( #first , #second #(, #remainder)* ) },
     }
 }
 

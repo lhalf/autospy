@@ -3,6 +3,7 @@ extern crate proc_macro;
 mod edit;
 mod generate;
 mod generate_spy_struct;
+mod generate_spy_trait;
 mod inspect;
 mod strip_attributes;
 
