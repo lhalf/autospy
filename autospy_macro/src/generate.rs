@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{ItemTrait, TraitItemFn, Type};
 
-use crate::generate_spy::generate_spy;
+use crate::generate_spy_struct::generate_spy_struct;
 use crate::inspect::AssociatedType;
 use crate::strip_attributes::{strip_attributes, strip_attributes_from_signature};
 use crate::{edit, inspect};
@@ -12,7 +12,7 @@ pub fn generate(item: TokenStream) -> TokenStream {
     let associated_type = inspect::associated_type(&item_trait);
     let trait_name = &item_trait.ident;
     let spy_name = format_ident!("{}Spy", trait_name);
-    let spy_struct = generate_spy(&item_trait, &associated_type);
+    let spy_struct = generate_spy_struct(&item_trait, &associated_type);
     let associated_type_definitions = associated_type_definitions(&associated_type);
     let spy_function_definitions = trait_spy_function_definitions(&item_trait);
     let stripped_item_trait = strip_attributes(item_trait.clone());
