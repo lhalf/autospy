@@ -33,7 +33,7 @@ fn strip_autospy_attributes(attributes: &mut Vec<Attribute>) {
 #[cfg(test)]
 mod tests {
     use crate::strip_attributes::strip_attributes;
-    use quote::{ToTokens, quote};
+    use quote::quote;
     use syn::ItemTrait;
 
     #[test]
@@ -52,12 +52,7 @@ mod tests {
         })
         .unwrap();
 
-        let actual = strip_attributes(input);
-
-        assert_eq!(
-            actual.to_token_stream().to_string(),
-            expected.to_token_stream().to_string()
-        );
+        assert_eq!(expected, strip_attributes(input));
     }
 
     #[test]
@@ -76,12 +71,7 @@ mod tests {
         })
         .unwrap();
 
-        let actual = strip_attributes(input);
-
-        assert_eq!(
-            actual.to_token_stream().to_string(),
-            expected.to_token_stream().to_string()
-        );
+        assert_eq!(expected, strip_attributes(input));
     }
 
     #[test]
@@ -103,12 +93,7 @@ mod tests {
         })
         .unwrap();
 
-        let actual = strip_attributes(input);
-
-        assert_eq!(
-            actual.to_token_stream().to_string(),
-            expected.to_token_stream().to_string()
-        );
+        assert_eq!(expected, strip_attributes(input));
     }
 
     #[test]
@@ -132,11 +117,6 @@ mod tests {
         })
         .unwrap();
 
-        let actual = strip_attributes(input);
-
-        assert_eq!(
-            actual.to_token_stream().to_string(),
-            expected.to_token_stream().to_string()
-        );
+        assert_eq!(expected, strip_attributes(input));
     }
 }
