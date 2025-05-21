@@ -7,7 +7,7 @@ use quote::quote;
 use syn::ItemTrait;
 
 pub fn generate(item: TokenStream) -> TokenStream {
-    let item_trait: ItemTrait = syn::parse2(item.clone()).expect("invalid trait definition");
+    let item_trait: ItemTrait = syn::parse2(item).expect("invalid trait definition");
     let associated_type = get_associated_types(&item_trait);
     let stripped_item_trait = strip_attributes(item_trait.clone());
     let spy_struct = generate_spy_struct(&item_trait, &associated_type);
