@@ -1,8 +1,8 @@
 ---
 source: autospy_macro/src/generate.rs
-expression: "generate_pretty(quote!\n{\n    #[autospy::autospy] trait MyTrait\n    { fn function(&self, #[autospy(into=IpAddr)] ip: [u8; 4]); }\n})"
+assertion_line: 44
+expression: "generate_pretty(quote!\n{\n    trait MyTrait { fn function(&self, #[autospy(into=IpAddr)] ip: [u8; 4]); }\n})"
 ---
-#[autospy::autospy]
 trait MyTrait {
     fn function(&self, ip: [u8; 4]);
 }

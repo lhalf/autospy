@@ -1,5 +1,6 @@
 ---
 source: autospy_macro/src/generate.rs
+assertion_line: 109
 expression: "generate_pretty(quote! { pub trait TestTrait { fn function(&self); } })"
 ---
 pub trait TestTrait {

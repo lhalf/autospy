@@ -78,3 +78,108 @@ fn dereference_tokens(argument: &inspect::SpyableArgument) -> TokenStream {
         .parse()
         .expect("always valid token stream")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::generate_spy_trait;
+    use quote::{ToTokens, quote};
+    use syn::ItemTrait;
+
+    #[test]
+    fn empty_generated_trait() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {}
+        })
+        .unwrap();
+
+        let expected = quote! {
+            impl Example for ExampleSpy {}
+        };
+
+        let actual = generate_spy_trait(&input, &None);
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn empty_generated_trait_impl() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {}
+        })
+        .unwrap();
+
+        let expected = quote! {
+            impl Example for ExampleSpy {}
+        };
+
+        let actual = generate_spy_trait(&input, &None);
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn ignored_arguments_are_underscored_and_not_captured_in_trait_impl() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                fn function(&self, #[autospy(ignore)] ignored: &str, captured: &str);
+            }
+        })
+        .unwrap();
+
+        let expected = quote! {
+            impl Example for ExampleSpy {
+                fn function(&self, _: &str, captured: &str) {
+                    self.function.spy(captured.to_owned())
+                }
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &None);
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn functions_with_static_impl_arguments_are_boxed() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                fn function(&self, argument: impl ToString + 'static);
+            }
+        })
+        .unwrap();
+
+        let expected = quote! {
+            impl Example for ExampleSpy {
+                fn function(&self, argument: impl ToString + 'static) {
+                    self.function.spy(Box::new(argument))
+                }
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &None);
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn arguments_with_into_attribute_are_captured() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                fn function(&self, #[autospy(into=IpAddr)] ip: [u8; 4]);
+            }
+        })
+        .unwrap();
+
+        let expected = quote! {
+            impl Example for ExampleSpy {
+                fn function(&self, ip: [u8; 4]) {
+                    self.function.spy(ip.into())
+                }
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &None);
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+}

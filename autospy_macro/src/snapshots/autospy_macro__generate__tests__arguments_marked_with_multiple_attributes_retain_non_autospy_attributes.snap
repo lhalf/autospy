@@ -1,5 +1,6 @@
 ---
 source: autospy_macro/src/generate.rs
+assertion_line: 63
 expression: "generate_pretty(quote!\n{\n    trait TestTrait\n    {\n        fn\n        function(&self, #[some_attribute] #[autospy(ignore)] ignored: &str,\n        captured: &str);\n    }\n})"
 ---
 trait TestTrait {
