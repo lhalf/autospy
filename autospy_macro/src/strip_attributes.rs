@@ -1,4 +1,4 @@
-use crate::{edit, inspect};
+use crate::{attribute, edit};
 use syn::{Attribute, ItemTrait, Signature, TraitItem};
 
 pub fn strip_attributes(mut item_trait: ItemTrait) -> ItemTrait {
@@ -27,7 +27,7 @@ fn strip_attributes_from_item(item: &mut TraitItem) {
 }
 
 fn strip_autospy_attributes(attributes: &mut Vec<Attribute>) {
-    attributes.retain(|attribute| !inspect::is_autospy_attribute(attribute));
+    attributes.retain(|attribute| !attribute::is_autospy_attribute(attribute));
 }
 
 #[cfg(test)]

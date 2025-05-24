@@ -1,5 +1,5 @@
 use crate::associated_types::AssociatedType;
-use crate::{edit, generate, inspect};
+use crate::{attribute, edit, generate, inspect};
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
 use syn::visit_mut::VisitMut;
@@ -78,7 +78,7 @@ fn argument_spy_type(argument: inspect::SpyableArgument) -> TokenStream {
 
 fn function_return_type(function: &TraitItemFn) -> TokenStream {
     // specifying the return attribute takes precedence over associated type
-    if let Some(specified_return_type) = inspect::get_return_attribute_type(&function.attrs) {
+    if let Some(specified_return_type) = attribute::return_type(&function.attrs) {
         return specified_return_type;
     }
 
@@ -196,7 +196,7 @@ mod tests {
                 &input,
                 &Some(AssociatedType {
                     name: quote! { Item },
-                    _type: quote! { String },
+                    r#type: quote! { String },
                 }),
             )
         );
@@ -227,7 +227,7 @@ mod tests {
                 &input,
                 &Some(AssociatedType {
                     name: quote! { Item },
-                    _type: quote! { String },
+                    r#type: quote! { String },
                 }),
             )
         );
