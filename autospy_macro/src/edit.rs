@@ -14,7 +14,7 @@ impl VisitMut for AssociatedTypeReplacer {
             if segments[0].ident == "Self"
                 && segments[1].ident == self.associated_type.name.to_string()
             {
-                *type_path = syn::parse2(self.associated_type._type.clone())
+                *type_path = syn::parse2(self.associated_type.r#type.clone())
                     .expect("invalid associated type");
                 return;
             }

@@ -26,7 +26,7 @@ fn associated_type_definitions(associated_type: &Option<AssociatedType>) -> Toke
     match associated_type {
         Some(associated_type) => {
             let name = associated_type.name.clone();
-            let _type = associated_type._type.clone();
+            let _type = associated_type.r#type.clone();
             quote! { type #name = #_type; }
         }
         None => TokenStream::new(),

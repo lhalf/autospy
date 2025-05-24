@@ -1,4 +1,4 @@
-use crate::inspect;
+use crate::attribute;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{ItemTrait, TraitItem, TraitItemType};
@@ -6,7 +6,7 @@ use syn::{ItemTrait, TraitItem, TraitItemType};
 #[derive(Clone)]
 pub struct AssociatedType {
     pub name: TokenStream,
-    pub _type: TokenStream,
+    pub r#type: TokenStream,
 }
 
 pub fn get_associated_types(item_trait: &ItemTrait) -> Option<AssociatedType> {
@@ -17,19 +17,17 @@ pub fn get_associated_types(item_trait: &ItemTrait) -> Option<AssociatedType> {
         .and_then(associated_type_attribute)
 }
 
-fn associated_types(item: &TraitItem) -> Option<TraitItemType> {
+fn associated_types(item: &TraitItem) -> Option<&TraitItemType> {
     match item {
-        TraitItem::Type(trait_type) => Some(trait_type.clone()),
+        TraitItem::Type(trait_type) => Some(trait_type),
         _ => None,
     }
 }
 
-fn associated_type_attribute(trait_item: TraitItemType) -> Option<AssociatedType> {
-    match trait_item.attrs.iter().find_map(inspect::autospy_attribute) {
-        Some(associated_type) => Some(AssociatedType {
-            name: trait_item.ident.to_token_stream(),
-            _type: associated_type.clone(),
-        }),
-        None => None,
-    }
+fn associated_type_attribute(trait_item: &TraitItemType) -> Option<AssociatedType> {
+    let r#type = attribute::associated_type(&trait_item.attrs)?.clone();
+    Some(AssociatedType {
+        name: trait_item.ident.to_token_stream(),
+        r#type,
+    })
 }
