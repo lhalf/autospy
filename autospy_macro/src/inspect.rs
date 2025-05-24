@@ -1,6 +1,5 @@
 use crate::attribute;
-use proc_macro2::TokenStream;
-use syn::{FnArg, Ident, ItemTrait, Pat, PatType, TraitItem, TraitItemFn, Type};
+use syn::{Expr, FnArg, Ident, ItemTrait, Pat, PatType, TraitItem, TraitItemFn, Type};
 
 pub fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemFn> {
     item_trait.items.iter().filter_map(|item| match item {
@@ -15,7 +14,7 @@ pub fn spyable_arguments(function: &TraitItemFn) -> impl Iterator<Item = Spyable
 
 pub struct SpyableArgument {
     pub name: Ident,
-    pub into_type: Option<TokenStream>,
+    pub into_type: Option<Expr>,
     pub dereferenced_type: Type,
     pub dereference_count: u8,
 }
