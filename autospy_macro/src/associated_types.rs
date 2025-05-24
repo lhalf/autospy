@@ -1,11 +1,10 @@
 use crate::attribute;
 use proc_macro2::TokenStream;
-use quote::ToTokens;
-use syn::{ItemTrait, TraitItem, TraitItemType};
+use syn::{Ident, ItemTrait, TraitItem, TraitItemType};
 
 #[derive(Clone)]
 pub struct AssociatedType {
-    pub name: TokenStream,
+    pub name: Ident,
     pub r#type: TokenStream,
 }
 
@@ -14,7 +13,7 @@ pub fn get_associated_types(item_trait: &ItemTrait) -> Option<AssociatedType> {
         .items
         .iter()
         .find_map(associated_types)
-        .and_then(associated_type_attribute)
+        .and_then(associated_type_from_attribute)
 }
 
 fn associated_types(item: &TraitItem) -> Option<&TraitItemType> {
@@ -24,10 +23,10 @@ fn associated_types(item: &TraitItem) -> Option<&TraitItemType> {
     }
 }
 
-fn associated_type_attribute(trait_item: &TraitItemType) -> Option<AssociatedType> {
+fn associated_type_from_attribute(trait_item: &TraitItemType) -> Option<AssociatedType> {
     let r#type = attribute::associated_type(&trait_item.attrs)?.clone();
     Some(AssociatedType {
-        name: trait_item.ident.to_token_stream(),
+        name: trait_item.ident.clone(),
         r#type,
     })
 }

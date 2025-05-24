@@ -79,7 +79,7 @@ fn argument_spy_type(argument: inspect::SpyableArgument) -> TokenStream {
 fn function_return_type(function: &TraitItemFn) -> TokenStream {
     // specifying the return attribute takes precedence over associated type
     if let Some(specified_return_type) = attribute::return_type(&function.attrs) {
-        return specified_return_type;
+        return specified_return_type.to_token_stream();
     }
 
     match &function.sig.output {
@@ -195,7 +195,7 @@ mod tests {
             generate_spy_struct(
                 &input,
                 &Some(AssociatedType {
-                    name: quote! { Item },
+                    name: syn::parse2(quote! { Item }).unwrap(),
                     r#type: quote! { String },
                 }),
             )
@@ -226,7 +226,7 @@ mod tests {
             generate_spy_struct(
                 &input,
                 &Some(AssociatedType {
-                    name: quote! { Item },
+                    name: syn::parse2(quote! { Item }).unwrap(),
                     r#type: quote! { String },
                 }),
             )

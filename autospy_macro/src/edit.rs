@@ -11,9 +11,7 @@ impl VisitMut for AssociatedTypeReplacer {
     fn visit_type_path_mut(&mut self, type_path: &mut syn::TypePath) {
         if type_path.qself.is_none() && type_path.path.segments.len() == 2 {
             let segments = &type_path.path.segments;
-            if segments[0].ident == "Self"
-                && segments[1].ident == self.associated_type.name.to_string()
-            {
+            if segments[0].ident == "Self" && segments[1].ident == self.associated_type.name {
                 *type_path = syn::parse2(self.associated_type.r#type.clone())
                     .expect("invalid associated type");
                 return;
