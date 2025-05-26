@@ -1,27 +1,47 @@
-use crate::associated_types::AssociatedType;
+use crate::associated_types::AssociatedSpyTypes;
 use crate::inspect;
 use syn::visit_mut::VisitMut;
-use syn::{FnArg, PatType, Signature, parse_quote};
+use syn::{FnArg, PatType, Signature, TypePath, parse_quote};
 
-pub struct AssociatedTypeReplacer {
-    pub associated_type: AssociatedType,
+pub struct AssociatedTypeReplacer<'a> {
+    pub associated_spy_types: &'a AssociatedSpyTypes,
 }
 
-impl VisitMut for AssociatedTypeReplacer {
+impl VisitMut for AssociatedTypeReplacer<'_> {
+    // TODO: tidy this up
     fn visit_type_path_mut(&mut self, type_path: &mut syn::TypePath) {
-        if type_path.qself.is_none() && type_path.path.segments.len() == 2 {
-            let segments = &type_path.path.segments;
-            if segments[0].ident == "Self" && segments[1].ident == self.associated_type.name {
-                *type_path = syn::parse2(self.associated_type.r#type.clone())
-                    .expect("invalid associated type");
-                return;
-            }
+        if let Some(replacement) = self.associated_type_replacement(type_path) {
+            *type_path = replacement;
         }
 
         syn::visit_mut::visit_type_path_mut(self, type_path);
     }
 }
 
+impl AssociatedTypeReplacer<'_> {
+    fn associated_type_replacement(&self, type_path: &mut syn::TypePath) -> Option<TypePath> {
+        if type_path.qself.is_some() || type_path.path.segments.len() != 2 {
+            return None;
+        }
+
+        let first = &type_path.path.segments[0].ident;
+
+        if first != "Self" {
+            return None;
+        }
+
+        let second = &type_path.path.segments[1].ident;
+
+        let (_, associated_type) = self
+            .associated_spy_types
+            .iter()
+            .find(|(ident, _)| ident == second)?;
+
+        Some(syn::parse2(associated_type.clone()).expect("invalid associated type"))
+    }
+}
+
+// TODO: do this by visitor pattern too?
 pub fn underscore_ignored_arguments_in_signature(signature: &mut Signature) {
     non_self_signature_arguments_mut(signature)
         .filter(|argument| inspect::is_argument_marked_as_ignore(argument))

@@ -1,4 +1,4 @@
-use crate::associated_types::AssociatedType;
+use crate::associated_types::AssociatedSpyTypes;
 use crate::{attribute, edit, generate, inspect};
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
@@ -7,11 +7,11 @@ use syn::{ItemStruct, ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait};
 
 pub fn generate_spy_struct(
     item_trait: &ItemTrait,
-    associated_type: &Option<AssociatedType>,
+    associated_spy_types: &AssociatedSpyTypes,
 ) -> ItemStruct {
     let visibility = &item_trait.vis;
     let spy_name = format_ident!("{}Spy", item_trait.ident);
-    let spy_fields = generate_spy_fields(item_trait, associated_type);
+    let spy_fields = generate_spy_fields(item_trait, associated_spy_types);
 
     syn::parse2(quote! {
         #[derive(Default, Clone)]
@@ -24,19 +24,19 @@ pub fn generate_spy_struct(
 
 fn generate_spy_fields(
     item_trait: &ItemTrait,
-    associated_type: &Option<AssociatedType>,
+    associated_spy_types: &AssociatedSpyTypes,
 ) -> impl Iterator<Item = TokenStream> {
     inspect::trait_functions(item_trait)
-        .map(|function| function_as_spy_field(function, associated_type))
+        .map(|function| function_as_spy_field(function, associated_spy_types))
 }
 
 fn function_as_spy_field(
     function: &TraitItemFn,
-    associated_type: &Option<AssociatedType>,
+    associated_spy_types: &AssociatedSpyTypes,
 ) -> TokenStream {
     let function_name = &function.sig.ident;
 
-    let function = replace_associated_types(function.clone(), associated_type);
+    let function = replace_associated_types(function.clone(), associated_spy_types);
 
     let spy_argument_type =
         generate::tuple_or_single(inspect::spyable_arguments(&function).map(argument_spy_type));
@@ -49,19 +49,14 @@ fn function_as_spy_field(
 }
 
 fn replace_associated_types(
-    function: TraitItemFn,
-    associated_type: &Option<AssociatedType>,
+    mut function: TraitItemFn,
+    associated_spy_types: &AssociatedSpyTypes,
 ) -> TraitItemFn {
-    if let Some(associated_type) = associated_type {
-        let mut modified_function = function.clone();
-        let mut replacer = edit::AssociatedTypeReplacer {
-            associated_type: associated_type.clone(),
-        };
-        replacer.visit_trait_item_fn_mut(&mut modified_function);
-        modified_function
-    } else {
-        function
+    edit::AssociatedTypeReplacer {
+        associated_spy_types,
     }
+    .visit_trait_item_fn_mut(&mut function);
+    function
 }
 
 fn argument_spy_type(argument: inspect::SpyableArgument) -> TokenStream {
@@ -90,7 +85,7 @@ fn function_return_type(function: &TraitItemFn) -> TokenStream {
 
 #[cfg(test)]
 mod tests {
-    use crate::associated_types::AssociatedType;
+    use crate::associated_types::AssociatedSpyTypes;
     use crate::generate_spy_struct::generate_spy_struct;
     use quote::quote;
     use syn::{ItemStruct, ItemTrait};
@@ -108,7 +103,10 @@ mod tests {
         })
         .unwrap();
 
-        assert_eq!(expected, generate_spy_struct(&input, &None));
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
     }
 
     #[test]
@@ -128,7 +126,10 @@ mod tests {
         })
         .unwrap();
 
-        assert_eq!(expected, generate_spy_struct(&input, &None));
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
     }
 
     #[test]
@@ -148,7 +149,10 @@ mod tests {
         })
         .unwrap();
 
-        assert_eq!(expected, generate_spy_struct(&input, &None));
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
     }
 
     #[test]
@@ -168,7 +172,10 @@ mod tests {
         })
         .unwrap();
 
-        assert_eq!(expected, generate_spy_struct(&input, &None));
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
     }
 
     #[test]
@@ -194,10 +201,9 @@ mod tests {
             expected,
             generate_spy_struct(
                 &input,
-                &Some(AssociatedType {
-                    name: syn::parse2(quote! { Item }).unwrap(),
-                    r#type: quote! { String },
-                }),
+                &[(syn::parse2(quote! { Item }).unwrap(), quote! { String })]
+                    .into_iter()
+                    .collect()
             )
         );
     }
@@ -225,10 +231,9 @@ mod tests {
             expected,
             generate_spy_struct(
                 &input,
-                &Some(AssociatedType {
-                    name: syn::parse2(quote! { Item }).unwrap(),
-                    r#type: quote! { String },
-                }),
+                &[(syn::parse2(quote! { Item }).unwrap(), quote! { String })]
+                    .into_iter()
+                    .collect()
             )
         );
     }

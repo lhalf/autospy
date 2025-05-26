@@ -1,4 +1,4 @@
-use crate::associated_types::AssociatedType;
+use crate::associated_types::AssociatedSpyTypes;
 use crate::strip_attributes::strip_attributes_from_signature;
 use crate::{edit, generate, inspect};
 use proc_macro2::TokenStream;
@@ -7,30 +7,27 @@ use syn::{ItemTrait, TraitItemFn, Type};
 
 pub fn generate_spy_trait(
     item_trait: &ItemTrait,
-    associated_type: &Option<AssociatedType>,
+    associated_spy_types: &AssociatedSpyTypes,
 ) -> TokenStream {
     let trait_name = &item_trait.ident;
     let spy_name = format_ident!("{}Spy", trait_name);
-    let associated_type_definitions = associated_type_definitions(associated_type);
+    let associated_type_definitions = associated_type_definitions(associated_spy_types);
     let spy_function_definitions = trait_spy_function_definitions(item_trait);
 
     quote! {
         impl #trait_name for #spy_name {
-            #associated_type_definitions
+            #(#associated_type_definitions)*
             #(#spy_function_definitions)*
         }
     }
 }
 
-fn associated_type_definitions(associated_type: &Option<AssociatedType>) -> TokenStream {
-    match associated_type {
-        Some(associated_type) => {
-            let name = associated_type.name.clone();
-            let _type = associated_type.r#type.clone();
-            quote! { type #name = #_type; }
-        }
-        None => TokenStream::new(),
-    }
+fn associated_type_definitions(
+    associated_spy_types: &AssociatedSpyTypes,
+) -> impl Iterator<Item = TokenStream> {
+    associated_spy_types
+        .iter()
+        .map(|(name, r#type)| quote! { type #name = #r#type; })
 }
 
 fn trait_spy_function_definitions(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {
@@ -85,6 +82,8 @@ fn dereference_tokens(argument: &inspect::SpyableArgument) -> TokenStream {
 
 #[cfg(test)]
 mod tests {
+    use crate::associated_types::AssociatedSpyTypes;
+
     use super::generate_spy_trait;
     use quote::{ToTokens, quote};
     use syn::ItemTrait;
@@ -100,7 +99,7 @@ mod tests {
             impl Example for ExampleSpy {}
         };
 
-        let actual = generate_spy_trait(&input, &None);
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
     }
@@ -116,7 +115,7 @@ mod tests {
             impl Example for ExampleSpy {}
         };
 
-        let actual = generate_spy_trait(&input, &None);
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
     }
@@ -138,7 +137,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_trait(&input, &None);
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
     }
@@ -160,7 +159,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_trait(&input, &None);
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
     }
@@ -182,7 +181,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_trait(&input, &None);
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
     }

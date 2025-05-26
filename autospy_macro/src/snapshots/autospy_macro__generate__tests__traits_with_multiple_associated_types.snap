@@ -1,0 +1,20 @@
+---
+source: autospy_macro/src/generate.rs
+expression: "generate_pretty(quote!\n{\n    trait TestTrait\n    {\n        #[autospy(String)] type Argument; #[autospy(String)] type Return; fn\n        function(&self, argument: Self::Argument) -> Self::Return;\n    }\n})"
+---
+trait TestTrait {
+    type Argument;
+    type Return;
+    fn function(&self, argument: Self::Argument) -> Self::Return;
+}
+#[derive(Default, Clone)]
+struct TestTraitSpy {
+    pub function: autospy::SpyFunction<<String as ToOwned>::Owned, String>,
+}
+impl TestTrait for TestTraitSpy {
+    type Argument = String;
+    type Return = String;
+    fn function(&self, argument: Self::Argument) -> Self::Return {
+        self.function.spy(argument.to_owned())
+    }
+}
