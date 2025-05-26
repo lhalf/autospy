@@ -1,11 +1,9 @@
 use crate::attribute;
-use proc_macro2::TokenStream;
-use syn::{Ident, ItemTrait, TraitItem, TraitItemType};
+use syn::{Ident, ItemTrait, TraitItem, TraitItemType, TypePath};
 
-// TODO: swap TokenStream for TypePath
 // Vec rather than HashMap so that ordering is preserved.
 // Probably more efficent anyway because never very many of them. But this has not been performance tested.
-pub type AssociatedSpyTypes = Vec<(Ident, TokenStream)>;
+pub type AssociatedSpyTypes = Vec<(Ident, TypePath)>;
 
 pub fn get_associated_types(item_trait: &ItemTrait) -> AssociatedSpyTypes {
     item_trait
@@ -23,9 +21,9 @@ fn associated_types(item: &TraitItem) -> Option<&TraitItemType> {
     }
 }
 
-fn associated_type_name_and_spy_type(trait_item: &TraitItemType) -> Option<(Ident, TokenStream)> {
+fn associated_type_name_and_spy_type(trait_item: &TraitItemType) -> Option<(Ident, TypePath)> {
     Some((
         trait_item.ident.clone(),
-        attribute::associated_type(&trait_item.attrs)?.clone(),
+        attribute::associated_type(&trait_item.attrs)?,
     ))
 }

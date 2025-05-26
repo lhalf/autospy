@@ -87,6 +87,7 @@ fn function_return_type(function: &TraitItemFn) -> TokenStream {
 mod tests {
     use crate::associated_types::AssociatedSpyTypes;
     use crate::generate_spy_struct::generate_spy_struct;
+    use proc_macro2::TokenStream;
     use quote::quote;
     use syn::{ItemStruct, ItemTrait};
 
@@ -201,9 +202,7 @@ mod tests {
             expected,
             generate_spy_struct(
                 &input,
-                &[(syn::parse2(quote! { Item }).unwrap(), quote! { String })]
-                    .into_iter()
-                    .collect()
+                &associated_spy_types(quote! { Item }, quote! { String })
             )
         );
     }
@@ -231,10 +230,14 @@ mod tests {
             expected,
             generate_spy_struct(
                 &input,
-                &[(syn::parse2(quote! { Item }).unwrap(), quote! { String })]
-                    .into_iter()
-                    .collect()
+                &associated_spy_types(quote! { Item }, quote! { String })
             )
         );
+    }
+
+    fn associated_spy_types(ident: TokenStream, r#type: TokenStream) -> AssociatedSpyTypes {
+        [(syn::parse2(ident).unwrap(), syn::parse2(r#type).unwrap())]
+            .into_iter()
+            .collect()
     }
 }
