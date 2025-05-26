@@ -8,7 +8,6 @@ pub struct AssociatedTypeReplacer<'a> {
 }
 
 impl VisitMut for AssociatedTypeReplacer<'_> {
-    // TODO: tidy this up
     fn visit_type_path_mut(&mut self, type_path: &mut syn::TypePath) {
         if let Some(replacement) = self.associated_type_replacement(type_path) {
             *type_path = replacement;
@@ -37,7 +36,7 @@ impl AssociatedTypeReplacer<'_> {
             .iter()
             .find(|(ident, _)| ident == second)?;
 
-        Some(syn::parse2(associated_type.clone()).expect("invalid associated type"))
+        Some(associated_type.clone())
     }
 }
 

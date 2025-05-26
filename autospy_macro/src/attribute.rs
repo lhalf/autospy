@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use syn::{
-    Attribute, Expr, ExprLit, Lit, Meta, MetaList, MetaNameValue, Token, Type, parse::Parse,
-    punctuated::Punctuated,
+    Attribute, Expr, ExprLit, Lit, Meta, MetaList, MetaNameValue, Token, Type, TypePath,
+    parse::Parse, punctuated::Punctuated,
 };
 
 pub fn is_autospy_attribute(attribute: &Attribute) -> bool {
@@ -15,8 +15,11 @@ pub fn is_ignore_attribute(attribute: &Attribute) -> bool {
     }
 }
 
-pub fn associated_type(attributes: &[Attribute]) -> Option<&TokenStream> {
-    autospy_attributes(attributes).next()
+pub fn associated_type(attributes: &[Attribute]) -> Option<TypePath> {
+    Some(
+        syn::parse2(autospy_attributes(attributes).next()?.clone())
+            .expect("invalid associated type"),
+    )
 }
 
 pub fn into_type(attributes: &[Attribute]) -> Option<Type> {
