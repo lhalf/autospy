@@ -27,3 +27,149 @@ fn associated_type_name_and_spy_type(trait_item: &TraitItemType) -> Option<(Iden
         attribute::associated_type(&trait_item.attrs)?,
     ))
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::associated_types::{AssociatedSpyTypes, get_associated_types};
+
+    use quote::quote;
+    use syn::ItemTrait;
+
+    #[test]
+    fn empty_trait_has_no_associated_types() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {}
+        })
+        .unwrap();
+
+        assert_eq!(AssociatedSpyTypes::new(), get_associated_types(&input));
+    }
+
+    #[test]
+    fn single_associated_type() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                #[autospy(String)]
+                type Hello;
+            }
+        })
+        .unwrap();
+
+        let expected: AssociatedSpyTypes = vec![(
+            syn::parse2(quote! {
+                Hello
+            })
+            .unwrap(),
+            syn::parse2(quote! {
+                String
+            })
+            .unwrap(),
+        )];
+
+        assert_eq!(expected, get_associated_types(&input));
+    }
+
+    #[test]
+    fn multiple_associated_types() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                #[autospy(String)]
+                type Hello;
+                #[autospy(bool)]
+                type Nope;
+            }
+        })
+        .unwrap();
+
+        let expected: AssociatedSpyTypes = vec![
+            (
+                syn::parse2(quote! {
+                    Hello
+                })
+                .unwrap(),
+                syn::parse2(quote! {
+                    String
+                })
+                .unwrap(),
+            ),
+            (
+                syn::parse2(quote! {
+                    Nope
+                })
+                .unwrap(),
+                syn::parse2(quote! {
+                    bool
+                })
+                .unwrap(),
+            ),
+        ];
+
+        assert_eq!(expected, get_associated_types(&input));
+    }
+
+    #[test]
+    fn multiple_associated_types_in_between_trait_functions() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                fn again();
+                #[autospy(String)]
+                type Hello;
+                fn hello();
+                #[autospy(bool)]
+                type Nope;
+            }
+        })
+        .unwrap();
+
+        let expected: AssociatedSpyTypes = vec![
+            (
+                syn::parse2(quote! {
+                    Hello
+                })
+                .unwrap(),
+                syn::parse2(quote! {
+                    String
+                })
+                .unwrap(),
+            ),
+            (
+                syn::parse2(quote! {
+                    Nope
+                })
+                .unwrap(),
+                syn::parse2(quote! {
+                    bool
+                })
+                .unwrap(),
+            ),
+        ];
+
+        assert_eq!(expected, get_associated_types(&input));
+    }
+
+    #[test]
+    fn other_attributes_dont_affect_associated_types() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                #[another_attribute]
+                #[autospy(String)]
+                #[some_attribute]
+                type Hello;
+            }
+        })
+        .unwrap();
+
+        let expected: AssociatedSpyTypes = vec![(
+            syn::parse2(quote! {
+                Hello
+            })
+            .unwrap(),
+            syn::parse2(quote! {
+                String
+            })
+            .unwrap(),
+        )];
+
+        assert_eq!(expected, get_associated_types(&input));
+    }
+}
