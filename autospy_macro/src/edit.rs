@@ -8,7 +8,7 @@ pub struct AssociatedTypeReplacer<'a> {
 }
 
 impl VisitMut for AssociatedTypeReplacer<'_> {
-    fn visit_type_path_mut(&mut self, type_path: &mut syn::TypePath) {
+    fn visit_type_path_mut(&mut self, type_path: &mut TypePath) {
         if let Some(replacement) = self.associated_type_replacement(type_path) {
             *type_path = replacement;
         }
@@ -18,7 +18,7 @@ impl VisitMut for AssociatedTypeReplacer<'_> {
 }
 
 impl AssociatedTypeReplacer<'_> {
-    fn associated_type_replacement(&self, type_path: &mut syn::TypePath) -> Option<TypePath> {
+    fn associated_type_replacement(&self, type_path: &mut TypePath) -> Option<TypePath> {
         if type_path.qself.is_some() || type_path.path.segments.len() != 2 {
             return None;
         }
