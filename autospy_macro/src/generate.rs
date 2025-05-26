@@ -255,4 +255,17 @@ mod tests {
             }
         }))
     }
+
+    #[test]
+    fn traits_with_multiple_associated_types() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                #[autospy(String)]
+                type Argument;
+                #[autospy(String)]
+                type Return;
+                fn function(&self, argument: Self::Argument) -> Self::Return;
+            }
+        }))
+    }
 }

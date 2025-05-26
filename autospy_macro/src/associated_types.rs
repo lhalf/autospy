@@ -2,18 +2,18 @@ use crate::attribute;
 use proc_macro2::TokenStream;
 use syn::{Ident, ItemTrait, TraitItem, TraitItemType};
 
-#[derive(Clone)]
-pub struct AssociatedType {
-    pub name: Ident,
-    pub r#type: TokenStream,
-}
+// TODO: swap TokenStream for TypePath
+// Vec rather than HashMap so that ordering is preserved.
+// Probably more efficent anyway because never very many of them. But this has not been performance tested.
+pub type AssociatedSpyTypes = Vec<(Ident, TokenStream)>;
 
-pub fn get_associated_types(item_trait: &ItemTrait) -> Option<AssociatedType> {
+pub fn get_associated_types(item_trait: &ItemTrait) -> AssociatedSpyTypes {
     item_trait
         .items
         .iter()
-        .find_map(associated_types)
-        .and_then(associated_type_from_attribute)
+        .filter_map(associated_types)
+        .filter_map(associated_type_name_and_spy_type)
+        .collect()
 }
 
 fn associated_types(item: &TraitItem) -> Option<&TraitItemType> {
@@ -23,10 +23,9 @@ fn associated_types(item: &TraitItem) -> Option<&TraitItemType> {
     }
 }
 
-fn associated_type_from_attribute(trait_item: &TraitItemType) -> Option<AssociatedType> {
-    let r#type = attribute::associated_type(&trait_item.attrs)?.clone();
-    Some(AssociatedType {
-        name: trait_item.ident.clone(),
-        r#type,
-    })
+fn associated_type_name_and_spy_type(trait_item: &TraitItemType) -> Option<(Ident, TokenStream)> {
+    Some((
+        trait_item.ident.clone(),
+        attribute::associated_type(&trait_item.attrs)?.clone(),
+    ))
 }
