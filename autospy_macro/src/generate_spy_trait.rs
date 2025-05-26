@@ -57,6 +57,10 @@ fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
 fn argument_to_spy_expression(argument: inspect::SpyableArgument) -> TokenStream {
     let argument_name = &argument.name;
 
+    if let Some(with_expression) = argument.with_expression {
+        return quote! { #with_expression ( #argument_name ) };
+    }
+
     if argument.into_type.is_some() {
         return quote! { #argument_name.into() };
     }
@@ -165,7 +169,7 @@ mod tests {
     fn arguments_with_into_attribute_are_captured() {
         let input: ItemTrait = syn::parse2(quote! {
             trait Example {
-                fn function(&self, #[autospy(into=IpAddr)] ip: [u8; 4]);
+                fn function(&self, #[autospy(into="IpAddr")] ip: [u8; 4]);
             }
         })
         .unwrap();

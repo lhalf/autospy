@@ -14,7 +14,8 @@ pub fn spyable_arguments(function: &TraitItemFn) -> impl Iterator<Item = Spyable
 
 pub struct SpyableArgument {
     pub name: Ident,
-    pub into_type: Option<Expr>,
+    pub into_type: Option<Type>,
+    pub with_expression: Option<Expr>,
     pub dereferenced_type: Type,
     pub dereference_count: u8,
 }
@@ -45,6 +46,7 @@ fn spyable_argument(argument: &PatType) -> Option<SpyableArgument> {
     Some(SpyableArgument {
         name,
         into_type: attribute::into_type(&argument.attrs),
+        with_expression: attribute::with_expression(&argument.attrs),
         dereferenced_type,
         dereference_count,
     })

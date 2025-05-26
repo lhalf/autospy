@@ -40,10 +40,23 @@ mod tests {
     }
 
     #[test]
-    fn arguments_marked_with_into_attribute_are_captured() {
+    fn arguments_marked_with_into_attribute_are_captured_as_that_type() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait MyTrait {
-                fn function(&self, #[autospy(into=IpAddr)] ip: [u8; 4]);
+                fn function(&self, #[autospy(into="IpAddr")] ip: [u8; 4]);
+            }
+        }));
+    }
+
+    #[test]
+    fn arguments_marked_with_with_attribute_are_captured_with_that_expression() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            #[autospy::autospy]
+            trait MyTrait {
+                fn function(
+                    &self,
+                    #[autospy(into="Result<String,Utf8Error>", with="String::from_utf8")] bytes: Vec<u8>,
+                );
             }
         }));
     }
@@ -206,7 +219,7 @@ mod tests {
     fn functions_marked_with_return_attribute_have_their_return_types_changed() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
-                #[autospy(returns = String)]
+                #[autospy(returns = "String")]
                 fn function(&self) -> impl ToString;
             }
         }))
@@ -217,7 +230,7 @@ mod tests {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 #[some_attribute]
-                #[autospy(returns = String)]
+                #[autospy(returns = "String")]
                 fn function(&self) -> impl ToString;
             }
         }))
