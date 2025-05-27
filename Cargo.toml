@@ -1,6 +1,6 @@
 [package]
 name = "autospy"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2024"
 description = "A test spy object library."
 license = "MIT"
@@ -14,4 +14,4 @@ exclude = ["/tests/", "justfile"]
 members = ["autospy_macro"]
 
 [dependencies]
-autospy_macro = { path = "autospy_macro", version = "0.0.1" }
+autospy_macro = { path = "autospy_macro", version = "0.0.2" }
