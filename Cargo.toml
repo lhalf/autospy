@@ -5,6 +5,7 @@ edition = "2024"
 description = "A test spy object library."
 license = "MIT"
 repository = "https://github.com/lhalf/autospy"
+documentation = "https://docs.rs/autospy"
 keywords = ["mock", "testing", "spy", "mocking", "fake"]
 categories = ["development-tools::testing"]
 readme = "README.md"
