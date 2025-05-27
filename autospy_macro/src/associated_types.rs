@@ -113,6 +113,24 @@ mod tests {
         assert_eq!(expected, get_associated_types(&input));
     }
 
+    // TODO: is this the behaviour we want?
+    #[test]
+    fn associated_type_uses_the_first_found_attribute() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                #[another_attribute]
+                #[autospy(String)]
+                #[autospy(bool)]
+                type Hello;
+            }
+        })
+        .unwrap();
+
+        let expected = to_associated_spy_types([("Hello", "String")]);
+
+        assert_eq!(expected, get_associated_types(&input));
+    }
+
     fn to_associated_spy_types(
         items: impl IntoIterator<Item = (&'static str, &'static str)>,
     ) -> AssociatedSpyTypes {
