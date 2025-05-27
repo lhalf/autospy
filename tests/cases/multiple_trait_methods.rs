@@ -1,4 +1,6 @@
-#[cfg_attr(test, autospy::autospy)]
+use autospy::autospy;
+
+#[cfg_attr(test, autospy)]
 trait MyTrait {
     fn function_one(&self);
     fn function_two(&self);

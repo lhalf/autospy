@@ -13,7 +13,10 @@ use generate::generate;
 use proc_macro::TokenStream;
 
 #[proc_macro_attribute]
-pub fn autospy(_attributes: TokenStream, item: TokenStream) -> TokenStream {
-    let item = proc_macro2::TokenStream::from(item);
-    TokenStream::from(generate(item))
+pub fn autospy(attributes: TokenStream, item: TokenStream) -> TokenStream {
+    if attributes.is_empty() {
+        TokenStream::from(generate(proc_macro2::TokenStream::from(item)))
+    } else {
+        item
+    }
 }
