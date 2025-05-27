@@ -43,7 +43,7 @@ mod tests {
 }
 ```
 
-For additional examples and features see the [docs](https://docs.rs/mockall).
+For additional examples and features see the [docs](https://docs.rs/autospy).
 
 ## Acknowledgements
 
