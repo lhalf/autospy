@@ -32,7 +32,7 @@ fn associated_type_name_and_spy_type(trait_item: &TraitItemType) -> Option<(Iden
 mod tests {
     use crate::associated_types::{AssociatedSpyTypes, get_associated_types};
 
-    use quote::quote;
+    use quote::{ToTokens, format_ident, quote};
     use syn::ItemTrait;
 
     #[test]
@@ -55,16 +55,7 @@ mod tests {
         })
         .unwrap();
 
-        let expected: AssociatedSpyTypes = vec![(
-            syn::parse2(quote! {
-                Hello
-            })
-            .unwrap(),
-            syn::parse2(quote! {
-                String
-            })
-            .unwrap(),
-        )];
+        let expected = to_associated_spy_types([("Hello", "String")]);
 
         assert_eq!(expected, get_associated_types(&input));
     }
@@ -81,28 +72,7 @@ mod tests {
         })
         .unwrap();
 
-        let expected: AssociatedSpyTypes = vec![
-            (
-                syn::parse2(quote! {
-                    Hello
-                })
-                .unwrap(),
-                syn::parse2(quote! {
-                    String
-                })
-                .unwrap(),
-            ),
-            (
-                syn::parse2(quote! {
-                    Nope
-                })
-                .unwrap(),
-                syn::parse2(quote! {
-                    bool
-                })
-                .unwrap(),
-            ),
-        ];
+        let expected = to_associated_spy_types([("Hello", "String"), ("Nope", "bool")]);
 
         assert_eq!(expected, get_associated_types(&input));
     }
@@ -121,28 +91,7 @@ mod tests {
         })
         .unwrap();
 
-        let expected: AssociatedSpyTypes = vec![
-            (
-                syn::parse2(quote! {
-                    Hello
-                })
-                .unwrap(),
-                syn::parse2(quote! {
-                    String
-                })
-                .unwrap(),
-            ),
-            (
-                syn::parse2(quote! {
-                    Nope
-                })
-                .unwrap(),
-                syn::parse2(quote! {
-                    bool
-                })
-                .unwrap(),
-            ),
-        ];
+        let expected = to_associated_spy_types([("Hello", "String"), ("Nope", "bool")]);
 
         assert_eq!(expected, get_associated_types(&input));
     }
@@ -159,17 +108,22 @@ mod tests {
         })
         .unwrap();
 
-        let expected: AssociatedSpyTypes = vec![(
-            syn::parse2(quote! {
-                Hello
-            })
-            .unwrap(),
-            syn::parse2(quote! {
-                String
-            })
-            .unwrap(),
-        )];
+        let expected = to_associated_spy_types([("Hello", "String")]);
 
         assert_eq!(expected, get_associated_types(&input));
+    }
+
+    fn to_associated_spy_types(
+        items: impl IntoIterator<Item = (&'static str, &'static str)>,
+    ) -> AssociatedSpyTypes {
+        items
+            .into_iter()
+            .map(|(ident, r#type)| {
+                (
+                    format_ident!("{ident}"),
+                    syn::parse2(format_ident!("{type}").to_token_stream()).unwrap(),
+                )
+            })
+            .collect()
     }
 }
