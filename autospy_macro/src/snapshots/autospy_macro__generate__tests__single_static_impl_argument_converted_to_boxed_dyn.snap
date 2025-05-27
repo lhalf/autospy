@@ -1,15 +1,17 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 190
+assertion_line: 202
 expression: "generate_pretty(quote!\n{\n    trait TestTrait { fn function(&self, argument: impl ToString + 'static); }\n})"
 ---
 trait TestTrait {
     fn function(&self, argument: impl ToString + 'static);
 }
+#[cfg(test)]
 #[derive(Default, Clone)]
 struct TestTraitSpy {
     pub function: autospy::SpyFunction<Box<dyn ToString + 'static>, ()>,
 }
+#[cfg(test)]
 impl TestTrait for TestTraitSpy {
     fn function(&self, argument: impl ToString + 'static) {
         self.function.spy(Box::new(argument))

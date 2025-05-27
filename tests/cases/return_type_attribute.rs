@@ -1,6 +1,6 @@
 use autospy::autospy;
 
-#[cfg_attr(test, autospy)]
+#[autospy]
 trait MyTrait {
     #[autospy(returns = "String")]
     fn function(&self) -> impl ToString;
