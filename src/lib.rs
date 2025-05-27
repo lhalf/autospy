@@ -8,7 +8,7 @@
 //!
 //! To use autospy simply attribute your trait using [`#[autospy]`](attr.autospy.html).
 //!
-//! **Note:** The spy object generated is [`#[cfg(test)]`](https://doc.rust-lang.org/book/ch11-03-test-organization.html#the-tests-module-and-cfgtest), so you do not need `#[cfg_attr(test, autospy)]`.
+//! **Note:** The generated spy object and trait impl are [`#[cfg(test)]`](https://doc.rust-lang.org/book/ch11-03-test-organization.html#the-tests-module-and-cfgtest), so you do not need `#[cfg_attr(test, autospy)]`.
 //! ```rust
 //! use autospy::autospy;
 //!
