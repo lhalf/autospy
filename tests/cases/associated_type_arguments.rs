@@ -1,4 +1,6 @@
-#[cfg_attr(test, autospy::autospy)]
+use autospy::autospy;
+
+#[cfg_attr(test, autospy)]
 trait TestTrait {
     #[autospy(String)]
     type Argument;
