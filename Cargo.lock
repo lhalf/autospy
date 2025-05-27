@@ -4,14 +4,14 @@ version = 4
 
 [[package]]
 name = "autospy"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "autospy_macro",
 ]
 
 [[package]]
 name = "autospy_macro"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "insta",
  "prettyplease",
