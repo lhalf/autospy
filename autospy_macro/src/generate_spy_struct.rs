@@ -14,6 +14,7 @@ pub fn generate_spy_struct(
     let spy_fields = generate_spy_fields(item_trait, associated_spy_types);
 
     syn::parse2(quote! {
+        #[cfg(test)]
         #[derive(Default, Clone)]
         #visibility struct #spy_name {
             #(#spy_fields),*
@@ -99,6 +100,7 @@ mod tests {
         .unwrap();
 
         let expected: ItemStruct = syn::parse2(quote! {
+            #[cfg(test)]
             #[derive(Default, Clone)]
             struct ExampleSpy {}
         })
@@ -120,6 +122,7 @@ mod tests {
         .unwrap();
 
         let expected: ItemStruct = syn::parse2(quote! {
+            #[cfg(test)]
             #[derive(Default, Clone)]
             pub struct ExampleSpy {
                 pub foo: autospy::SpyFunction<(), ()>
@@ -143,6 +146,7 @@ mod tests {
         .unwrap();
 
         let expected: ItemStruct = syn::parse2(quote! {
+            #[cfg(test)]
             #[derive(Default, Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction<(), String>
@@ -166,6 +170,7 @@ mod tests {
         .unwrap();
 
         let expected: ItemStruct = syn::parse2(quote! {
+            #[cfg(test)]
             #[derive(Default, Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction< < str as ToOwned > :: Owned , () >
@@ -191,6 +196,7 @@ mod tests {
         .unwrap();
 
         let expected: ItemStruct = syn::parse2(quote! {
+            #[cfg(test)]
             #[derive(Default, Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction< < String as ToOwned > :: Owned , () >
@@ -219,6 +225,7 @@ mod tests {
         .unwrap();
 
         let expected: ItemStruct = syn::parse2(quote! {
+            #[cfg(test)]
             #[derive(Default, Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction< (), String >

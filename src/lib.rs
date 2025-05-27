@@ -8,7 +8,7 @@
 //!
 //! To use autospy simply attribute your trait using [`#[autospy]`](attr.autospy.html).
 //!
-//! **Note:** If you're using the spy object for tests it is recommended to use `#[cfg_attr(test, autospy)]`.
+//! **Note:** The spy object generated is [`#[cfg(test)]`](https://doc.rust-lang.org/book/ch11-03-test-organization.html#the-tests-module-and-cfgtest), so you do not need `#[cfg_attr(test, autospy)]`.
 //! ```rust
 //! use autospy::autospy;
 //!
@@ -21,11 +21,19 @@
 //!     x.foo(10)
 //! }
 //!
-//! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(20);
+//! #[cfg(test)]
+//! mod tests {
+//!     use super::*;
 //!
-//! assert_eq!(20, call_with_ten(spy.clone()));
-//! assert_eq!(vec![10], spy.foo.arguments.take_all());
+//!     #[test]
+//!     fn test() {
+//!         let spy = MyTraitSpy::default();
+//!         spy.foo.returns.push_back(20);
+//!
+//!         assert_eq!(20, call_with_ten(spy.clone()));
+//!         assert_eq!(vec![10], spy.foo.arguments.take_all());
+//!     }
+//! }
 //! ```
 //!
 //! ## References
@@ -44,17 +52,25 @@
 //!     x.foo("hello!")
 //! }
 //!
-//! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(());
+//! #[cfg(test)]
+//! mod tests {
+//!     use super::*;
 //!
-//! use_trait(spy.clone());
+//!     #[test]
+//!     fn test() {
+//!         let spy = MyTraitSpy::default();
+//!         spy.foo.returns.push_back(());
 //!
-//! assert_eq!(vec!["hello!"], spy.foo.arguments.take_all());
+//!         use_trait(spy.clone());
+//!
+//!         assert_eq!(vec!["hello!"], spy.foo.arguments.take_all());
+//!     }
+//! }
 //! ```
 //!
 //! ## Associated types
 //!
-//! An `#[autospy(TYPE)]` attribute can be applied to associated types to tell `autospy` how to capture them.
+//! An `#[autospy(TYPE)]` attribute can be applied to associated types to tell the spy how to capture them.
 //!
 //! ```rust
 //! use autospy::autospy;
@@ -70,12 +86,20 @@
 //!     x.foo("hello!".to_string())
 //! }
 //!
-//! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(());
+//! #[cfg(test)]
+//! mod tests {
+//!     use super::*;
 //!
-//! use_trait(spy.clone());
+//!     #[test]
+//!     fn test() {
+//!         let spy = MyTraitSpy::default();
+//!         spy.foo.returns.push_back(());
 //!
-//! assert_eq!(vec!["hello!"], spy.foo.arguments.take_all());
+//!         use_trait(spy.clone());
+//!
+//!         assert_eq!(vec!["hello!"], spy.foo.arguments.take_all());
+//!     }
+//! }
 //! ```
 //!
 //! ## Ignore arguments
@@ -94,12 +118,20 @@
 //!     x.foo("ignored!", "capture me!")
 //! }
 //!
-//! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(());
+//! #[cfg(test)]
+//! mod tests {
+//!     use super::*;
 //!
-//! use_trait(spy.clone());
+//!     #[test]
+//!     fn test() {
+//!         let spy = MyTraitSpy::default();
+//!         spy.foo.returns.push_back(());
 //!
-//! assert_eq!(vec!["capture me!"], spy.foo.arguments.take_all());
+//!         use_trait(spy.clone());
+//!
+//!         assert_eq!(vec!["capture me!"], spy.foo.arguments.take_all());
+//!     }
+//! }
 //! ```
 //!
 //! ## Returns attribute
@@ -119,10 +151,18 @@
 //!     x.foo().to_string()
 //! }
 //!
-//! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back("a string!".to_string());
+//! #[cfg(test)]
+//! mod tests {
+//!     use super::*;
 //!
-//! assert_eq!("a string!", use_trait(spy));
+//!     #[test]
+//!     fn test() {
+//!         let spy = MyTraitSpy::default();
+//!         spy.foo.returns.push_back("a string!".to_string());
+//!
+//!         assert_eq!("a string!", use_trait(spy));
+//!     }
+//! }
 //! ```
 //!
 //! ## Static trait arguments
@@ -141,12 +181,20 @@
 //!     x.foo("hello!")
 //! }
 //!
-//! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(());
+//! #[cfg(test)]
+//! mod tests {
+//!     use super::*;
 //!
-//! use_trait(spy.clone());
+//!     #[test]
+//!     fn test() {
+//!         let spy = MyTraitSpy::default();
+//!         spy.foo.returns.push_back(());
 //!
-//! assert_eq!("hello!", spy.foo.arguments.take_all()[0].to_string())
+//!         use_trait(spy.clone());
+//!
+//!         assert_eq!("hello!", spy.foo.arguments.take_all()[0].to_string())
+//!     }
+//! }
 //! ```
 
 mod spy_function;

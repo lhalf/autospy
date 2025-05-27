@@ -1,15 +1,17 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 136
+assertion_line: 148
 expression: "generate_pretty(quote!\n{ trait TestTrait { fn function(&self, argument: String); } })"
 ---
 trait TestTrait {
     fn function(&self, argument: String);
 }
+#[cfg(test)]
 #[derive(Default, Clone)]
 struct TestTraitSpy {
     pub function: autospy::SpyFunction<<String as ToOwned>::Owned, ()>,
 }
+#[cfg(test)]
 impl TestTrait for TestTraitSpy {
     fn function(&self, argument: String) {
         self.function.spy(argument.to_owned())

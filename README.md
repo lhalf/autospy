@@ -19,12 +19,12 @@ Spy objects are often only used by unit tests, the example below demonstrates us
 ```rust
 use autospy::autospy;
 
-#[cfg_attr(test, autospy)]
+#[autospy]
 trait MyTrait {
     fn foo(&self, x: u32) -> bool;
 }
 
-fn use_trait<T: MyTrait>(trait_object: T) -> bool {
+fn use_trait(trait_object: impl MyTrait) -> bool {
     trait_object.foo(10)
 }
 

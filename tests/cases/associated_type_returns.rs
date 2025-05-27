@@ -1,6 +1,6 @@
 use autospy::autospy;
 
-#[cfg_attr(test, autospy)]
+#[autospy]
 trait TestTrait {
     #[autospy(String)]
     type Item;
