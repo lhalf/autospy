@@ -17,14 +17,14 @@
 //!     fn foo(&self, argument: u32) -> u32;
 //! }
 //!
-//! fn call_with_ten(x: &dyn MyTrait) -> u32 {
+//! fn call_with_ten(x: impl MyTrait) -> u32 {
 //!     x.foo(10)
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.push_back(20);
 //!
-//! assert_eq!(20, call_with_ten(&spy.clone()));
+//! assert_eq!(20, call_with_ten(spy.clone()));
 //! assert_eq!(vec![10], spy.foo.arguments.take_all());
 //! ```
 //!
@@ -40,14 +40,14 @@
 //!     fn foo(&self, argument: &str);
 //! }
 //!
-//! fn use_trait(x: &dyn MyTrait) {
+//! fn use_trait(x: impl MyTrait) {
 //!     x.foo("hello!")
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.push_back(());
 //!
-//! use_trait(&spy.clone());
+//! use_trait(spy.clone());
 //!
 //! assert_eq!(vec!["hello!"], spy.foo.arguments.take_all());
 //! ```
@@ -66,14 +66,14 @@
 //!     fn foo(&self, argument: Self::Item);
 //! }
 //!
-//! fn use_trait(x: &dyn MyTrait<Item=String>) {
+//! fn use_trait(x: impl MyTrait<Item=String>) {
 //!     x.foo("hello!".to_string())
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.push_back(());
 //!
-//! use_trait(&spy.clone());
+//! use_trait(spy.clone());
 //!
 //! assert_eq!(vec!["hello!"], spy.foo.arguments.take_all());
 //! ```
@@ -90,17 +90,65 @@
 //!     fn foo(&self, #[autospy(ignore)] ignored: &str, argument: &str);
 //! }
 //!
-//! fn use_trait(x: &dyn MyTrait) {
+//! fn use_trait(x: impl MyTrait) {
 //!     x.foo("ignored!", "capture me!")
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.push_back(());
 //!
-//! use_trait(&spy.clone());
+//! use_trait(spy.clone());
 //!
 //! assert_eq!(vec!["capture me!"], spy.foo.arguments.take_all());
 //! ```
+//!
+//! ## Returns attribute
+//!
+//! Trait functions that return generics can have the type specified using the `#[autospy(returns = "TYPE")]` attribute.
+//!
+//! ```rust
+//! use autospy::autospy;
+//!
+//! #[autospy]
+//! trait MyTrait {
+//!     #[autospy(returns = "String")]
+//!     fn foo(&self) -> impl ToString;
+//! }
+//!
+//! fn use_trait(x: impl MyTrait) -> String {
+//!     x.foo().to_string()
+//! }
+//!
+//! let spy = MyTraitSpy::default();
+//! spy.foo.returns.push_back("a string!".to_string());
+//!
+//! assert_eq!("a string!", use_trait(spy));
+//! ```
+//!
+//! ## Static trait arguments
+//!
+//! Trait functions that have generic arguments and are [`'static`](https://doc.rust-lang.org/rust-by-example/scope/lifetime/static_lifetime.html) will automatically be captured in a [`Box`](https://doc.rust-lang.org/std/boxed/struct.Box.html).
+//!
+//! ```rust
+//! use autospy::autospy;
+//!
+//! #[autospy]
+//! trait MyTrait {
+//!     fn foo(&self, argument: impl ToString + 'static);
+//! }
+//!
+//! fn use_trait(x: impl MyTrait) {
+//!     x.foo("hello!")
+//! }
+//!
+//! let spy = MyTraitSpy::default();
+//! spy.foo.returns.push_back(());
+//!
+//! use_trait(spy.clone());
+//!
+//! assert_eq!("hello!", spy.foo.arguments.take_all()[0].to_string())
+//! ```
+
 mod spy_function;
 
 pub use spy_function::SpyFunction;
