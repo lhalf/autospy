@@ -38,7 +38,7 @@
 //!
 //! ## Use in development dependencies
 //!
-//! To use autospy when included in [`[dev-dependencies]`](https://doc.rust-lang.org/rust-by-example/testing/dev_dependencies.html) you will need import the dependency with the `#[cfg(test)]` annotation, and mark ALL autospy attributes with `#[cfg_attr(test, ...)]`.
+//! To use autospy when included in [`[dev-dependencies]`](https://doc.rust-lang.org/rust-by-example/testing/dev_dependencies.html) you will need import the dependency with the `#[cfg(test)]` annotation, and mark **ALL** autospy attributes, including those inside the trait, with `#[cfg_attr(test, ...)]`.
 //!
 //! ```rust
 //! #[cfg(test)]
