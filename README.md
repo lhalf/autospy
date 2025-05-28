@@ -1,4 +1,5 @@
 # autospy
+###### *:musical_note: autospy record, autospy replace :musical_note:*
 
 ![Crates.io Version](https://img.shields.io/crates/v/autospy)
 ![docs.rs](https://img.shields.io/docsrs/autospy)
