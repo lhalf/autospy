@@ -56,6 +56,25 @@ mod tests {
     }
 
     #[test]
+    fn cfg_attr_test_autospy_attributes_are_stripped_from_arguments() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                fn foo(&self, #[cfg_attr(test, autospy(ignore))] ignored: &str);
+            }
+        })
+        .unwrap();
+
+        let expected: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                fn foo(&self, ignored: &str);
+            }
+        })
+        .unwrap();
+
+        assert_eq!(expected, strip_attributes(input));
+    }
+
+    #[test]
     fn non_autospy_attributes_are_retained_on_arguments() {
         let input: ItemTrait = syn::parse2(quote! {
             trait Example {
@@ -79,6 +98,28 @@ mod tests {
         let input: ItemTrait = syn::parse2(quote! {
             trait Example {
                 #[autospy(String)]
+                type Item;
+                fn foo(&self, argument: Self::Item);
+            }
+        })
+        .unwrap();
+
+        let expected: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                type Item;
+                fn foo(&self, argument: Self::Item);
+            }
+        })
+        .unwrap();
+
+        assert_eq!(expected, strip_attributes(input));
+    }
+
+    #[test]
+    fn cfg_attr_test_autospy_attributes_are_stripped_on_associated_types() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                #[cfg_attr(test, autospy(String))]
                 type Item;
                 fn foo(&self, argument: Self::Item);
             }
