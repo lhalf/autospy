@@ -1,4 +1,5 @@
 use proc_macro2::TokenStream;
+use quote::ToTokens;
 use syn::{
     Attribute, Expr, ExprLit, Lit, Meta, MetaList, MetaNameValue, Token, Type, TypePath,
     parse::Parse, punctuated::Punctuated,
@@ -74,13 +75,23 @@ fn parse_literal_expression<T: Parse>(expression: Expr) -> T {
     }
 }
 
-fn autospy_attributes(attributes: &[Attribute]) -> impl Iterator<Item = &TokenStream> {
+fn autospy_attributes(attributes: &[Attribute]) -> impl Iterator<Item = TokenStream> {
     attributes.iter().filter_map(autospy_attribute)
 }
 
-fn autospy_attribute(attribute: &Attribute) -> Option<&TokenStream> {
+fn autospy_attribute(attribute: &Attribute) -> Option<TokenStream> {
     match &attribute.meta {
-        Meta::List(MetaList { path, tokens, .. }) if path.is_ident("autospy") => Some(tokens),
+        Meta::List(MetaList { path, tokens, .. }) if path.is_ident("autospy") => {
+            Some(tokens.clone())
+        }
+        Meta::List(MetaList { path, tokens, .. }) if path.is_ident("cfg_attr") => {
+            let tokens = tokens.to_string();
+            tokens
+                .strip_prefix("test , autospy (")
+                .and_then(|rest| rest.strip_suffix(')'))
+                .filter(|tokens| !tokens.is_empty())
+                .map(|tokens| tokens.to_token_stream())
+        }
         _ => None,
     }
 }

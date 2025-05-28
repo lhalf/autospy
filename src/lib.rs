@@ -8,11 +8,43 @@
 //!
 //! To use autospy simply attribute your trait using [`#[autospy]`](attr.autospy.html).
 //!
-//! **Note:** The generated spy object and trait impl are [`#[cfg(test)]`](https://doc.rust-lang.org/book/ch11-03-test-organization.html#the-tests-module-and-cfgtest), so you do not need `#[cfg_attr(test, autospy)]`.
+//! **Note:** The generated spy object and trait impl are [`#[cfg(test)]`](https://doc.rust-lang.org/book/ch11-03-test-organization.html#the-tests-module-and-cfgtest).
 //! ```rust
 //! use autospy::autospy;
 //!
 //! #[autospy]
+//! trait MyTrait {
+//!     fn foo(&self, argument: u32) -> u32;
+//! }
+//!
+//! fn call_with_ten(x: impl MyTrait) -> u32 {
+//!     x.foo(10)
+//! }
+//!
+//! #[cfg(test)]
+//! mod tests {
+//!     use super::*;
+//!
+//!     #[test]
+//!     fn test() {
+//!         let spy = MyTraitSpy::default();
+//!         spy.foo.returns.push_back(20);
+//!
+//!         assert_eq!(20, call_with_ten(spy.clone()));
+//!         assert_eq!(vec![10], spy.foo.arguments.take_all());
+//!     }
+//! }
+//! ```
+//!
+//! ## Use in development dependencies
+//!
+//! To use autospy when included in [`[dev-dependencies]`](https://doc.rust-lang.org/rust-by-example/testing/dev_dependencies.html) you will need import the dependency with the `#[cfg(test)]` annotation, and mark ALL autospy attributes with `#[cfg_attr(test, ...)]`.
+//!
+//! ```rust
+//! #[cfg(test)]
+//! use autospy::autospy;
+//!
+//! #[cfg_attr(test, autospy)]
 //! trait MyTrait {
 //!     fn foo(&self, argument: u32) -> u32;
 //! }
