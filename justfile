@@ -4,6 +4,7 @@ test:
     cargo fmt --check --all
     cargo clippy --all-targets -- -Dwarnings
     cargo test --locked --workspace --no-default-features
+    cargo test --example axum
 
 build-docs:
     cargo doc --no-deps
