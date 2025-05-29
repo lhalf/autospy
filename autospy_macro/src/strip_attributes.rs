@@ -39,7 +39,7 @@ mod tests {
     #[test]
     fn non_autospy_trait_attributes_are_retained() {
         let input: ItemTrait = syn::parse2(quote! {
-            #[async_trait]
+            #[some_attribute]
             trait Example {
                 fn foo(&self);
             }
@@ -47,7 +47,7 @@ mod tests {
         .unwrap();
 
         let expected: ItemTrait = syn::parse2(quote! {
-            #[async_trait]
+            #[some_attribute]
             trait Example {
                 fn foo(&self);
             }
