@@ -7,12 +7,12 @@ expression: "generate_pretty(quote!\n{\n    #[autospy::autospy] trait MyTrait\n 
 trait MyTrait {
     fn function(&self, bytes: Vec<u8>);
 }
-#[cfg(test)]
+#[cfg(any(test, not(feature = "test")))]
 #[derive(Default, Clone)]
 struct MyTraitSpy {
     pub function: autospy::SpyFunction<Result<String, Utf8Error>, ()>,
 }
-#[cfg(test)]
+#[cfg(any(test, not(feature = "test")))]
 impl MyTrait for MyTraitSpy {
     fn function(&self, bytes: Vec<u8>) {
         self.function.spy(String::from_utf8(bytes))

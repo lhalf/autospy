@@ -7,12 +7,12 @@ trait TestTrait {
     type Item;
     fn function(&self, argument: Self::Item);
 }
-#[cfg(test)]
+#[cfg(any(test, not(feature = "test")))]
 #[derive(Default, Clone)]
 struct TestTraitSpy {
     pub function: autospy::SpyFunction<<String as ToOwned>::Owned, ()>,
 }
-#[cfg(test)]
+#[cfg(any(test, not(feature = "test")))]
 impl TestTrait for TestTraitSpy {
     type Item = String;
     fn function(&self, argument: Self::Item) {
