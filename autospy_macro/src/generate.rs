@@ -267,4 +267,14 @@ mod tests {
             }
         }))
     }
+
+    #[test]
+    fn async_trait() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            #[async_trait]
+            trait TestTrait {
+                async fn function(&self);
+            }
+        }))
+    }
 }
