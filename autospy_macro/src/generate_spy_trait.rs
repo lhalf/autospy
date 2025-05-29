@@ -145,6 +145,31 @@ mod tests {
     }
 
     #[test]
+    fn async_trait_functions() {
+        let input: ItemTrait = syn::parse2(quote! {
+            #[async_trait]
+            trait Example {
+                async fn function(&self);
+            }
+        })
+        .unwrap();
+
+        let expected = quote! {
+            #[cfg(any(test, not(feature = "test")))]
+            #[async_trait]
+            impl Example for ExampleSpy {
+                async fn function(&self) {
+                    self.function.spy(())
+                }
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
     fn ignored_arguments_are_underscored_and_not_captured_in_trait_impl() {
         let input: ItemTrait = syn::parse2(quote! {
             trait Example {
