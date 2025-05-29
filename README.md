@@ -1,4 +1,5 @@
 # autospy
+
 ###### *:musical_note: autospy record, autospy replace :musical_note:*
 
 ![Crates.io Version](https://img.shields.io/crates/v/autospy)
@@ -17,10 +18,16 @@ runs and verification of input parameters after the test run.
 
 Spy objects are often only used by unit tests, the example below demonstrates use in a unit test.
 
+```toml
+[dev-dependencies]
+autospy = "0.0.2"
+```
+
 ```rust
+#[cfg(test)]
 use autospy::autospy;
 
-#[autospy]
+#[cfg_attr(test, autospy)]
 trait MyTrait {
     fn foo(&self, x: u32) -> bool;
 }
