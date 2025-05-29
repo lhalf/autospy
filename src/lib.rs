@@ -151,7 +151,9 @@
 //!
 //! ## Async traits
 //!
-//! Async traits at time of writing are not stable. They can be used through the [`async_trait`](https://docs.rs/async-trait/latest/async_trait/) crate. `#[autospy]` is compatible with the `#[async_trait]` macro. However, `#[autospy]` must come before `#[async_trait]`.
+//! Async functions in traits are stable as of Rust 1.75; however, this did not include support for using traits containing async functions as `dyn Trait`. They can be used via the [`async_trait`](https://docs.rs/async-trait/latest/async_trait/) crate. `#[autospy]` is compatible with the `#[async_trait]` macro.
+//!
+//! **Note:** `#[autospy]` must come before `#[async_trait]`.
 //!
 //! ```rust
 //! use autospy::autospy;
