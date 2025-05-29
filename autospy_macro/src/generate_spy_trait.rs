@@ -10,12 +10,14 @@ pub fn generate_spy_trait(
     associated_spy_types: &AssociatedSpyTypes,
 ) -> TokenStream {
     let trait_name = &item_trait.ident;
+    let trait_attributes = &item_trait.attrs;
     let spy_name = format_ident!("{}Spy", trait_name);
     let associated_type_definitions = associated_type_definitions(associated_spy_types);
     let spy_function_definitions = trait_spy_function_definitions(item_trait);
 
     quote! {
         #[cfg(any(test, not(feature = "test")))]
+        #(#trait_attributes)*
         impl #trait_name for #spy_name {
             #(#associated_type_definitions)*
             #(#spy_function_definitions)*
@@ -115,6 +117,25 @@ mod tests {
 
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
+            impl Example for ExampleSpy {}
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_attributes_are_retained() {
+        let input: ItemTrait = syn::parse2(quote! {
+            #[some_attribute]
+            trait Example {}
+        })
+        .unwrap();
+
+        let expected = quote! {
+            #[cfg(any(test, not(feature = "test")))]
+            #[some_attribute]
             impl Example for ExampleSpy {}
         };
 
