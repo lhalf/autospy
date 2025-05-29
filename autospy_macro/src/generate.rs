@@ -277,4 +277,14 @@ mod tests {
             }
         }))
     }
+
+    #[test]
+    fn async_trait_with_other_trait_requirements() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            #[async_trait]
+            trait TestTrait: Send + Sync + 'static {
+                async fn function(&self);
+            }
+        }))
+    }
 }
