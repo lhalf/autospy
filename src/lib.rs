@@ -1,12 +1,12 @@
 // vim: tw=80
 //! A test spy object library.
 //!
-//! autospy is a macro to create spy versions of almost any trait.
+//! [`#[autospy]`](attr.autospy.html) is a macro to create spy versions of almost any trait.
 //! They can be used in unit tests as a stand-in for the real object.
 //!
 //! # Usage
 //!
-//! To use autospy simply attribute your trait using [`#[autospy]`](attr.autospy.html).
+//! To use autospy simply attribute your trait using `#[autospy]`.
 //!
 //! **Note:** The generated spy object and trait impl are [`#[cfg(test)]`](https://doc.rust-lang.org/book/ch11-03-test-organization.html#the-tests-module-and-cfgtest) by default. To disable this see [features](#features).
 //! ```rust
@@ -30,7 +30,7 @@
 //!
 //! ## References
 //!
-//! `autospy` will automatically convert reference arguments into owned types.
+//! `#[autospy]` will automatically convert reference arguments into owned types.
 //!
 //! ```rust
 //! use autospy::autospy;
@@ -147,6 +147,33 @@
 //! use_trait(spy.clone());
 //!
 //! assert_eq!("hello!", spy.foo.arguments.take_all()[0].to_string())
+//! ```
+//!
+//! ## Async traits
+//!
+//! Async traits at time of writing are not stable. They can be used through the [`async_trait`](https://docs.rs/async-trait/latest/async_trait/) crate. `#[autospy]` is compatible with the `#[async_trait]` macro. However, `#[autospy]` must come before `#[async_trait]`.
+//!
+//! ```rust
+//! use autospy::autospy;
+//! use async_trait::async_trait;
+//! use pollster::FutureExt as _;
+//!
+//! #[autospy]
+//! #[async_trait]
+//! trait MyTrait {
+//!     async fn foo(&self, argument: &str);
+//! }
+//!
+//! async fn use_async_trait(x: impl MyTrait) {
+//!     x.foo("hello async!").await
+//! }
+//!
+//! let spy = MyTraitSpy::default();
+//! spy.foo.returns.push_back(());
+//!
+//! use_async_trait(spy.clone()).block_on();
+//!
+//! assert_eq!("hello async!", spy.foo.arguments.take_all()[0].to_string())
 //! ```
 
 //! # Features
