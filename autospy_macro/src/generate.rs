@@ -51,7 +51,6 @@ mod tests {
     #[test]
     fn arguments_marked_with_with_attribute_are_captured_with_that_expression() {
         insta::assert_snapshot!(generate_pretty(quote! {
-            #[autospy::autospy]
             trait MyTrait {
                 fn function(
                     &self,
