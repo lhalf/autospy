@@ -37,6 +37,27 @@ mod tests {
     use syn::ItemTrait;
 
     #[test]
+    fn non_autospy_trait_attributes_are_retained() {
+        let input: ItemTrait = syn::parse2(quote! {
+            #[async_trait]
+            trait Example {
+                fn foo(&self);
+            }
+        })
+        .unwrap();
+
+        let expected: ItemTrait = syn::parse2(quote! {
+            #[async_trait]
+            trait Example {
+                fn foo(&self);
+            }
+        })
+        .unwrap();
+
+        assert_eq!(expected, strip_attributes(input));
+    }
+
+    #[test]
     fn autospy_attributes_are_stripped_from_arguments() {
         let input: ItemTrait = syn::parse2(quote! {
             trait Example {
