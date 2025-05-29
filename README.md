@@ -16,12 +16,8 @@ runs and verification of input parameters after the test run.
 
 ## Usage
 
-Spy objects are often only used by unit tests, the example below demonstrates use in a unit test.
-
-```toml
-[dev-dependencies]
-autospy = "0.0.2"
-```
+Spy objects are often only used by unit tests, the example below demonstrates use in a unit test assuming included in
+`[dev-dependencies]`.
 
 ```rust
 #[cfg(test)]
