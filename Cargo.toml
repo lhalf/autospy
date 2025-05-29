@@ -11,6 +11,10 @@ categories = ["development-tools::testing"]
 readme = "README.md"
 exclude = ["/tests/", "justfile"]
 
+[features]
+test = []
+default = ["test"]
+
 [workspace]
 members = ["autospy_macro"]
 

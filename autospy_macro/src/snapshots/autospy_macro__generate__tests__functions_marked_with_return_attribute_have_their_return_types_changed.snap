@@ -6,12 +6,12 @@ expression: "generate_pretty(quote!\n{\n    trait TestTrait\n    { #[autospy(ret
 trait TestTrait {
     fn function(&self) -> impl ToString;
 }
-#[cfg(test)]
+#[cfg(any(test, not(feature = "test")))]
 #[derive(Default, Clone)]
 struct TestTraitSpy {
     pub function: autospy::SpyFunction<(), String>,
 }
-#[cfg(test)]
+#[cfg(any(test, not(feature = "test")))]
 impl TestTrait for TestTraitSpy {
     fn function(&self) -> impl ToString {
         self.function.spy(())

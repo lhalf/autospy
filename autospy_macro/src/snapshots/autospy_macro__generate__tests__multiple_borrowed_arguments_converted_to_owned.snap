@@ -6,7 +6,7 @@ expression: "generate_pretty(quote!\n{ trait TestTrait { fn function(&self, argu
 trait TestTrait {
     fn function(&self, argument1: &str, argument2: &str);
 }
-#[cfg(test)]
+#[cfg(any(test, not(feature = "test")))]
 #[derive(Default, Clone)]
 struct TestTraitSpy {
     pub function: autospy::SpyFunction<
@@ -14,7 +14,7 @@ struct TestTraitSpy {
         (),
     >,
 }
-#[cfg(test)]
+#[cfg(any(test, not(feature = "test")))]
 impl TestTrait for TestTraitSpy {
     fn function(&self, argument1: &str, argument2: &str) {
         self.function.spy((argument1.to_owned(), argument2.to_owned()))

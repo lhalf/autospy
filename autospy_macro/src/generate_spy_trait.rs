@@ -15,7 +15,7 @@ pub fn generate_spy_trait(
     let spy_function_definitions = trait_spy_function_definitions(item_trait);
 
     quote! {
-        #[cfg(test)]
+        #[cfg(any(test, not(feature = "test")))]
         impl #trait_name for #spy_name {
             #(#associated_type_definitions)*
             #(#spy_function_definitions)*
@@ -97,7 +97,7 @@ mod tests {
         .unwrap();
 
         let expected = quote! {
-            #[cfg(test)]
+            #[cfg(any(test, not(feature = "test")))]
             impl Example for ExampleSpy {}
         };
 
@@ -114,7 +114,7 @@ mod tests {
         .unwrap();
 
         let expected = quote! {
-            #[cfg(test)]
+            #[cfg(any(test, not(feature = "test")))]
             impl Example for ExampleSpy {}
         };
 
@@ -133,7 +133,7 @@ mod tests {
         .unwrap();
 
         let expected = quote! {
-            #[cfg(test)]
+            #[cfg(any(test, not(feature = "test")))]
             impl Example for ExampleSpy {
                 fn function(&self, _: &str, captured: &str) {
                     self.function.spy(captured.to_owned())
@@ -156,7 +156,7 @@ mod tests {
         .unwrap();
 
         let expected = quote! {
-            #[cfg(test)]
+            #[cfg(any(test, not(feature = "test")))]
             impl Example for ExampleSpy {
                 fn function(&self, argument: impl ToString + 'static) {
                     self.function.spy(Box::new(argument))
@@ -179,7 +179,7 @@ mod tests {
         .unwrap();
 
         let expected = quote! {
-            #[cfg(test)]
+            #[cfg(any(test, not(feature = "test")))]
             impl Example for ExampleSpy {
                 fn function(&self, ip: [u8; 4]) {
                     self.function.spy(ip.into())

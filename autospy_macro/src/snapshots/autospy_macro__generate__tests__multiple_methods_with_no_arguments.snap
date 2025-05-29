@@ -7,13 +7,13 @@ trait TestTrait {
     fn function1(&self);
     fn function2(&self);
 }
-#[cfg(test)]
+#[cfg(any(test, not(feature = "test")))]
 #[derive(Default, Clone)]
 struct TestTraitSpy {
     pub function1: autospy::SpyFunction<(), ()>,
     pub function2: autospy::SpyFunction<(), ()>,
 }
-#[cfg(test)]
+#[cfg(any(test, not(feature = "test")))]
 impl TestTrait for TestTraitSpy {
     fn function1(&self) {
         self.function1.spy(())

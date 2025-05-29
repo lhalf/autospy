@@ -8,12 +8,12 @@ trait TestTrait {
     type Return;
     fn function(&self, argument: Self::Argument) -> Self::Return;
 }
-#[cfg(test)]
+#[cfg(any(test, not(feature = "test")))]
 #[derive(Default, Clone)]
 struct TestTraitSpy {
     pub function: autospy::SpyFunction<<String as ToOwned>::Owned, String>,
 }
-#[cfg(test)]
+#[cfg(any(test, not(feature = "test")))]
 impl TestTrait for TestTraitSpy {
     type Argument = String;
     type Return = String;
