@@ -9,7 +9,7 @@ documentation = "https://docs.rs/autospy"
 keywords = ["mock", "testing", "spy", "mocking", "fake"]
 categories = ["development-tools::testing"]
 readme = "README.md"
-exclude = ["/tests/", "justfile"]
+exclude = ["/tests/", "justfile", "/examples/"]
 
 [features]
 test = []
