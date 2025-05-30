@@ -1,4 +1,4 @@
-//! Test a filesystem managed by an [`axum`](https://docs.rs/axum/latest/axum/) HTTP server.
+//! Test an [`axum`](https://docs.rs/axum/latest/axum/) HTTP server which manages a filesystem.
 
 use anyhow::Context;
 use async_trait::async_trait;
