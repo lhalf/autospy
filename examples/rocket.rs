@@ -1,4 +1,4 @@
-//! Test an upstream request client managed by a [`rocket`](https://rocket.rs/) server.
+//! Test a [`rocket`](https://rocket.rs/) server which manages an upstream request client.
 
 use anyhow::Context;
 use async_trait::async_trait;
