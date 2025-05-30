@@ -1,4 +1,4 @@
-//! Generate a spy for an upstream request client managed by a [`rocket`](https://rocket.rs/) server.
+//! Test an upstream request client managed by a [`rocket`](https://rocket.rs/) server.
 
 use anyhow::Context;
 use async_trait::async_trait;
