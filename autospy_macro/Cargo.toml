@@ -1,6 +1,6 @@
 [package]
 name = "autospy_macro"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2024"
 description = "Procedural macros for autospy."
 license = "MIT"
