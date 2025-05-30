@@ -1,6 +1,6 @@
 [package]
 name = "autospy"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2024"
 description = "A test spy object library."
 license = "MIT"
@@ -19,7 +19,7 @@ default = ["test"]
 members = ["autospy_macro"]
 
 [dependencies]
-autospy_macro = { path = "autospy_macro", version = "0.0.2" }
+autospy_macro = { path = "autospy_macro", version = "0.0.3" }
 
 [dev-dependencies]
 async-trait = "0.1.88"
