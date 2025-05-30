@@ -1,3 +1,5 @@
+//! Generate a spy for a file system managed by an [`axum`]() HTTP server.
+
 use anyhow::Context;
 use async_trait::async_trait;
 #[cfg(test)]

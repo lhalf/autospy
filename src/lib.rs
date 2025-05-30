@@ -1,4 +1,3 @@
-// vim: tw=80
 //! A test spy object library.
 //!
 //! [`#[autospy]`](attr.autospy.html) is a macro to create spy versions of almost any trait.
