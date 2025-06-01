@@ -121,14 +121,13 @@ mod tests {
 
     use super::generate_spy_trait;
     use quote::{ToTokens, quote};
-    use syn::ItemTrait;
+    use syn::{ItemTrait, parse_quote};
 
     #[test]
     fn empty_generated_trait() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {}
-        })
-        .unwrap();
+        };
 
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
@@ -142,10 +141,9 @@ mod tests {
 
     #[test]
     fn empty_generated_trait_impl() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {}
-        })
-        .unwrap();
+        };
 
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
@@ -159,11 +157,10 @@ mod tests {
 
     #[test]
     fn trait_attributes_are_retained() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             #[some_attribute]
             trait Example {}
-        })
-        .unwrap();
+        };
 
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
@@ -178,13 +175,12 @@ mod tests {
 
     #[test]
     fn async_trait_functions() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             #[async_trait]
             trait Example {
                 async fn function(&self);
             }
-        })
-        .unwrap();
+        };
 
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
@@ -203,12 +199,11 @@ mod tests {
 
     #[test]
     fn ignored_arguments_are_underscored_and_not_captured_in_trait_impl() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 fn function(&self, #[autospy(ignore)] ignored: &str, captured: &str);
             }
-        })
-        .unwrap();
+        };
 
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
@@ -226,12 +221,11 @@ mod tests {
 
     #[test]
     fn functions_with_static_impl_arguments_are_boxed() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 fn function(&self, argument: impl ToString + 'static);
             }
-        })
-        .unwrap();
+        };
 
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
@@ -249,12 +243,11 @@ mod tests {
 
     #[test]
     fn arguments_with_into_attribute_are_captured() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 fn function(&self, #[autospy(into="IpAddr")] ip: [u8; 4]);
             }
-        })
-        .unwrap();
+        };
 
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
@@ -272,13 +265,12 @@ mod tests {
 
     #[test]
     fn associated_consts_can_be_substituted_by_attribute() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 #[autospy(100)]
                 const VALUE: u64;
             }
-        })
-        .unwrap();
+        };
 
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
@@ -294,12 +286,11 @@ mod tests {
 
     #[test]
     fn associated_consts_uses_const_default_if_no_attribute_specified() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 const VALUE: u8;
             }
-        })
-        .unwrap();
+        };
 
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
@@ -315,14 +306,13 @@ mod tests {
 
     #[test]
     fn associated_consts_with_multiple_attributes_retain_non_autospy_attributes() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 #[autospy("hello")]
                 #[some_attribute]
                 const VALUE: &'static str;
             }
-        })
-        .unwrap();
+        };
 
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
@@ -339,15 +329,14 @@ mod tests {
 
     #[test]
     fn multiple_associated_consts_can_be_substituted_by_attribute() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 #[autospy(100)]
                 const VALUE1: u64;
                 #[autospy(false)]
                 const VALUE2: bool;
             }
-        })
-        .unwrap();
+        };
 
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
@@ -364,15 +353,14 @@ mod tests {
 
     #[test]
     fn default_trait_functions_marked_with_use_default_use_default_trait_function() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 #[autospy(use_default)]
                 fn one(&self) -> u8 {
                     1
                 }
             }
-        })
-        .unwrap();
+        };
 
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
