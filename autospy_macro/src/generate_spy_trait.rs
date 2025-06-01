@@ -324,4 +324,29 @@ mod tests {
 
         assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
     }
+
+    #[test]
+    fn multiple_associated_consts_can_be_substituted_by_attribute() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                #[autospy(100)]
+                const VALUE1: u64;
+                #[autospy(false)]
+                const VALUE2: bool;
+            }
+        })
+        .unwrap();
+
+        let expected = quote! {
+            #[cfg(any(test, not(feature = "test")))]
+            impl Example for ExampleSpy {
+                const VALUE1: u64 = 100;
+                const VALUE2: bool = false;
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
 }
