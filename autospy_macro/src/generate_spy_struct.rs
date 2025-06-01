@@ -3,7 +3,7 @@ use crate::{attribute, edit, generate, inspect};
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
 use syn::visit_mut::VisitMut;
-use syn::{ItemStruct, ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait};
+use syn::{ItemStruct, ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait, parse_quote};
 
 pub fn generate_spy_struct(
     item_trait: &ItemTrait,
@@ -13,14 +13,13 @@ pub fn generate_spy_struct(
     let spy_name = format_ident!("{}Spy", item_trait.ident);
     let spy_fields = generate_spy_fields(item_trait, associated_spy_types);
 
-    syn::parse2(quote! {
+    parse_quote! {
         #[cfg(any(test, not(feature = "test")))]
         #[derive(Default, Clone)]
         #visibility struct #spy_name {
             #(#spy_fields),*
         }
-    })
-    .expect("invalid generated spy struct")
+    }
 }
 
 fn generate_spy_fields(
@@ -90,21 +89,19 @@ mod tests {
     use crate::generate_spy_struct::generate_spy_struct;
     use proc_macro2::TokenStream;
     use quote::quote;
-    use syn::{ItemStruct, ItemTrait};
+    use syn::{ItemStruct, ItemTrait, parse_quote};
 
     #[test]
     fn empty_generated_struct() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {}
-        })
-        .unwrap();
+        };
 
-        let expected: ItemStruct = syn::parse2(quote! {
+        let expected: ItemStruct = parse_quote! {
             #[cfg(any(test, not(feature = "test")))]
             #[derive(Default, Clone)]
             struct ExampleSpy {}
-        })
-        .unwrap();
+        };
 
         assert_eq!(
             expected,
@@ -114,21 +111,19 @@ mod tests {
 
     #[test]
     fn generated_spy_struct_retains_trait_visibility() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             pub trait Example {
                 fn foo(&self);
             }
-        })
-        .unwrap();
+        };
 
-        let expected: ItemStruct = syn::parse2(quote! {
+        let expected: ItemStruct = parse_quote! {
             #[cfg(any(test, not(feature = "test")))]
             #[derive(Default, Clone)]
             pub struct ExampleSpy {
                 pub foo: autospy::SpyFunction<(), ()>
             }
-        })
-        .unwrap();
+        };
 
         assert_eq!(
             expected,
@@ -138,21 +133,19 @@ mod tests {
 
     #[test]
     fn generated_spy_struct_handles_owned_return_values() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 fn foo(&self) -> String;
             }
-        })
-        .unwrap();
+        };
 
-        let expected: ItemStruct = syn::parse2(quote! {
+        let expected: ItemStruct = parse_quote! {
             #[cfg(any(test, not(feature = "test")))]
             #[derive(Default, Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction<(), String>
             }
-        })
-        .unwrap();
+        };
 
         assert_eq!(
             expected,
@@ -162,21 +155,19 @@ mod tests {
 
     #[test]
     fn generated_spy_struct_captures_reference_arguments_as_owned() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 fn foo(&self, argument: &str);
             }
-        })
-        .unwrap();
+        };
 
-        let expected: ItemStruct = syn::parse2(quote! {
+        let expected: ItemStruct = parse_quote! {
             #[cfg(any(test, not(feature = "test")))]
             #[derive(Default, Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction< < str as ToOwned > :: Owned , () >
             }
-        })
-        .unwrap();
+        };
 
         assert_eq!(
             expected,
@@ -186,23 +177,21 @@ mod tests {
 
     #[test]
     fn generated_spy_struct_captures_associated_type_arguments() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 #[autospy(String)]
                 type Item;
                 fn foo(&self, argument: Self::Item);
             }
-        })
-        .unwrap();
+        };
 
-        let expected: ItemStruct = syn::parse2(quote! {
+        let expected: ItemStruct = parse_quote! {
             #[cfg(any(test, not(feature = "test")))]
             #[derive(Default, Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction< < String as ToOwned > :: Owned , () >
             }
-        })
-        .unwrap();
+        };
 
         assert_eq!(
             expected,
@@ -215,23 +204,21 @@ mod tests {
 
     #[test]
     fn generated_spy_struct_handles_associated_type_returns() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 #[autospy(String)]
                 type Item;
                 fn foo(&self) -> Self::Item;
             }
-        })
-        .unwrap();
+        };
 
-        let expected: ItemStruct = syn::parse2(quote! {
+        let expected: ItemStruct = parse_quote! {
             #[cfg(any(test, not(feature = "test")))]
             #[derive(Default, Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction< (), String >
             }
-        })
-        .unwrap();
+        };
 
         assert_eq!(
             expected,
@@ -243,7 +230,7 @@ mod tests {
     }
 
     fn associated_spy_types(ident: TokenStream, r#type: TokenStream) -> AssociatedSpyTypes {
-        [(syn::parse2(ident).unwrap(), syn::parse2(r#type).unwrap())]
+        [(parse_quote! { #ident }, parse_quote! { #r#type })]
             .into_iter()
             .collect()
     }
