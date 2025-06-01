@@ -1,4 +1,5 @@
 mod array_arguments;
+mod associated_const_attribute;
 mod associated_type_arguments;
 mod associated_type_returns;
 mod async_trait;
