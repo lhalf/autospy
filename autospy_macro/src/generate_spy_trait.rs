@@ -94,8 +94,13 @@ fn associated_const_as_spy_associated_const(associated_const: &TraitItemConst) -
 
     associated_const.default = Some((
         <Token![=]>::default(),
-        attribute::associated_const(&associated_const.attrs)
-            .unwrap_or_else(|| parse_quote! { Default::default() }),
+        match attribute::associated_const(&associated_const.attrs) {
+            None => {
+                let associated_const_type = &associated_const.ty;
+                parse_quote! { <#associated_const_type as const_default::ConstDefault>::DEFAULT }
+            }
+            Some(expr) => expr,
+        },
     ));
 
     strip_autospy_attributes(&mut associated_const.attrs);
@@ -281,7 +286,7 @@ mod tests {
     }
 
     #[test]
-    fn associated_consts_use_default_if_no_attribute_specified() {
+    fn associated_consts_uses_const_default_if_no_attribute_specified() {
         let input: ItemTrait = syn::parse2(quote! {
             trait Example {
                 const VALUE: u8;
@@ -292,7 +297,7 @@ mod tests {
         let expected = quote! {
             #[cfg(any(test, not(feature = "test")))]
             impl Example for ExampleSpy {
-                const VALUE: u8 = Default::default();
+                const VALUE: u8 = <u8 as const_default::ConstDefault>::DEFAULT;
             }
         };
 
