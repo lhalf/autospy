@@ -287,4 +287,14 @@ mod tests {
             }
         }))
     }
+    #[test]
+    fn traits_with_associated_consts() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                #[autospy("example")]
+                const VALUE: &'static str;
+                fn function(&self);
+            }
+        }))
+    }
 }
