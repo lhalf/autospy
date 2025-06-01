@@ -22,6 +22,7 @@ fn strip_attributes_from_item(item: &mut TraitItem) {
             strip_attributes_from_signature(&mut function.sig);
         }
         TraitItem::Type(_type) => strip_autospy_attributes(&mut _type.attrs),
+        TraitItem::Const(_const) => strip_autospy_attributes(&mut _const.attrs),
         _ => (),
     }
 }
@@ -129,6 +130,28 @@ mod tests {
             trait Example {
                 type Item;
                 fn foo(&self, argument: Self::Item);
+            }
+        })
+        .unwrap();
+
+        assert_eq!(expected, strip_attributes(input));
+    }
+
+    #[test]
+    fn autospy_attributes_are_stripped_on_associated_consts() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                #[autospy(100)]
+                const VALUE: u64;
+                fn foo(&self);
+            }
+        })
+        .unwrap();
+
+        let expected: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                const VALUE: u64;
+                fn foo(&self);
             }
         })
         .unwrap();
