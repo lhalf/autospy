@@ -1,0 +1,21 @@
+---
+source: autospy_macro/src/generate.rs
+assertion_line: 302
+expression: "generate_pretty(quote!\n{\n    trait TestTrait { #[autospy(use_default)] fn function(&self) -> u8 { 1 } }\n})"
+---
+trait TestTrait {
+    fn function(&self) -> u8 {
+        1
+    }
+}
+#[cfg(any(test, not(feature = "test")))]
+#[derive(Default, Clone)]
+struct TestTraitSpy {
+    pub function: autospy::SpyFunction<(), u8>,
+}
+#[cfg(any(test, not(feature = "test")))]
+impl TestTrait for TestTraitSpy {
+    fn function(&self) -> u8 {
+        1
+    }
+}

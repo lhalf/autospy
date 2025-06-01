@@ -16,6 +16,10 @@ pub fn is_ignore_attribute(attribute: &Attribute) -> bool {
     }
 }
 
+pub fn has_use_default_attribute(attributes: &[Attribute]) -> bool {
+    autospy_attributes(attributes).any(|attribute| attribute.to_string() == "use_default")
+}
+
 pub fn associated_type(attributes: &[Attribute]) -> Option<TypePath> {
     Some(
         syn::parse2(autospy_attributes(attributes).next()?.clone())

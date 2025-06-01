@@ -297,4 +297,15 @@ mod tests {
             }
         }))
     }
+    #[test]
+    fn traits_with_default_definitions() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                #[autospy(use_default)]
+                fn function(&self) -> u8 {
+                    1
+                }
+            }
+        }))
+    }
 }

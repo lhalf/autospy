@@ -40,12 +40,19 @@ fn trait_spy_function_definitions(item_trait: &ItemTrait) -> impl Iterator<Item 
 }
 
 fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
+    let mut signature = function.sig.clone();
+
+    if attribute::has_use_default_attribute(&function.attrs) {
+        if let Some(default_function) = &function.default {
+            return quote! { #signature #default_function };
+        }
+    }
+
     let function_name = &function.sig.ident;
     let spy_arguments = generate::tuple_or_single(
         inspect::spyable_arguments(function).map(argument_to_spy_expression),
     );
 
-    let mut signature = function.sig.clone();
     edit::underscore_ignored_arguments_in_signature(&mut signature);
     strip_attributes_from_signature(&mut signature);
 
@@ -347,6 +354,32 @@ mod tests {
             impl Example for ExampleSpy {
                 const VALUE1: u64 = 100;
                 const VALUE2: bool = false;
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn default_trait_functions_marked_with_use_default_use_default_trait_function() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                #[autospy(use_default)]
+                fn one(&self) -> u8 {
+                    1
+                }
+            }
+        })
+        .unwrap();
+
+        let expected = quote! {
+            #[cfg(any(test, not(feature = "test")))]
+            impl Example for ExampleSpy {
+               fn one(&self) -> u8 {
+                    1
+                }
             }
         };
 
