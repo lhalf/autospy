@@ -32,28 +32,26 @@ fn associated_type_name_and_spy_type(trait_item: &TraitItemType) -> Option<(Iden
 mod tests {
     use crate::associated_types::{AssociatedSpyTypes, get_associated_types};
 
-    use quote::{ToTokens, format_ident, quote};
-    use syn::ItemTrait;
+    use quote::{ToTokens, format_ident};
+    use syn::{ItemTrait, parse_quote};
 
     #[test]
     fn empty_trait_has_no_associated_types() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {}
-        })
-        .unwrap();
+        };
 
         assert_eq!(AssociatedSpyTypes::new(), get_associated_types(&input));
     }
 
     #[test]
     fn single_associated_type() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 #[autospy(String)]
                 type Hello;
             }
-        })
-        .unwrap();
+        };
 
         let expected = to_associated_spy_types([("Hello", "String")]);
 
@@ -62,15 +60,14 @@ mod tests {
 
     #[test]
     fn multiple_associated_types() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 #[autospy(String)]
                 type Hello;
                 #[autospy(bool)]
                 type Nope;
             }
-        })
-        .unwrap();
+        };
 
         let expected = to_associated_spy_types([("Hello", "String"), ("Nope", "bool")]);
 
@@ -79,7 +76,7 @@ mod tests {
 
     #[test]
     fn multiple_associated_types_in_between_trait_functions() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 fn again();
                 #[autospy(String)]
@@ -88,8 +85,7 @@ mod tests {
                 #[autospy(bool)]
                 type Nope;
             }
-        })
-        .unwrap();
+        };
 
         let expected = to_associated_spy_types([("Hello", "String"), ("Nope", "bool")]);
 
@@ -98,15 +94,14 @@ mod tests {
 
     #[test]
     fn other_attributes_dont_affect_associated_types() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 #[another_attribute]
                 #[autospy(String)]
                 #[some_attribute]
                 type Hello;
             }
-        })
-        .unwrap();
+        };
 
         let expected = to_associated_spy_types([("Hello", "String")]);
 
@@ -116,15 +111,14 @@ mod tests {
     // TODO: is this the behaviour we want?
     #[test]
     fn associated_type_uses_the_first_found_attribute() {
-        let input: ItemTrait = syn::parse2(quote! {
+        let input: ItemTrait = parse_quote! {
             trait Example {
                 #[another_attribute]
                 #[autospy(String)]
                 #[autospy(bool)]
                 type Hello;
             }
-        })
-        .unwrap();
+        };
 
         let expected = to_associated_spy_types([("Hello", "String")]);
 
