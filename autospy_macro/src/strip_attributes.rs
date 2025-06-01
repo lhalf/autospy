@@ -15,6 +15,10 @@ pub fn strip_attributes_from_signature(signature: &mut Signature) {
     }
 }
 
+pub fn strip_autospy_attributes(attributes: &mut Vec<Attribute>) {
+    attributes.retain(|attribute| !attribute::is_autospy_attribute(attribute));
+}
+
 fn strip_attributes_from_item(item: &mut TraitItem) {
     match item {
         TraitItem::Fn(function) => {
@@ -25,10 +29,6 @@ fn strip_attributes_from_item(item: &mut TraitItem) {
         TraitItem::Const(_const) => strip_autospy_attributes(&mut _const.attrs),
         _ => (),
     }
-}
-
-fn strip_autospy_attributes(attributes: &mut Vec<Attribute>) {
-    attributes.retain(|attribute| !attribute::is_autospy_attribute(attribute));
 }
 
 #[cfg(test)]
