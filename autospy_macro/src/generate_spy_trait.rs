@@ -1,9 +1,9 @@
 use crate::associated_types::AssociatedSpyTypes;
-use crate::strip_attributes::strip_attributes_from_signature;
-use crate::{edit, generate, inspect};
+use crate::strip_attributes::{strip_attributes_from_signature, strip_autospy_attributes};
+use crate::{attribute, edit, generate, inspect};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{ItemTrait, TraitItemFn, Type};
+use syn::{ItemTrait, Token, TraitItemConst, TraitItemFn, Type, parse_quote};
 
 pub fn generate_spy_trait(
     item_trait: &ItemTrait,
@@ -13,6 +13,7 @@ pub fn generate_spy_trait(
     let trait_attributes = &item_trait.attrs;
     let spy_name = format_ident!("{}Spy", trait_name);
     let associated_type_definitions = associated_type_definitions(associated_spy_types);
+    let spy_associated_consts = spy_associated_consts(item_trait);
     let spy_function_definitions = trait_spy_function_definitions(item_trait);
 
     quote! {
@@ -20,6 +21,7 @@ pub fn generate_spy_trait(
         #(#trait_attributes)*
         impl #trait_name for #spy_name {
             #(#associated_type_definitions)*
+            #(#spy_associated_consts)*
             #(#spy_function_definitions)*
         }
     }
@@ -81,6 +83,25 @@ fn dereference_tokens(argument: &inspect::SpyableArgument) -> TokenStream {
     "*".repeat((argument.dereference_count - 1) as usize)
         .parse()
         .expect("always valid token stream")
+}
+
+fn spy_associated_consts(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {
+    inspect::associated_consts(item_trait).map(associated_const_as_spy_associated_const)
+}
+
+fn associated_const_as_spy_associated_const(associated_const: &TraitItemConst) -> TokenStream {
+    let mut associated_const = associated_const.clone();
+
+    let spy_associated_const = attribute::associated_const(&associated_const.attrs);
+
+    strip_autospy_attributes(&mut associated_const.attrs);
+
+    associated_const.default = Some((
+        <Token![=]>::default(),
+        spy_associated_const.unwrap_or_else(|| parse_quote! { Default::default() }),
+    ));
+
+    quote! { #associated_const }
 }
 
 #[cfg(test)]
@@ -230,6 +251,28 @@ mod tests {
                 fn function(&self, ip: [u8; 4]) {
                     self.function.spy(ip.into())
                 }
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn associated_consts_can_be_substituted_by_attribute() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                #[autospy(100)]
+                const VALUE: u64;
+            }
+        })
+        .unwrap();
+
+        let expected = quote! {
+            #[cfg(any(test, not(feature = "test")))]
+            impl Example for ExampleSpy {
+                const VALUE: u64 = 100;
             }
         };
 

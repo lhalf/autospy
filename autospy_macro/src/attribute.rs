@@ -23,6 +23,10 @@ pub fn associated_type(attributes: &[Attribute]) -> Option<TypePath> {
     )
 }
 
+pub fn associated_const(attributes: &[Attribute]) -> Option<Expr> {
+    syn::parse2::<Expr>(autospy_attributes(attributes).next()?.clone()).ok()
+}
+
 pub fn into_type(attributes: &[Attribute]) -> Option<Type> {
     key_value_autospy_attributes(attributes)
         .find_map(|name_value| matching_meta_name_value(name_value, "into"))

@@ -1,5 +1,14 @@
 use crate::attribute;
-use syn::{Expr, FnArg, Ident, ItemTrait, Pat, PatType, TraitItem, TraitItemFn, Type};
+use syn::{
+    Expr, FnArg, Ident, ItemTrait, Pat, PatType, TraitItem, TraitItemConst, TraitItemFn, Type,
+};
+
+pub fn associated_consts(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemConst> {
+    item_trait.items.iter().filter_map(|item| match item {
+        TraitItem::Const(associated_const) => Some(associated_const),
+        _ => None,
+    })
+}
 
 pub fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemFn> {
     item_trait.items.iter().filter_map(|item| match item {
