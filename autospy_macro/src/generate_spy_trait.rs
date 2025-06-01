@@ -92,14 +92,13 @@ fn spy_associated_consts(item_trait: &ItemTrait) -> impl Iterator<Item = TokenSt
 fn associated_const_as_spy_associated_const(associated_const: &TraitItemConst) -> TokenStream {
     let mut associated_const = associated_const.clone();
 
-    let spy_associated_const = attribute::associated_const(&associated_const.attrs);
-
-    strip_autospy_attributes(&mut associated_const.attrs);
-
     associated_const.default = Some((
         <Token![=]>::default(),
-        spy_associated_const.unwrap_or_else(|| parse_quote! { Default::default() }),
+        attribute::associated_const(&associated_const.attrs)
+            .unwrap_or_else(|| parse_quote! { Default::default() }),
     ));
+
+    strip_autospy_attributes(&mut associated_const.attrs);
 
     quote! { #associated_const }
 }
@@ -273,6 +272,51 @@ mod tests {
             #[cfg(any(test, not(feature = "test")))]
             impl Example for ExampleSpy {
                 const VALUE: u64 = 100;
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn associated_consts_use_default_if_no_attribute_specified() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                const VALUE: u8;
+            }
+        })
+        .unwrap();
+
+        let expected = quote! {
+            #[cfg(any(test, not(feature = "test")))]
+            impl Example for ExampleSpy {
+                const VALUE: u8 = Default::default();
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn associated_consts_with_multiple_attributes_retain_non_autospy_attributes() {
+        let input: ItemTrait = syn::parse2(quote! {
+            trait Example {
+                #[autospy("hello")]
+                #[some_attribute]
+                const VALUE: &'static str;
+            }
+        })
+        .unwrap();
+
+        let expected = quote! {
+            #[cfg(any(test, not(feature = "test")))]
+            impl Example for ExampleSpy {
+                #[some_attribute]
+                const VALUE: &'static str = "hello";
             }
         };
 
