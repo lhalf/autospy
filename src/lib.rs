@@ -126,7 +126,7 @@
 //!
 //! ## Static trait arguments
 //!
-//! Trait functions that have generic arguments and are [`'static`](https://doc.rust-lang.org/rust-by-example/scope/lifetime/static_lifetime.html) will automatically be captured in a [`Box`](https://doc.rust-lang.org/std/boxed/struct.Box.html).
+//! Trait functions that have generic arguments and are [`'static`](https://doc.rust-lang.org/rust-by-example/scope/lifetime/static_lifetime.html) will automatically be captured in a [`Box`].
 //!
 //! ```rust
 //! use autospy::autospy;
@@ -176,6 +176,99 @@
 //!
 //! assert_eq!("hello async!", spy.foo.arguments.take_all()[0].to_string())
 //! ```
+//!
+//! ## Into attribute
+//!
+//! If you wish to capture an argument as a different type, and it implements [`From`] you can use the `#[autospy(into = "TYPE")]` attribute on the argument.
+//!
+//! ```rust
+//! use std::net::Ipv4Addr;
+//! use autospy::autospy;
+//!
+//! #[autospy]
+//! trait MyTrait {
+//!     fn foo(&self, #[autospy(into="Ipv4Addr")] ip: [u8; 4]);
+//! }
+//!
+//! fn use_trait(x: impl MyTrait) {
+//!     x.foo([192, 168, 0, 1])
+//! }
+//!
+//! let spy = MyTraitSpy::default();
+//! spy.foo.returns.push_back(());
+//!
+//! use_trait(spy.clone());
+//!
+//! assert_eq!(vec![Ipv4Addr::new(192, 168, 0, 1)], spy.foo.arguments.take_all())
+//! ```
+//!
+//! ## Into with attribute
+//!
+//! If you wish to capture an argument as a different type, and it doesn't implement [`From`] you can use the `#[autospy(into = "TYPE", with = "FUNCTION")]` attribute on the argument.
+//!
+//! ```rust
+//! use std::string::FromUtf8Error;
+//! use autospy::autospy;
+//!
+//! #[autospy]
+//! trait MyTrait {
+//!     fn foo(&self, #[autospy(into = "Result<String, FromUtf8Error>", with = "String::from_utf8")] bytes: Vec<u8>);
+//! }
+//!
+//! fn use_trait(x: impl MyTrait) {
+//!     x.foo(b"hello!".to_vec())
+//! }
+//!
+//! let spy = MyTraitSpy::default();
+//! spy.foo.returns.push_back(());
+//!
+//! use_trait(spy.clone());
+//!
+//! assert_eq!(vec![Ok(String::from("hello!"))], spy.foo.arguments.take_all())
+//! ```
+//!
+//! ## Associated consts
+//!
+//! An `#[autospy(VALUE)]` attribute can be applied to associated consts to set them in the spy. Alternatively, if no attribute is provided and the type has a [`Default`] that will be used.
+//!
+//! ```rust
+//! use autospy::autospy;
+//!
+//! #[autospy]
+//! trait MyTrait {
+//!     #[autospy(100)]
+//!     const VALUE: u64;
+//!     const DEFAULT: u64;
+//!     fn foo(&self);
+//! }
+//!
+//! assert_eq!(100, MyTraitSpy::VALUE);
+//! assert_eq!(0, MyTraitSpy::DEFAULT);
+//! ```
+//!
+//! ## Default trait implementations
+//!
+//! If your trait has a default implementation for a method, an `#[autospy(use_default)]` attribute can be used on the method to tell the spy to use the default. Therefore, no spy values will be recorded for this function.
+//!
+//! ```rust
+//! use autospy::autospy;
+//! #[autospy]
+//! trait MyTrait {
+//!     #[autospy(20)]
+//!     const VALUE: u64;
+//!     #[autospy(use_default)]
+//!     fn foo(&self) -> u64 {
+//!         Self::VALUE + 100
+//!     }
+//! }
+//!
+//! fn use_trait(x: impl MyTrait) -> u64 {
+//!     x.foo()
+//! }
+//!
+//! assert_eq!(120, use_trait(MyTraitSpy::default()));
+//! ```
+//!
 
 //! # Features
 //!
