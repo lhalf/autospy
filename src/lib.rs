@@ -27,6 +27,30 @@
 //! assert_eq!(vec![10], spy.foo.arguments.take_all());
 //! ```
 //!
+//! # Multiple arguments
+//!
+//! Methods with multiple arguments are captured in a tuple.
+//!
+//! ```rust
+//! use autospy::autospy;
+//!
+//! #[autospy]
+//! trait MyTrait {
+//!     fn foo(&self, arg1: u32, arg2: String);
+//! }
+//!
+//! fn use_trait(x: impl MyTrait)  {
+//!     x.foo(10, "hello!".to_string())
+//! }
+//!
+//! let spy = MyTraitSpy::default();
+//! spy.foo.returns.push_back(());
+//!
+//! use_trait(spy.clone());
+//!
+//! assert_eq!(vec![(10, "hello!".to_string())], spy.foo.arguments.take_all());
+//! ```
+//!
 //! ## References
 //!
 //! `#[autospy]` will automatically convert reference arguments into owned types.
@@ -41,32 +65,6 @@
 //!
 //! fn use_trait(x: impl MyTrait) {
 //!     x.foo("hello!")
-//! }
-//!
-//! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(());
-//!
-//! use_trait(spy.clone());
-//!
-//! assert_eq!(vec!["hello!"], spy.foo.arguments.take_all());
-//! ```
-//!
-//! ## Associated types
-//!
-//! An `#[autospy(TYPE)]` attribute can be applied to associated types to tell the spy how to capture them.
-//!
-//! ```rust
-//! use autospy::autospy;
-//!
-//! #[autospy]
-//! trait MyTrait {
-//!     #[autospy(String)]
-//!     type Item;
-//!     fn foo(&self, argument: Self::Item);
-//! }
-//!
-//! fn use_trait(x: impl MyTrait<Item=String>) {
-//!     x.foo("hello!".to_string())
 //! }
 //!
 //! let spy = MyTraitSpy::default();
@@ -99,6 +97,32 @@
 //! use_trait(spy.clone());
 //!
 //! assert_eq!(vec!["capture me!"], spy.foo.arguments.take_all());
+//! ```
+//!
+//! ## Associated types
+//!
+//! An `#[autospy(TYPE)]` attribute can be applied to associated types to tell the spy how to capture them.
+//!
+//! ```rust
+//! use autospy::autospy;
+//!
+//! #[autospy]
+//! trait MyTrait {
+//!     #[autospy(String)]
+//!     type Item;
+//!     fn foo(&self, argument: Self::Item);
+//! }
+//!
+//! fn use_trait(x: impl MyTrait<Item=String>) {
+//!     x.foo("hello!".to_string())
+//! }
+//!
+//! let spy = MyTraitSpy::default();
+//! spy.foo.returns.push_back(());
+//!
+//! use_trait(spy.clone());
+//!
+//! assert_eq!(vec!["hello!"], spy.foo.arguments.take_all());
 //! ```
 //!
 //! ## Returns attribute
