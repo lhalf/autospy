@@ -34,6 +34,10 @@ fn function_as_spy_field(
     function: &TraitItemFn,
     associated_spy_types: &AssociatedSpyTypes,
 ) -> TokenStream {
+    if attribute::has_use_default_attribute(&function.attrs) && function.default.is_some() {
+        return TokenStream::new();
+    }
+
     let function_name = &function.sig.ident;
 
     let function = replace_associated_types(function.clone(), associated_spy_types);
@@ -226,6 +230,29 @@ mod tests {
                 &input,
                 &associated_spy_types(quote! { Item }, quote! { String })
             )
+        );
+    }
+
+    #[test]
+    fn no_spy_function_created_if_function_marked_with_use_default() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                #[autospy(use_default)]
+                fn foo(&self) -> u8 {
+                    1
+                }
+            }
+        };
+
+        let expected: ItemStruct = parse_quote! {
+            #[cfg(any(test, not(feature = "test")))]
+            #[derive(Default, Clone)]
+            struct ExampleSpy {}
+        };
+
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
         );
     }
 
