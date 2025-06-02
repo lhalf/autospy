@@ -10,9 +10,7 @@ trait TestTrait {
 }
 #[cfg(any(test, not(feature = "test")))]
 #[derive(Default, Clone)]
-struct TestTraitSpy {
-    pub function: autospy::SpyFunction<(), u8>,
-}
+struct TestTraitSpy {}
 #[cfg(any(test, not(feature = "test")))]
 impl TestTrait for TestTraitSpy {
     fn function(&self) -> u8 {
