@@ -2,8 +2,8 @@
 
 ###### *:musical_note: autospy record, autospy replace :musical_note:*
 
-![Crates.io Version](https://img.shields.io/crates/v/autospy)
-![docs.rs](https://img.shields.io/docsrs/autospy)
+[![Crates.io Version](https://img.shields.io/crates/v/autospy)](https://crates.io/crates/autospy)
+[![docs.rs](https://img.shields.io/docsrs/autospy)](https://docs.rs/autospy/0.0.3/autospy/)
 [![MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
 A test spy object library.
