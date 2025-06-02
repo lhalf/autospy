@@ -27,7 +27,7 @@
 //! assert_eq!(vec![10], spy.foo.arguments.take_all());
 //! ```
 //!
-//! # Multiple arguments
+//! ## Multiple arguments
 //!
 //! Methods with multiple arguments are captured in a tuple.
 //!
