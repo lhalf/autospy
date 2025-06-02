@@ -294,6 +294,10 @@
 //! ```
 //!
 
+//! # Examples
+//!
+//! For additional examples please see the [examples](https://github.com/lhalf/autospy/tree/main/examples).
+
 //! # Features
 //!
 //! - **test** - makes the generated spy object and trait impl `#[cfg(test)]` - enabled by default.
