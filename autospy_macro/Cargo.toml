@@ -5,9 +5,11 @@ edition = "2024"
 description = "Procedural macros for autospy."
 license = "MIT"
 repository = "https://github.com/lhalf/autospy"
+documentation = "https://docs.rs/autospy"
 keywords = ["mock", "testing", "spy", "mocking", "fake"]
 categories = ["development-tools::testing"]
 readme = "README.md"
+exclude = ["/src/snapshots/"]
 
 [package.metadata.release]
 tag = false
