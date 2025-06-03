@@ -82,12 +82,14 @@ fn argument_to_spy_expression(argument: inspect::SpyableArgument) -> TokenStream
         return quote! { Box::new(#argument_name) };
     }
 
-    if argument.dereference_count <= 1 {
-        return quote! { #argument_name.to_owned() };
+    match argument.dereference_count {
+        0 => quote! { #argument_name },
+        1 => quote! { #argument_name.to_owned() },
+        _ => {
+            let dereferences = dereference_tokens(&argument);
+            quote! { (#dereferences #argument_name).to_owned() }
+        }
     }
-
-    let dereferences = dereference_tokens(&argument);
-    quote! { (#dereferences #argument_name).to_owned() }
 }
 
 fn dereference_tokens(argument: &inspect::SpyableArgument) -> TokenStream {
