@@ -12,7 +12,7 @@ readme = "README.md"
 exclude = ["/tests/", "justfile", "/examples/", "/autospy_macro/src/snapshots/"]
 
 [features]
-test = []
+test = ["autospy_macro/test"]
 default = ["test"]
 
 [workspace]

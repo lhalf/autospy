@@ -11,6 +11,9 @@ categories = ["development-tools::testing"]
 readme = "README.md"
 exclude = ["/src/snapshots/"]
 
+[features]
+test = []
+
 [package.metadata.release]
 tag = false
 push = false

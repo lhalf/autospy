@@ -8,10 +8,10 @@ trait TestTrait {
         1
     }
 }
-#[cfg(any(test, not(feature = "test")))]
+#[cfg(test)]
 #[derive(Default, Clone)]
 struct TestTraitSpy {}
-#[cfg(any(test, not(feature = "test")))]
+#[cfg(test)]
 impl TestTrait for TestTraitSpy {
     fn function(&self) -> u8 {
         1
