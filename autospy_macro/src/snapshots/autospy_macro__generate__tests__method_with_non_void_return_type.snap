@@ -1,17 +1,17 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 139
+assertion_line: 138
 expression: "generate_pretty(quote! { trait TestTrait { fn function(&self) -> bool; } })"
 ---
 trait TestTrait {
     fn function(&self) -> bool;
 }
-#[cfg(any(test, not(feature = "test")))]
+#[cfg(test)]
 #[derive(Default, Clone)]
 struct TestTraitSpy {
     pub function: autospy::SpyFunction<(), bool>,
 }
-#[cfg(any(test, not(feature = "test")))]
+#[cfg(test)]
 impl TestTrait for TestTraitSpy {
     fn function(&self) -> bool {
         self.function.spy(())

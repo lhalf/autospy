@@ -1,19 +1,19 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 102
+assertion_line: 101
 expression: "generate_pretty(quote!\n{ trait TestTrait { fn function1(&self); fn function2(&self); } })"
 ---
 trait TestTrait {
     fn function1(&self);
     fn function2(&self);
 }
-#[cfg(any(test, not(feature = "test")))]
+#[cfg(test)]
 #[derive(Default, Clone)]
 struct TestTraitSpy {
     pub function1: autospy::SpyFunction<(), ()>,
     pub function2: autospy::SpyFunction<(), ()>,
 }
-#[cfg(any(test, not(feature = "test")))]
+#[cfg(test)]
 impl TestTrait for TestTraitSpy {
     fn function1(&self) {
         self.function1.spy(())

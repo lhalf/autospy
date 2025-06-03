@@ -1,12 +1,12 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 84
+assertion_line: 83
 expression: "generate_pretty(quote!\n{\n    trait TestTrait\n    {\n        fn\n        function(&self, #[autospy(ignore)] ignored1: &str, #[autospy(ignore)]\n        ignored2: &str, captured1: &str, captured2: &str);\n    }\n})"
 ---
 trait TestTrait {
     fn function(&self, ignored1: &str, ignored2: &str, captured1: &str, captured2: &str);
 }
-#[cfg(any(test, not(feature = "test")))]
+#[cfg(test)]
 #[derive(Default, Clone)]
 struct TestTraitSpy {
     pub function: autospy::SpyFunction<
@@ -14,7 +14,7 @@ struct TestTraitSpy {
         (),
     >,
 }
-#[cfg(any(test, not(feature = "test")))]
+#[cfg(test)]
 impl TestTrait for TestTraitSpy {
     fn function(&self, _: &str, _: &str, captured1: &str, captured2: &str) {
         self.function.spy((captured1.to_owned(), captured2.to_owned()))

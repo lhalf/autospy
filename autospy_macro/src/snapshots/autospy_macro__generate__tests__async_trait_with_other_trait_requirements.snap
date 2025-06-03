@@ -7,12 +7,12 @@ expression: "generate_pretty(quote!\n{\n    #[async_trait] trait TestTrait: Send
 trait TestTrait: Send + Sync + 'static {
     async fn function(&self);
 }
-#[cfg(any(test, not(feature = "test")))]
+#[cfg(test)]
 #[derive(Default, Clone)]
 struct TestTraitSpy {
     pub function: autospy::SpyFunction<(), ()>,
 }
-#[cfg(any(test, not(feature = "test")))]
+#[cfg(test)]
 #[async_trait]
 impl TestTrait for TestTraitSpy {
     async fn function(&self) {

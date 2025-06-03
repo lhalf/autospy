@@ -9,12 +9,16 @@ pub fn generate_spy_struct(
     item_trait: &ItemTrait,
     associated_spy_types: &AssociatedSpyTypes,
 ) -> ItemStruct {
+    let cfg = match cfg!(feature = "test") {
+        true => quote! { #[cfg(test)] },
+        false => TokenStream::new(),
+    };
     let visibility = &item_trait.vis;
     let spy_name = format_ident!("{}Spy", item_trait.ident);
     let spy_fields = generate_spy_fields(item_trait, associated_spy_types);
 
     parse_quote! {
-        #[cfg(any(test, not(feature = "test")))]
+        #cfg
         #[derive(Default, Clone)]
         #visibility struct #spy_name {
             #(#spy_fields),*
@@ -102,7 +106,7 @@ mod tests {
         };
 
         let expected: ItemStruct = parse_quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             #[derive(Default, Clone)]
             struct ExampleSpy {}
         };
@@ -122,7 +126,7 @@ mod tests {
         };
 
         let expected: ItemStruct = parse_quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             #[derive(Default, Clone)]
             pub struct ExampleSpy {
                 pub foo: autospy::SpyFunction<(), ()>
@@ -144,7 +148,7 @@ mod tests {
         };
 
         let expected: ItemStruct = parse_quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             #[derive(Default, Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction<(), String>
@@ -166,7 +170,7 @@ mod tests {
         };
 
         let expected: ItemStruct = parse_quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             #[derive(Default, Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction< < str as ToOwned > :: Owned , () >
@@ -190,7 +194,7 @@ mod tests {
         };
 
         let expected: ItemStruct = parse_quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             #[derive(Default, Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction< < String as ToOwned > :: Owned , () >
@@ -217,7 +221,7 @@ mod tests {
         };
 
         let expected: ItemStruct = parse_quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             #[derive(Default, Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction< (), String >
@@ -245,7 +249,7 @@ mod tests {
         };
 
         let expected: ItemStruct = parse_quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             #[derive(Default, Clone)]
             struct ExampleSpy {}
         };

@@ -9,6 +9,10 @@ pub fn generate_spy_trait(
     item_trait: &ItemTrait,
     associated_spy_types: &AssociatedSpyTypes,
 ) -> TokenStream {
+    let cfg = match cfg!(feature = "test") {
+        true => quote! { #[cfg(test)] },
+        false => TokenStream::new(),
+    };
     let trait_name = &item_trait.ident;
     let trait_attributes = &item_trait.attrs;
     let spy_name = format_ident!("{}Spy", trait_name);
@@ -17,7 +21,7 @@ pub fn generate_spy_trait(
     let spy_function_definitions = trait_spy_function_definitions(item_trait);
 
     quote! {
-        #[cfg(any(test, not(feature = "test")))]
+        #cfg
         #(#trait_attributes)*
         impl #trait_name for #spy_name {
             #(#associated_type_definitions)*
@@ -130,7 +134,7 @@ mod tests {
         };
 
         let expected = quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             impl Example for ExampleSpy {}
         };
 
@@ -146,7 +150,7 @@ mod tests {
         };
 
         let expected = quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             impl Example for ExampleSpy {}
         };
 
@@ -163,7 +167,7 @@ mod tests {
         };
 
         let expected = quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             #[some_attribute]
             impl Example for ExampleSpy {}
         };
@@ -183,7 +187,7 @@ mod tests {
         };
 
         let expected = quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             #[async_trait]
             impl Example for ExampleSpy {
                 async fn function(&self) {
@@ -206,7 +210,7 @@ mod tests {
         };
 
         let expected = quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             impl Example for ExampleSpy {
                 fn function(&self, _: &str, captured: &str) {
                     self.function.spy(captured.to_owned())
@@ -228,7 +232,7 @@ mod tests {
         };
 
         let expected = quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             impl Example for ExampleSpy {
                 fn function(&self, argument: impl ToString + 'static) {
                     self.function.spy(Box::new(argument))
@@ -250,7 +254,7 @@ mod tests {
         };
 
         let expected = quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             impl Example for ExampleSpy {
                 fn function(&self, ip: [u8; 4]) {
                     self.function.spy(ip.into())
@@ -273,7 +277,7 @@ mod tests {
         };
 
         let expected = quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             impl Example for ExampleSpy {
                 const VALUE: u64 = 100;
             }
@@ -293,7 +297,7 @@ mod tests {
         };
 
         let expected = quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             impl Example for ExampleSpy {
                 const VALUE: u8 = <u8 as const_default::ConstDefault>::DEFAULT;
             }
@@ -315,7 +319,7 @@ mod tests {
         };
 
         let expected = quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             impl Example for ExampleSpy {
                 #[some_attribute]
                 const VALUE: &'static str = "hello";
@@ -339,7 +343,7 @@ mod tests {
         };
 
         let expected = quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             impl Example for ExampleSpy {
                 const VALUE1: u64 = 100;
                 const VALUE2: bool = false;
@@ -363,7 +367,7 @@ mod tests {
         };
 
         let expected = quote! {
-            #[cfg(any(test, not(feature = "test")))]
+            #[cfg(test)]
             impl Example for ExampleSpy {
                fn one(&self) -> u8 {
                     1
