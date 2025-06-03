@@ -11,13 +11,13 @@ trait TestTrait {
 #[cfg(test)]
 #[derive(Default, Clone)]
 struct TestTraitSpy {
-    pub function: autospy::SpyFunction<<String as ToOwned>::Owned, String>,
+    pub function: autospy::SpyFunction<String, String>,
 }
 #[cfg(test)]
 impl TestTrait for TestTraitSpy {
     type Argument = String;
     type Return = String;
     fn function(&self, argument: Self::Argument) -> Self::Return {
-        self.function.spy(argument.to_owned())
+        self.function.spy(argument)
     }
 }

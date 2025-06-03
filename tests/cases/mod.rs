@@ -10,6 +10,7 @@ mod multiple_trait_methods;
 mod owned_arguments;
 mod owned_returns;
 mod return_type_attribute;
+mod struct_argument;
 mod trait_arguments;
 mod use_default_attribute;
 mod with_argument_attribute;

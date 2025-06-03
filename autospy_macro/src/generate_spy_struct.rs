@@ -75,6 +75,7 @@ fn argument_spy_type(argument: inspect::SpyableArgument) -> TokenStream {
     let dereferenced_type = &argument.dereferenced_type;
     match argument.dereferenced_type {
         Type::ImplTrait(TypeImplTrait { bounds, .. }) => quote! { Box<dyn #bounds> },
+        _ if argument.dereference_count == 0 => quote! { #dereferenced_type },
         _ => quote! { <#dereferenced_type as ToOwned>::Owned },
     }
 }
@@ -197,7 +198,7 @@ mod tests {
             #[cfg(test)]
             #[derive(Default, Clone)]
             struct ExampleSpy {
-                pub foo: autospy::SpyFunction< < String as ToOwned > :: Owned , () >
+                pub foo: autospy::SpyFunction< String , () >
             }
         };
 
