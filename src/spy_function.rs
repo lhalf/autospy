@@ -57,6 +57,19 @@ impl<A> Arguments<A> {
     pub fn take_all(&self) -> Vec<A> {
         std::mem::take(&mut *self.0.lock().expect("mutex poisoned"))
     }
+
+    #[cfg(feature = "async")]
+    pub async fn take_all_with_timeout(&self, timeout: std::time::Duration) -> Result<Vec<A>, ()> {
+        let retry_interval = std::time::Duration::from_millis(10);
+        let attempts = (timeout.as_millis() / retry_interval.as_millis()) as usize;
+        let strategy = tokio_retry2::strategy::FixedInterval::new(retry_interval).take(attempts);
+
+        tokio_retry2::Retry::spawn(strategy, async || match self.take_all() {
+            arguments if arguments.is_empty() => Err(tokio_retry2::RetryError::transient(())),
+            arguments => Ok(arguments),
+        })
+        .await
+    }
 }
 
 pub struct Returns<R>(Arc<Mutex<VecDeque<R>>>);
