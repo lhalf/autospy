@@ -301,6 +301,7 @@
 //! # Features
 //!
 //! - **test** - makes the generated spy object and trait impl `#[cfg(test)]` - enabled by default.
+//! - **async** - enables additional async support features on the spy, if you are not using async traits you can safely disable this - enabled by default.
 
 mod spy_function;
 

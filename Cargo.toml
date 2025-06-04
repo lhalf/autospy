@@ -13,7 +13,8 @@ exclude = ["/tests/", "justfile", "/examples/", "/autospy_macro/src/snapshots/"]
 
 [features]
 test = ["autospy_macro/test"]
-default = ["test"]
+async = ["dep:tokio-retry2"]
+default = ["test", "async"]
 
 [workspace]
 members = ["autospy_macro"]
@@ -21,6 +22,7 @@ members = ["autospy_macro"]
 [dependencies]
 autospy_macro = { path = "autospy_macro", version = "0.0.4" }
 const-default = { version = "1.0.0", default-features = false }
+tokio-retry2 = { version = "0.5.7", default-features = false, optional = true }
 
 [dev-dependencies]
 async-trait = "0.1.88"
