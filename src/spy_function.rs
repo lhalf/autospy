@@ -94,8 +94,10 @@ impl<R> Returns<R> {
     pub fn next(&self) -> Option<R> {
         self.0.lock().expect("mutex poisoned").pop_front()
     }
-    
-    pub fn clear(&self) { self.0.lock().expect("mutex poisoned").clear() }
+
+    pub fn clear(&self) {
+        self.0.lock().expect("mutex poisoned").clear()
+    }
 }
 
 impl<R: Clone> Returns<R> {
