@@ -20,7 +20,7 @@ default = ["test", "async"]
 members = ["autospy_macro"]
 
 [dependencies]
-autospy_macro = { path = "autospy_macro", version = "0.0.4" }
+autospy_macro = { path = "autospy_macro", version = "0.0.5" }
 const-default = { version = "1.0.0", default-features = false }
 tokio-retry2 = { version = "0.5.7", default-features = false, optional = true }
 
