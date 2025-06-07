@@ -1,8 +1,10 @@
 set shell := ["bash", "-euc"]
 
-test:
+check:
     cargo fmt --check --all
     cargo clippy --all-targets -- -Dwarnings
+
+test:
     cargo test --locked --workspace --all-targets
     cargo test --doc --no-default-features
 

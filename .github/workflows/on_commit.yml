@@ -8,10 +8,12 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
+  check-and-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: extractions/setup-just@v3
-    - name: test
-      run: just test
+      - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v3
+      - name: check
+        run: just check
+      - name: test
+        run: just test
