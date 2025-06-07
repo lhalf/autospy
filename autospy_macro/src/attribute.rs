@@ -1,8 +1,8 @@
 use proc_macro2::TokenStream;
-use quote::ToTokens;
+use syn::parse::Parser;
 use syn::{
-    Attribute, Expr, ExprLit, Lit, Meta, MetaList, MetaNameValue, Token, Type, TypePath,
-    parse::Parse, punctuated::Punctuated,
+    Attribute, Expr, ExprLit, Lit, Meta, MetaNameValue, Token, Type, TypePath, parse::Parse,
+    punctuated::Punctuated,
 };
 
 pub fn is_autospy_attribute(attribute: &Attribute) -> bool {
@@ -67,10 +67,16 @@ fn key_value_autospy_attributes(attributes: &[Attribute]) -> impl Iterator<Item 
 fn autospy_attribute_key_values(
     attribute: &Attribute,
 ) -> Option<impl Iterator<Item = MetaNameValue>> {
-    let name_values: Punctuated<MetaNameValue, Token![,]> = attribute
-        .parse_args_with(Punctuated::parse_separated_nonempty)
-        .ok()?;
-    Some(name_values.into_iter())
+    let name_values = Punctuated::<Meta, Token![,]>::parse_terminated
+        .parse2(autospy_attribute(attribute)?)
+        .ok()?
+        .into_iter()
+        .filter_map(|meta| match meta {
+            Meta::NameValue(name_value) => Some(name_value),
+            _ => None,
+        });
+
+    Some(name_values)
 }
 
 fn parse_literal_expression<T: Parse>(expression: Expr) -> T {
@@ -89,16 +95,22 @@ fn autospy_attributes(attributes: &[Attribute]) -> impl Iterator<Item = TokenStr
 
 fn autospy_attribute(attribute: &Attribute) -> Option<TokenStream> {
     match &attribute.meta {
-        Meta::List(MetaList { path, tokens, .. }) if path.is_ident("autospy") => {
-            Some(tokens.clone())
+        Meta::List(meta_list) if meta_list.path.is_ident("autospy") => {
+            Some(meta_list.tokens.clone())
         }
-        Meta::List(MetaList { path, tokens, .. }) if path.is_ident("cfg_attr") => {
-            let tokens = tokens.to_string();
-            tokens
-                .strip_prefix("test , autospy (")
-                .and_then(|rest| rest.strip_suffix(')'))
-                .filter(|tokens| !tokens.is_empty())
-                .map(|tokens| tokens.to_token_stream())
+        Meta::List(meta_list) if meta_list.path.is_ident("cfg_attr") => {
+            let inner = Punctuated::<Meta, Token![,]>::parse_terminated
+                .parse2(meta_list.tokens.clone())
+                .ok()?;
+
+            if inner.len() == 2 {
+                if let Some(Meta::List(inner)) = inner.into_iter().nth(1) {
+                    if inner.path.is_ident("autospy") {
+                        return Some(inner.tokens.clone());
+                    }
+                }
+            }
+            None
         }
         _ => None,
     }

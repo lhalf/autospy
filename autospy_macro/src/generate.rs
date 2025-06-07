@@ -49,6 +49,15 @@ mod tests {
     }
 
     #[test]
+    fn arguments_marked_with_cfg_test_into_attribute_are_captured_as_that_type() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait MyTrait {
+                fn function(&self, #[cfg_attr(test, autospy(into="IpAddr"))] ip: [u8; 4]);
+            }
+        }));
+    }
+
+    #[test]
     fn arguments_marked_with_with_attribute_are_captured_with_that_expression() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait MyTrait {
@@ -61,10 +70,31 @@ mod tests {
     }
 
     #[test]
+    fn arguments_marked_with_cfg_test_with_attribute_are_captured_with_that_expression() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait MyTrait {
+                fn function(
+                    &self,
+                    #[cfg_attr(test, autospy(into="Result<String,Utf8Error>", with="String::from_utf8"))] bytes: Vec<u8>,
+                );
+            }
+        }));
+    }
+
+    #[test]
     fn arguments_marked_with_ignore_attribute_are_not_captured() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 fn function(&self, #[autospy(ignore)] ignored: &str, captured: &str);
+            }
+        }));
+    }
+
+    #[test]
+    fn arguments_marked_with_cfg_test_ignore_attribute_are_not_captured() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                fn function(&self, #[cfg_attr(test, autospy(ignore))] ignored: &str, captured: &str);
             }
         }));
     }
@@ -225,6 +255,16 @@ mod tests {
     }
 
     #[test]
+    fn functions_marked_with_cfg_test_return_attribute_have_their_return_types_changed() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                #[cfg_attr(test, autospy(returns = "String"))]
+                fn function(&self) -> impl ToString;
+            }
+        }))
+    }
+
+    #[test]
     fn functions_marked_with_multiple_attributes_retain_non_autospy_attributes() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
@@ -240,6 +280,16 @@ mod tests {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 #[autospy(String)] type Item;
+                fn function(&self) -> Self::Item;
+            }
+        }))
+    }
+
+    #[test]
+    fn traits_with_single_cfg_test_associated_type_attribute_return_expected_type() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                #[cfg_attr(test, autospy(String))] type Item;
                 fn function(&self) -> Self::Item;
             }
         }))
@@ -287,6 +337,7 @@ mod tests {
             }
         }))
     }
+
     #[test]
     fn traits_with_associated_consts() {
         insta::assert_snapshot!(generate_pretty(quote! {
@@ -297,11 +348,35 @@ mod tests {
             }
         }))
     }
+
+    #[test]
+    fn traits_with_cfg_test_associated_consts() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                #[cfg_attr(test, autospy("example"))]
+                const VALUE: &'static str;
+                fn function(&self);
+            }
+        }))
+    }
+
     #[test]
     fn traits_with_default_definitions() {
         insta::assert_snapshot!(generate_pretty(quote! {
             trait TestTrait {
                 #[autospy(use_default)]
+                fn function(&self) -> u8 {
+                    1
+                }
+            }
+        }))
+    }
+
+    #[test]
+    fn traits_with_cfg_test_default_definitions() {
+        insta::assert_snapshot!(generate_pretty(quote! {
+            trait TestTrait {
+                #[cfg_attr(test, autospy(use_default))]
                 fn function(&self) -> u8 {
                     1
                 }
