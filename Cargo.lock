@@ -88,7 +88,7 @@ checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
 name = "autospy"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -105,7 +105,7 @@ dependencies = [
 
 [[package]]
 name = "autospy_macro"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "insta",
  "prettyplease",
