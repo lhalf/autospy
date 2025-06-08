@@ -27,7 +27,6 @@ tokio-retry2 = { version = "0.5.7", default-features = false, optional = true }
 [dev-dependencies]
 async-trait = "0.1.88"
 pollster = "0.4.0"
-# examples
 tokio = { version = "1.45.1", features = ["rt-multi-thread"] }
 axum = "0.8.4"
 anyhow = "1.0.98"
