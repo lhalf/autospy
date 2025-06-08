@@ -13,13 +13,11 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    let filesystem = Filesystem {};
-
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8000")
         .await
         .context("failed to bind to listening address")?;
 
-    axum::serve(listener, app(filesystem))
+    axum::serve(listener, app(Filesystem {}))
         .await
         .context("failed to start server")
 }
