@@ -4,7 +4,9 @@ use std::{
 };
 
 pub struct SpyFunction<A, R> {
+    /// The spied arguments of the function.
     pub arguments: Arguments<A>,
+    /// The return values of the function.
     pub returns: Returns<R>,
 }
 
@@ -27,6 +29,8 @@ impl<A, R> Default for SpyFunction<A, R> {
 }
 
 impl<A, R> SpyFunction<A, R> {
+    /// Captures the arguments into [`arguments`](Self::arguments) and tries to return the next value from [`returns`](Self::returns).
+    /// Will panic if not enough return values have been specified for the number of times the spy is called.
     pub fn spy(&self, arguments: A) -> R {
         self.arguments.push(arguments);
         self.returns

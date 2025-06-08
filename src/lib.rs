@@ -343,6 +343,10 @@
 
 mod spy_function;
 
+/// Captures arguments and holds return values.
 pub use spy_function::SpyFunction;
 
+/// Automatically generate spy objects for traits.
+///
+/// For more details, see [usage](crate#usage).
 pub use autospy_macro::autospy;
