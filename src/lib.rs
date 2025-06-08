@@ -1,13 +1,15 @@
 //! A test spy object library.
 //!
 //! [`#[autospy]`](attr.autospy.html) is a macro to create spy versions of almost any trait.
-//! They can be used in unit tests as a stand-in for the real object.
+//! They can be used in unit tests as a stand-in for the real trait.
 //!
 //! # Usage
 //!
 //! To use autospy simply attribute your trait using `#[autospy]`.
 //!
-//! **Note:** The generated spy object and trait impl are [`#[cfg(test)]`](https://doc.rust-lang.org/book/ch11-03-test-organization.html#the-tests-module-and-cfgtest) by default. To disable this see [features](#features).
+//! **Note:** The generated spy object and trait impl are [`#[cfg(test)]`](https://doc.rust-lang.org/book/ch11-03-test-organization.html#the-tests-module-and-cfgtest) by default.
+//! To disable this see [features](#features).
+//! It is recommended to use `#[cfg_attr(test, autospy)]`, likewise for all attributes discussed here, to make it transparent autospy is only expanded under test.
 //! ```rust
 //! use autospy::autospy;
 //!
@@ -174,7 +176,7 @@
 //!
 //! ## Async traits
 //!
-//! Async functions in traits are stable as of Rust 1.75; however, this did not include support for using traits containing async functions as `dyn Trait`. They can be used via the [`async_trait`](https://docs.rs/async-trait/latest/async_trait/) crate. `#[autospy]` is compatible with the `#[async_trait]` macro.
+//! Async functions in traits are stable as of [Rust 1.75](https://blog.rust-lang.org/2023/12/28/Rust-1.75.0/); however, this did not include support for using traits containing async functions as `dyn Trait`. They can be used via the [`async_trait`](https://docs.rs/async-trait/latest/async_trait/) crate. `#[autospy]` is compatible with the `#[async_trait]` macro.
 //!
 //! **Note:** `#[autospy]` must come before `#[async_trait]`.
 //!
@@ -198,7 +200,43 @@
 //!
 //! use_async_trait(spy.clone()).block_on();
 //!
-//! assert_eq!("hello async!", spy.foo.arguments.take_all()[0].to_string())
+//! assert_eq!("hello async!", spy.foo.arguments.take_all()[0])
+//! ```
+//!
+//! ## Async with timeout
+//!
+//! If you are using an async trait your spy might not be used immediately, for instance it might be spawned in a task.
+//! You can use the `take_all_with_timeout()` method on arguments to instruct the spy to wait with a timeout for the spy to be used.
+//! `take_all_with_timeout()` is enabled by the default feature [**async**](#features) and, as an `async` function, will need to be called from within an async test.
+//!
+//! ```rust
+//! use autospy::autospy;
+//! use async_trait::async_trait;
+//! use std::time::Duration;
+//!
+//! #[autospy]
+//! #[async_trait]
+//! trait MyTrait: Send + 'static {
+//!     async fn foo(&self, argument: &str);
+//! }
+//!
+//! async fn use_async_trait(x: impl MyTrait) {
+//!     tokio::task::spawn(async move {
+//!         tokio::time::sleep(Duration::from_millis(100)).await;
+//!         x.foo("async used after some time!").await;
+//!     });
+//! }
+//!
+//! tokio::runtime::Runtime::new().unwrap().block_on(async {
+//!     let spy = MyTraitSpy::default();
+//!     spy.foo.returns.push_back(());
+//!
+//!     use_async_trait(spy.clone()).await;
+//!     // spy not used yet
+//!     assert!(spy.foo.arguments.take_all().is_empty());
+//!     // spy used within 200ms
+//!     assert_eq!("async used after some time!", spy.foo.arguments.take_all_with_timeout(Duration::from_millis(200)).await.unwrap()[0])
+//! })
 //! ```
 //!
 //! ## Into attribute
@@ -248,7 +286,7 @@
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec![Ok(String::from("hello!"))], spy.foo.arguments.take_all())
+//! assert_eq!(vec![Ok("hello!".to_string())], spy.foo.arguments.take_all())
 //! ```
 //!
 //! ## Associated consts

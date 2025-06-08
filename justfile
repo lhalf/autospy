@@ -6,7 +6,7 @@ check:
 
 test:
     cargo test --locked --workspace --all-targets
-    cargo test --doc --no-default-features
+    cargo test --doc --no-default-features --features async
 
 build-docs:
     cargo doc --no-deps
