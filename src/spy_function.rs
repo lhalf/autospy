@@ -91,8 +91,9 @@ impl<R> Default for Returns<R> {
 }
 
 impl<R> Returns<R> {
-    pub fn push_back(&self, value: R) {
+    pub fn push_back(&self, value: R) -> &Self {
         self.0.lock().expect("mutex poisoned").push_back(value);
+        self
     }
 
     pub fn next(&self) -> Option<R> {
@@ -105,7 +106,7 @@ impl<R> Returns<R> {
 }
 
 impl<R: Clone> Returns<R> {
-    pub fn push_back_n(&self, value: R, count: usize) {
-        std::iter::repeat_n(value, count).for_each(|value| self.push_back(value));
+    pub fn push_back_n(&self, value: R, count: usize) -> &Self {
+        std::iter::repeat_n(value, count).fold(self, |acc, value| acc.push_back(value))
     }
 }
