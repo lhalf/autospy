@@ -1,3 +1,5 @@
+//! Test an [`actix`](https://actix.rs/) HTTP server which manages a filesystem.
+
 use actix_web::{App, HttpResponse, HttpServer, Responder, web};
 use anyhow::Context;
 use async_trait::async_trait;
