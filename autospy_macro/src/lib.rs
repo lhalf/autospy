@@ -11,8 +11,10 @@ mod strip_attributes;
 
 use generate::generate;
 use proc_macro::TokenStream;
+use syn::parse_quote;
 
 #[proc_macro_attribute]
 pub fn autospy(_attributes: TokenStream, item: TokenStream) -> TokenStream {
-    TokenStream::from(generate(proc_macro2::TokenStream::from(item)))
+    let item = proc_macro2::TokenStream::from(item);
+    TokenStream::from(generate(parse_quote!{ #item }))
 }
