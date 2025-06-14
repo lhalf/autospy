@@ -4,7 +4,7 @@ use crate::generate_spy_trait::generate_spy_trait;
 use crate::strip_attributes::strip_attributes;
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{ItemTrait};
+use syn::ItemTrait;
 
 pub fn generate(item_trait: ItemTrait) -> TokenStream {
     let associated_type = get_associated_types(&item_trait);
@@ -30,7 +30,7 @@ pub fn tuple_or_single(mut items: impl Iterator<Item = TokenStream>) -> TokenStr
 #[cfg(test)]
 mod tests {
     use crate::generate::generate;
-    use syn::{parse_quote, ItemTrait};
+    use syn::{ItemTrait, parse_quote};
 
     fn generate_pretty(item_trait: ItemTrait) -> String {
         let expanded = generate(item_trait).to_string();
