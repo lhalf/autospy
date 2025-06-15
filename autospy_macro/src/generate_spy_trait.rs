@@ -3,7 +3,9 @@ use crate::strip_attributes::{strip_attributes_from_signature, strip_autospy_att
 use crate::{attribute, edit, generate, inspect};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{ItemTrait, Token, TraitItemConst, TraitItemFn, Type, parse_quote};
+use syn::{
+    GenericParam, Generics, ItemTrait, Token, TraitItemConst, TraitItemFn, Type, parse_quote,
+};
 
 pub fn generate_spy_trait(
     item_trait: &ItemTrait,
@@ -16,6 +18,7 @@ pub fn generate_spy_trait(
     let trait_attributes = &item_trait.attrs;
     let trait_name = &item_trait.ident;
     let generics = &item_trait.generics;
+    let generics_idents = generics_idents(&item_trait.generics);
     let spy_name = format_ident!("{}Spy", trait_name);
     let associated_type_definitions = associated_type_definitions(associated_spy_types);
     let spy_associated_consts = spy_associated_consts(item_trait);
@@ -24,7 +27,7 @@ pub fn generate_spy_trait(
     quote! {
         #cfg
         #(#trait_attributes)*
-        impl #generics #trait_name #generics for #spy_name #generics {
+        impl #generics #trait_name #generics_idents for #spy_name #generics_idents {
             #(#associated_type_definitions)*
             #(#spy_associated_consts)*
             #(#spy_function_definitions)*
@@ -120,6 +123,20 @@ fn associated_const_as_spy_associated_const(associated_const: &TraitItemConst) -
     strip_autospy_attributes(&mut associated_const.attrs);
 
     quote! { #associated_const }
+}
+
+pub fn generics_idents(generics: &Generics) -> Generics {
+    let mut generics_idents = generics.clone();
+
+    for param in generics_idents.params.iter_mut() {
+        if let GenericParam::Type(ty_param) = param {
+            ty_param.bounds.clear();
+            ty_param.eq_token = None;
+            ty_param.default = None;
+        }
+    }
+
+    generics_idents
 }
 
 #[cfg(test)]
@@ -408,6 +425,38 @@ mod tests {
         let expected = quote! {
             #[cfg(test)]
             impl<T, R> Example<T, R> for ExampleSpy<T, R> {}
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_impl_is_generic_over_trait_generic_with_bounds() {
+        let input: ItemTrait = parse_quote! {
+            trait Example<T: Copy> {}
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl<T: Copy> Example<T> for ExampleSpy<T> {}
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_impl_is_generic_over_multiple_trait_generics_with_bounds() {
+        let input: ItemTrait = parse_quote! {
+            trait Example<T: Copy, P: Clone> {}
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl<T: Copy, P: Clone> Example<T,P> for ExampleSpy<T,P> {}
         };
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
