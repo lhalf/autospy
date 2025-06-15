@@ -6,6 +6,7 @@ mod async_trait;
 mod async_trait_with_timeout;
 mod borrowed_arguments;
 mod function_arguments;
+mod generic_trait;
 mod ignore_argument_attribute;
 mod multiple_trait_methods;
 mod owned_arguments;

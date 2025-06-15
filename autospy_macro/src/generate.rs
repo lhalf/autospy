@@ -381,4 +381,11 @@ mod tests {
             }
         }))
     }
+
+    #[test]
+    fn traits_with_basic_generics() {
+        insta::assert_snapshot!(generate_pretty(parse_quote! {
+            trait TestTrait<T> {}
+        }));
+    }
 }
