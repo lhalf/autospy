@@ -284,6 +284,28 @@ mod tests {
         );
     }
 
+    #[test]
+    fn generated_spy_struct_is_generic_over_multiple_trait_generics() {
+        let input: ItemTrait = parse_quote! {
+            pub trait Example<T, R> {
+                fn foo(&self);
+            }
+        };
+
+        let expected: ItemStruct = parse_quote! {
+            #[cfg(test)]
+            #[derive(Default, Clone)]
+            pub struct ExampleSpy<T, R> {
+                pub foo: autospy::SpyFunction<(), ()>
+            }
+        };
+
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
+    }
+
     fn associated_spy_types(ident: TokenStream, r#type: TokenStream) -> AssociatedSpyTypes {
         [(parse_quote! { #ident }, parse_quote! { #r#type })]
             .into_iter()
