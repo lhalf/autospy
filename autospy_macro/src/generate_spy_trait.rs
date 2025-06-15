@@ -398,4 +398,20 @@ mod tests {
 
         assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
     }
+
+    #[test]
+    fn trait_impl_is_generic_over_multiple_trait_generics() {
+        let input: ItemTrait = parse_quote! {
+            trait Example<T, R> {}
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl<T, R> Example<T, R> for ExampleSpy<T, R> {}
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
 }
