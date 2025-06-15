@@ -8,6 +8,7 @@ mod borrowed_arguments;
 mod function_arguments;
 mod generic_trait;
 mod ignore_argument_attribute;
+mod multiple_generics_trait;
 mod multiple_trait_methods;
 mod owned_arguments;
 mod owned_returns;
