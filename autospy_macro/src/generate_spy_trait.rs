@@ -13,8 +13,9 @@ pub fn generate_spy_trait(
         true => quote! { #[cfg(test)] },
         false => TokenStream::new(),
     };
-    let trait_name = &item_trait.ident;
     let trait_attributes = &item_trait.attrs;
+    let trait_name = &item_trait.ident;
+    let generics = &item_trait.generics;
     let spy_name = format_ident!("{}Spy", trait_name);
     let associated_type_definitions = associated_type_definitions(associated_spy_types);
     let spy_associated_consts = spy_associated_consts(item_trait);
@@ -23,7 +24,7 @@ pub fn generate_spy_trait(
     quote! {
         #cfg
         #(#trait_attributes)*
-        impl #trait_name for #spy_name {
+        impl #generics #trait_name #generics for #spy_name #generics {
             #(#associated_type_definitions)*
             #(#spy_associated_consts)*
             #(#spy_function_definitions)*
@@ -375,6 +376,22 @@ mod tests {
                     1
                 }
             }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_impl_is_generic_over_trait_generic() {
+        let input: ItemTrait = parse_quote! {
+            trait Example<T> {}
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl<T> Example<T> for ExampleSpy<T> {}
         };
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
