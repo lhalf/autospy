@@ -15,6 +15,8 @@ Spies are a type of [test double](https://en.wikipedia.org/wiki/Test_double) use
 is an object providing the same interface as the production code, but which allows setting of the output before a test
 runs and verification of input parameters after the test run.
 
+[`#[autospy]`](https://docs.rs/autospy/latest/autospy/) generates a test spy object for traits.
+
 ## Usage
 
 Spy objects are often only used by unit tests, the example below demonstrates use in a unit test assuming included in
