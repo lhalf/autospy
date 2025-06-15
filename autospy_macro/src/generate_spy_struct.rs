@@ -14,13 +14,14 @@ pub fn generate_spy_struct(
         false => TokenStream::new(),
     };
     let visibility = &item_trait.vis;
+    let generics = &item_trait.generics;
     let spy_name = format_ident!("{}Spy", item_trait.ident);
     let spy_fields = generate_spy_fields(item_trait, associated_spy_types);
 
     parse_quote! {
         #cfg
         #[derive(Default, Clone)]
-        #visibility struct #spy_name {
+        #visibility struct #spy_name #generics {
             #(#spy_fields),*
         }
     }
@@ -253,6 +254,28 @@ mod tests {
             #[cfg(test)]
             #[derive(Default, Clone)]
             struct ExampleSpy {}
+        };
+
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
+    }
+
+    #[test]
+    fn generated_spy_struct_is_generic_over_trait_generics() {
+        let input: ItemTrait = parse_quote! {
+            pub trait Example<T> {
+                fn foo(&self);
+            }
+        };
+
+        let expected: ItemStruct = parse_quote! {
+            #[cfg(test)]
+            #[derive(Default, Clone)]
+            pub struct ExampleSpy<T> {
+                pub foo: autospy::SpyFunction<(), ()>
+            }
         };
 
         assert_eq!(
