@@ -174,6 +174,30 @@
 //! assert_eq!("hello!", spy.foo.arguments.take_all()[0].to_string())
 //! ```
 //!
+//! ## Generic traits
+//!
+//! The spy will have the same generics as the trait definition.
+//!
+//! ```rust
+//! use autospy::autospy;
+//!
+//! #[autospy]
+//! trait MyTrait<A: Copy, R> {
+//!     fn foo(&self, argument: A) -> R;
+//! }
+//!
+//! fn use_trait(x: impl MyTrait<u32, String>) -> String {
+//!     x.foo(10)
+//! }
+//!
+//! let spy = MyTraitSpy::<u32, String>::default();
+//! spy.foo.returns.push_back("hello!".to_string());
+//!
+//! assert_eq!("hello!", use_trait(spy.clone()));
+//!
+//! assert_eq!(vec![10], spy.foo.arguments.take_all())
+//! ```
+//!
 //! ## Async traits
 //!
 //! Async functions in traits are stable as of [Rust 1.75](https://blog.rust-lang.org/2023/12/28/Rust-1.75.0/); however, this did not include support for using traits containing async functions as `dyn Trait`. They can be used via the [`async_trait`](https://docs.rs/async-trait/latest/async_trait/) crate. `#[autospy]` is compatible with the `#[async_trait]` macro.
