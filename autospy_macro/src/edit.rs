@@ -34,7 +34,7 @@ impl AssociatedTypeReplacer<'_> {
         let (_, associated_type) = self
             .associated_spy_types
             .iter()
-            .find(|(ident, _)| ident == second)?;
+            .find(|(ident, _)| *ident == second)?;
 
         Some(associated_type.clone())
     }

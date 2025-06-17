@@ -1,9 +1,8 @@
+use std::collections::BTreeMap;
 use crate::attribute;
 use syn::{Ident, ItemTrait, TraitItem, TraitItemType, TypePath};
 
-// Vec rather than HashMap so that ordering is preserved.
-// Probably more efficent anyway because never very many of them. But this has not been performance tested.
-pub type AssociatedSpyTypes = Vec<(Ident, TypePath)>;
+pub type AssociatedSpyTypes = BTreeMap<Ident, TypePath>;
 
 pub fn get_associated_types(item_trait: &ItemTrait) -> AssociatedSpyTypes {
     item_trait
