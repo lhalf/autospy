@@ -19,3 +19,4 @@ mod struct_returns;
 mod trait_arguments;
 mod use_default_attribute;
 mod with_argument_attribute;
+mod generic_trait_with_where_clause;

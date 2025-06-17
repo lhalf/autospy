@@ -388,4 +388,25 @@ mod tests {
             trait TestTrait<T> {}
         }));
     }
+
+    #[test]
+    fn traits_with_multiple_generics() {
+        insta::assert_snapshot!(generate_pretty(parse_quote! {
+            trait TestTrait<W, O, T> {}
+        }));
+    }
+
+    #[test]
+    fn traits_with_generics_with_bounds() {
+        insta::assert_snapshot!(generate_pretty(parse_quote! {
+            trait TestTrait<T: Copy, C: Clone> {}
+        }));
+    }
+
+    #[test]
+    fn traits_with_generics_with_where_clause() {
+        insta::assert_snapshot!(generate_pretty(parse_quote! {
+            trait TestTrait<T> where T: Copy {}
+        }));
+    }
 }
