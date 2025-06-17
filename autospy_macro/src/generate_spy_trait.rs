@@ -15,10 +15,14 @@ pub fn generate_spy_trait(
         true => quote! { #[cfg(test)] },
         false => TokenStream::new(),
     };
+    
     let trait_attributes = &item_trait.attrs;
     let trait_name = &item_trait.ident;
+    
     let generics = &item_trait.generics;
-    let generics_idents = generics_idents(&item_trait.generics);
+    let generics_where_clause = &generics.where_clause;
+    let generics_idents = generics_idents(&generics);
+    
     let spy_name = format_ident!("{}Spy", trait_name);
     let associated_type_definitions = associated_type_definitions(associated_spy_types);
     let spy_associated_consts = spy_associated_consts(item_trait);
@@ -27,7 +31,7 @@ pub fn generate_spy_trait(
     quote! {
         #cfg
         #(#trait_attributes)*
-        impl #generics #trait_name #generics_idents for #spy_name #generics_idents {
+        impl #generics #trait_name #generics_idents for #spy_name #generics_idents #generics_where_clause {
             #(#associated_type_definitions)*
             #(#spy_associated_consts)*
             #(#spy_function_definitions)*
@@ -457,6 +461,22 @@ mod tests {
         let expected = quote! {
             #[cfg(test)]
             impl<T: Copy, P: Clone> Example<T,P> for ExampleSpy<T,P> {}
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_impl_is_generic_over_trait_generic_with_where_clause() {
+        let input: ItemTrait = parse_quote! {
+            trait Example<T> where T: Copy {}
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl<T> Example<T> for ExampleSpy<T> where T: Copy {}
         };
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
