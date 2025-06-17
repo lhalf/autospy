@@ -13,12 +13,12 @@ pub fn generate_spy_struct(
         true => quote! { #[cfg(test)] },
         false => TokenStream::new(),
     };
-    
+
     let visibility = &item_trait.vis;
     let spy_name = format_ident!("{}Spy", item_trait.ident);
     let generics = &item_trait.generics;
     let generics_where_clause = &generics.where_clause;
-    
+
     let spy_fields = generate_spy_fields(item_trait, associated_spy_types);
 
     parse_quote! {

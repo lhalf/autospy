@@ -15,14 +15,14 @@ pub fn generate_spy_trait(
         true => quote! { #[cfg(test)] },
         false => TokenStream::new(),
     };
-    
+
     let trait_attributes = &item_trait.attrs;
     let trait_name = &item_trait.ident;
-    
+
     let generics = &item_trait.generics;
     let generics_where_clause = &generics.where_clause;
     let generics_idents = generics_idents(&generics);
-    
+
     let spy_name = format_ident!("{}Spy", trait_name);
     let associated_type_definitions = associated_type_definitions(associated_spy_types);
     let spy_associated_consts = spy_associated_consts(item_trait);
