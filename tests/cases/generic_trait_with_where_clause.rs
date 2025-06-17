@@ -1,7 +1,10 @@
 use autospy::autospy;
 
 #[autospy]
-trait MyTrait<T> where T: Copy {
+trait MyTrait<T>
+where
+    T: Copy,
+{
     fn function(&self) -> T;
 }
 

@@ -1,5 +1,5 @@
-use std::collections::BTreeMap;
 use crate::attribute;
+use std::collections::BTreeMap;
 use syn::{Ident, ItemTrait, TraitItem, TraitItemType, TypePath};
 
 pub type AssociatedSpyTypes = BTreeMap<Ident, TypePath>;
