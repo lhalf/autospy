@@ -21,7 +21,7 @@ pub fn generate_spy_trait(
 
     let generics = &item_trait.generics;
     let generics_where_clause = &generics.where_clause;
-    let generics_idents = generics_idents(&generics);
+    let generics_idents = generics_idents(generics);
 
     let spy_name = format_ident!("{}Spy", trait_name);
     let associated_type_definitions = associated_type_definitions(associated_spy_types);
