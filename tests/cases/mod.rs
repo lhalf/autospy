@@ -3,7 +3,7 @@ mod associated_const_attribute;
 mod associated_type_arguments;
 mod associated_type_returns;
 mod async_trait;
-mod async_trait_with_timeout;
+mod async_trait_recv;
 mod borrowed_arguments;
 mod function_arguments;
 mod generic_trait;
