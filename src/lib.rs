@@ -227,11 +227,9 @@
 //! assert_eq!("hello async!", spy.foo.arguments.take_all()[0])
 //! ```
 //!
-//! ## Async with timeout
-//!
 //! If you are using an async trait your spy might not be used immediately, for instance it might be spawned in a task.
-//! You can use the `take_all_with_timeout()` method on arguments to instruct the spy to wait with a timeout for the spy to be used.
-//! `take_all_with_timeout()` is enabled by the default feature [**async**](#features) and, as an `async` function, will need to be called from within an async test.
+//! You can use the `recv()` method on arguments to instruct the spy to wait asynchronously until the spy is used.
+//! `recv()` is enabled by the default feature [**async**](#features) and, as an `async` function, will need to be called from within an async test.
 //!
 //! ```rust
 //! use autospy::autospy;
@@ -258,8 +256,8 @@
 //!     use_async_trait(spy.clone()).await;
 //!     // spy not used yet
 //!     assert!(spy.foo.arguments.take_all().is_empty());
-//!     // spy used within 200ms
-//!     assert_eq!("async used after some time!", spy.foo.arguments.take_all_with_timeout(Duration::from_millis(200)).await.unwrap()[0])
+//!     // spy used after 100ms
+//!     assert_eq!("async used after some time!", spy.foo.arguments.recv().await[0])
 //! })
 //! ```
 //!

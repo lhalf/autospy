@@ -39,40 +39,58 @@ impl<A, R> SpyFunction<A, R> {
     }
 }
 
-pub struct Arguments<A>(Arc<Mutex<Vec<A>>>);
+pub struct Arguments<A> {
+    captured: Arc<Mutex<Vec<A>>>,
+    #[cfg(feature = "async")]
+    sender: async_channel::Sender<()>,
+    #[cfg(feature = "async")]
+    receiver: async_channel::Receiver<()>,
+}
 
 impl<A> Clone for Arguments<A> {
     fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self {
+            captured: self.captured.clone(),
+            #[cfg(feature = "async")]
+            sender: self.sender.clone(),
+            #[cfg(feature = "async")]
+            receiver: self.receiver.clone(),
+        }
     }
 }
 
 impl<A> Default for Arguments<A> {
     fn default() -> Self {
-        Self(Arc::new(Mutex::new(Vec::new())))
+        #[cfg(feature = "async")]
+        let (sender, receiver) = async_channel::unbounded();
+        Self {
+            captured: Arc::new(Mutex::new(Vec::new())),
+            #[cfg(feature = "async")]
+            sender,
+            #[cfg(feature = "async")]
+            receiver,
+        }
     }
 }
 
 impl<A> Arguments<A> {
     pub fn push(&self, arguments: A) {
-        self.0.lock().expect("mutex poisoned").push(arguments);
+        self.captured
+            .lock()
+            .expect("mutex poisoned")
+            .push(arguments);
+        #[cfg(feature = "async")]
+        let _ = self.sender.send_blocking(());
     }
 
     pub fn take_all(&self) -> Vec<A> {
-        std::mem::take(&mut *self.0.lock().expect("mutex poisoned"))
+        std::mem::take(&mut *self.captured.lock().expect("mutex poisoned"))
     }
 
     #[cfg(feature = "async")]
-    pub async fn take_all_with_timeout(&self, timeout: std::time::Duration) -> Result<Vec<A>, ()> {
-        let retry_interval = std::time::Duration::from_millis(10);
-        let attempts = (timeout.as_millis() / retry_interval.as_millis()) as usize;
-        let strategy = tokio_retry2::strategy::FixedInterval::new(retry_interval).take(attempts);
-
-        tokio_retry2::Retry::spawn(strategy, async || match self.take_all() {
-            arguments if arguments.is_empty() => Err(tokio_retry2::RetryError::transient(())),
-            arguments => Ok(arguments),
-        })
-        .await
+    pub async fn recv(&self) -> Vec<A> {
+        self.receiver.recv().await.unwrap();
+        self.take_all()
     }
 }
 
