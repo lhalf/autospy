@@ -20,3 +20,4 @@ mod struct_returns;
 mod trait_arguments;
 mod use_default_attribute;
 mod with_argument_attribute;
+mod associated_type_with_bounds;
