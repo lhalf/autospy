@@ -6,9 +6,15 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::ItemTrait;
 
-pub fn generate(item_trait: ItemTrait) -> TokenStream {
+pub fn generate(item_trait: ItemTrait, external_trait: bool) -> TokenStream {
     let associated_type = get_associated_types(&item_trait);
-    let stripped_item_trait = strip_attributes(item_trait.clone());
+    let stripped_item_trait = match external_trait {
+        true => TokenStream::new(),
+        false => {
+            let stripped_item_trait = strip_attributes(item_trait.clone());
+            quote! { #stripped_item_trait }
+        }
+    };
     let spy_struct = generate_spy_struct(&item_trait, &associated_type);
     let spy_trait = generate_spy_trait(&item_trait, &associated_type);
 
@@ -33,8 +39,20 @@ mod tests {
     use syn::{ItemTrait, parse_quote};
 
     fn generate_pretty(item_trait: ItemTrait) -> String {
-        let expanded = generate(item_trait).to_string();
+        let expanded = generate(item_trait, false).to_string();
         prettyplease::unparse(&syn::parse_file(&expanded).unwrap())
+    }
+
+    #[test]
+    fn traits_marked_as_external_are_not_included_in_macro_expansion() {
+        let item_trait = parse_quote! {
+            trait Read {
+                fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize>;
+            }
+        };
+        let expanded = generate(item_trait, true).to_string();
+
+        insta::assert_snapshot!(prettyplease::unparse(&syn::parse_file(&expanded).unwrap()));
     }
 
     #[test]
