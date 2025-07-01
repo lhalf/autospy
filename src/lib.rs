@@ -127,6 +127,30 @@
 //! assert_eq!(vec!["hello!"], spy.foo.arguments.take_all());
 //! ```
 //!
+//! ## External traits
+//!
+//! External traits can be turned into a spy using `#[autospy(external)]`, you will need to include the signatures for the external trait functions you want the spy to implement.
+//!
+//! ```rust
+//! use autospy::autospy;
+//! use std::io::Read;
+//!
+//! #[autospy(external)]
+//! trait Read {
+//!     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize>;
+//! }
+//!
+//! fn use_trait(mut x: impl Read) -> std::io::Result<usize> {
+//!     let mut buf = [];
+//!     x.read(&mut buf)
+//! }
+//!
+//! let spy = ReadSpy::default();
+//! spy.read.returns.push_back(Err(std::io::Error::other("read fails!")));
+//!
+//! assert!(use_trait(spy).is_err());
+//! ```
+//!
 //! ## Returns attribute
 //!
 //! Trait functions that return generics can have the type specified using the `#[autospy(returns = "TYPE")]` attribute.
