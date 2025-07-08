@@ -11,16 +11,15 @@ A test spy object library.
 
 ## Overview
 
-Spies are a type of [test double](https://en.wikipedia.org/wiki/Test_double) used for unit testing software. A test spy
-is an object providing the same interface as the production code, but which allows setting of the output before a test
-runs and verification of input parameters after the test run.
+A test spy is a type of [test double](https://en.wikipedia.org/wiki/Test_double) used in unit testing. It provides the same
+interface as the production code, but allow you to set outputs before use in a test
+and to verify input parameters after the spy has been used.
 
 [`#[autospy]`](https://docs.rs/autospy/latest/autospy/) generates a test spy object for traits.
 
 ## Usage
 
-Spy objects are often only used by unit tests, the example below demonstrates use in a unit test assuming included in
-`[dev-dependencies]`.
+The example below demonstrates use in a unit test assuming `autospy` is included in `[dev-dependencies]`.
 
 ```rust
 #[cfg(test)]
@@ -41,11 +40,12 @@ mod tests {
 
     #[test]
     fn test_trait() {
-        let spy = MyTraitSpy::default();
-        spy.foo.returns.push_back(true);
+        let spy = MyTraitSpy::default(); // build spy
+        
+        spy.foo.returns.push_back(true); // set the return value
 
-        assert!(use_trait(spy.clone()));
-        assert_eq!(vec![10], spy.foo.arguments.take_all())
+        assert!(use_trait(spy.clone())); // use the spy
+        assert_eq!(vec![10], spy.foo.arguments.take_all()) // verify the arguments passed
     }
 }
 ```
@@ -60,7 +60,7 @@ through [automock](https://docs.rs/mockall/latest/mockall/attr.automock.html), p
 Autospy aims to offer these features through a macro-generated spy object, rather than a mock object. The use of either is
 largely personal preference; however, there are some advantages to using a spy object:
 
-| Test object | Test failures                                                      | Test structure                                            | Complexity                                                             |
-|-------------|--------------------------------------------------------------------|-----------------------------------------------------------|------------------------------------------------------------------------|
-| Mock        | Will panic if expectations fail, causing less clear error messages | Less standard pattern, expectations are baked into object | Often more crate-specific syntax and patterns                          |
-| Spy         | Asserts like any other test                                        | Assert after use, more standard test pattern              | Simple with two controls, what is returned and inspect what was called |
+| Test object | Test failures                                              | Test structure                                            | Complexity                                                |
+|-------------|------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------|
+| Mock        | Panics if expectations fail; error messages can be unclear | Less standard pattern, expectations are baked into object | More crate-specific syntax and usage patterns             |
+| Spy         | Asserts like any regular test                              | Assert after use, more standard test pattern              | Simple: set what's returned, then inspect what was called |
