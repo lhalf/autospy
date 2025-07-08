@@ -501,4 +501,26 @@ mod tests {
 
         assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
     }
+
+    #[test]
+    fn trait_functions_are_unsafe_if_input_trait_function_is_unsafe() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                unsafe fn function(&self);
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Example for ExampleSpy {
+                unsafe fn function(&self) {
+                    self.function.spy(())
+                }
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
 }
