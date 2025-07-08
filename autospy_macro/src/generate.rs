@@ -427,4 +427,11 @@ mod tests {
             trait TestTrait<T> where T: Copy {}
         }));
     }
+
+    #[test]
+    fn unsafe_traits() {
+        insta::assert_snapshot!(generate_pretty(parse_quote! {
+            unsafe trait TestTrait {}
+        }));
+    }
 }
