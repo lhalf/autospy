@@ -54,8 +54,13 @@ For additional examples and features see the [docs](https://docs.rs/autospy).
 
 ## Acknowledgements
 
-Autospy is heavily influenced by the excellent [mockall](https://docs.rs/mockall/latest/mockall/) crate, which
-through [automock](https://docs.rs/mockall/latest/mockall/attr.automock.html) provides much the same features. Autospy
-aims to offer these same features through a macro generated spy object, rather than a mock object. The use of either is
-largely personal preference; however, there are some benefits to using a spy object. Notably, a mock object will panic
-if its expectations fail which can cause less legible error messages.
+Autospy is heavily influenced by the excellent [mockall](https://docs.rs/mockall/latest/mockall/) crate, which,
+through [automock](https://docs.rs/mockall/latest/mockall/attr.automock.html), provides many similar features. 
+
+Autospy aims to offer these features through a macro-generated spy object, rather than a mock object. The use of either is
+largely personal preference; however, there are some advantages to using a spy object:
+
+- Mock objects will panic if their expectations fail, causing less legible error messages and more complex test structure
+- Spy objects can be used and assertions made after, resulting in a more standard test structure
+- Mock objects often have a more complex interface, with more crate specific syntax and usage
+- Spy objects should be simple in that you have two levers - what it returns and what was it called with
