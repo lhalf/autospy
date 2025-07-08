@@ -60,7 +60,7 @@ through [automock](https://docs.rs/mockall/latest/mockall/attr.automock.html), p
 Autospy aims to offer these features through a macro-generated spy object, rather than a mock object. The use of either is
 largely personal preference; however, there are some advantages to using a spy object:
 
-- Mock objects will panic if their expectations fail, causing less legible error messages and more complex test structure
-- Spy objects can be used and assertions made after, resulting in a more standard test structure
-- Mock objects often have a more complex interface, with more crate specific syntax and usage
-- Spy objects should be simple in that you have two levers - what it returns and what was it called with
+| Test object | Test failures                                                      | Test structure                                            | Complexity                                                             |
+|-------------|--------------------------------------------------------------------|-----------------------------------------------------------|------------------------------------------------------------------------|
+| Mock        | Will panic if expectations fail, causing less clear error messages | Less standard pattern, expectations are baked into object | Often more crate-specific syntax and patterns                          |
+| Spy         | Asserts like any other test                                        | Assert after use, more standard test pattern              | Simple with two controls, what is returned and inspect what was called |
