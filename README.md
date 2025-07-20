@@ -12,7 +12,7 @@ A test spy object library.
 ## Overview
 
 A test spy is a type of [test double](https://en.wikipedia.org/wiki/Test_double) used in unit testing. It provides the same
-interface as the production code, but allow you to set outputs before use in a test
+interface as the production code, but allows you to set outputs before use in a test
 and to verify input parameters after the spy has been used.
 
 [`#[autospy]`](https://docs.rs/autospy/latest/autospy/) generates a test spy object for traits.
