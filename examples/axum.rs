@@ -51,7 +51,7 @@ struct Filesystem {}
 #[async_trait]
 impl SaveFile for Filesystem {
     async fn save_file(&self, filename: String, contents: &[u8]) -> Result<(), anyhow::Error> {
-        std::fs::write(&filename, contents).context(format!("failed to save file {}", filename))
+        std::fs::write(&filename, contents).context(format!("failed to save file {filename}"))
     }
 }
 
