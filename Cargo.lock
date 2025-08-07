@@ -282,7 +282,7 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
 name = "autospy"
-version = "0.0.8"
+version = "0.0.9"
 dependencies = [
  "actix-web",
  "anyhow",
