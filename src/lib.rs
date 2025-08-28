@@ -5,11 +5,11 @@
 //!
 //! # Usage
 //!
-//! To use autospy simply attribute your trait using `#[autospy]`.
+//! To use autospy simply:
+//! - Attribute your trait using `#[autospy]`
+//! - Specify return values with [`push_back()`](Returns::push_back)
+//! - Assert on your captured arguments using [`take_all()`](Arguments::take_all)
 //!
-//! **Note:** The generated spy object and trait impl are [`#[cfg(test)]`](https://doc.rust-lang.org/book/ch11-03-test-organization.html#the-tests-module-and-cfgtest) by default.
-//! To disable this see [features](#features).
-//! It is recommended to use `#[cfg_attr(test, autospy)]`, likewise for all attributes discussed here, to make it transparent autospy is only expanded under test.
 //! ```rust
 //! use autospy::autospy;
 //!
@@ -28,6 +28,17 @@
 //! assert_eq!(20, call_with_ten(spy.clone()));
 //! assert_eq!(vec![10], spy.foo.arguments.take_all());
 //! ```
+//!
+//! <div class="warning">
+//!   The generated spy object and trait impl are
+//!   <a href="https://doc.rust-lang.org/book/ch11-03-test-organization.html#the-tests-module-and-cfgtest"><code>#[cfg(test)]</code></a>
+//!   by default.
+//!   To disable this see <a href="#features">features</a>.
+//!
+//!   It is recommended to use
+//!   <code>#[cfg_attr(test, autospy)]</code>, likewise for all attributes discussed here,
+//!   to make it transparent autospy is only expanded under test.
+//! </div>
 //!
 //! ## Multiple arguments
 //!
@@ -225,8 +236,9 @@
 //! ## Async traits
 //!
 //! Async functions in traits are stable as of [Rust 1.75](https://blog.rust-lang.org/2023/12/28/Rust-1.75.0/); however, this did not include support for using traits containing async functions as `dyn Trait`. They can be used via the [`async_trait`](https://docs.rs/async-trait/latest/async_trait/) crate. `#[autospy]` is compatible with the `#[async_trait]` macro.
-//!
-//! **Note:** `#[autospy]` must come before `#[async_trait]`.
+//! <div class="warning">
+//! <code>#[autospy]</code> must come before <code>#[async_trait]</code>.
+//! </div>
 //!
 //! ```rust
 //! use autospy::autospy;
@@ -252,7 +264,7 @@
 //! ```
 //!
 //! If you are using an async trait your spy might not be used immediately, for instance it might be spawned in a task.
-//! You can use the `recv()` method on arguments to instruct the spy to wait asynchronously until the spy is used.
+//! You can use the [`recv()`](Arguments::recv) method on arguments to instruct the spy to wait asynchronously until the spy is used.
 //! `recv()` is enabled by the default feature [**async**](#features) and, as an `async` function, will need to be called from within an async test.
 //!
 //! ```rust
@@ -389,6 +401,12 @@
 
 mod spy_function;
 
+/// The captured arguments of a spy function.
+#[allow(unused_imports)]
+pub use spy_function::Arguments;
+/// The return values of a spy function.
+#[allow(unused_imports)]
+pub use spy_function::Returns;
 /// Captures arguments and holds return values.
 pub use spy_function::SpyFunction;
 

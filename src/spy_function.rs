@@ -4,7 +4,7 @@ use std::{
 };
 
 pub struct SpyFunction<A, R> {
-    /// The spied arguments of the function.
+    /// The captured arguments the function was called with.
     pub arguments: Arguments<A>,
     /// The return values of the function.
     pub returns: Returns<R>,
@@ -74,7 +74,7 @@ impl<A> Default for Arguments<A> {
 }
 
 impl<A> Arguments<A> {
-    pub fn push(&self, arguments: A) {
+    fn push(&self, arguments: A) {
         self.captured
             .lock()
             .expect("mutex poisoned")
@@ -83,10 +83,13 @@ impl<A> Arguments<A> {
         let _ = self.sender.send_blocking(());
     }
 
+    /// Returns all captured arguments from the spy function.
     pub fn take_all(&self) -> Vec<A> {
         std::mem::take(&mut *self.captured.lock().expect("mutex poisoned"))
     }
 
+    /// Asynchronously returns all captured arguments when the spy is used.
+    /// Enabled by default via the **async** feature.
     #[cfg(feature = "async")]
     pub async fn recv(&self) -> Vec<A> {
         self.receiver.recv().await.unwrap();
@@ -109,21 +112,24 @@ impl<R> Default for Returns<R> {
 }
 
 impl<R> Returns<R> {
+    /// Adds a single return value to the back of the queue for the spy function.
     pub fn push_back(&self, value: R) -> &Self {
         self.0.lock().expect("mutex poisoned").push_back(value);
         self
     }
 
-    pub fn next(&self) -> Option<R> {
+    fn next(&self) -> Option<R> {
         self.0.lock().expect("mutex poisoned").pop_front()
     }
 
+    /// Clears the configured return values for the spy function.
     pub fn clear(&self) {
         self.0.lock().expect("mutex poisoned").clear()
     }
 }
 
 impl<R: Clone> Returns<R> {
+    /// Adds the specified number of return values to the back of the queue for the spy function.
     pub fn push_back_n(&self, value: R, count: usize) -> &Self {
         std::iter::repeat_n(value, count).fold(self, |acc, value| acc.push_back(value))
     }
