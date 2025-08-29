@@ -52,10 +52,10 @@ fn trait_spy_function_definitions(item_trait: &ItemTrait) -> impl Iterator<Item 
 fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
     let mut signature = function.sig.clone();
 
-    if attribute::has_use_default_attribute(&function.attrs) {
-        if let Some(default_function) = &function.default {
-            return quote! { #signature #default_function };
-        }
+    if attribute::has_use_default_attribute(&function.attrs)
+        && let Some(default_function) = &function.default
+    {
+        return quote! { #signature #default_function };
     }
 
     let function_name = &function.sig.ident;

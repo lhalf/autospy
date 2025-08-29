@@ -103,13 +103,13 @@ fn autospy_attribute(attribute: &Attribute) -> Option<TokenStream> {
                 .parse2(meta_list.tokens.clone())
                 .ok()?;
 
-            if inner.len() == 2 {
-                if let Some(Meta::List(inner)) = inner.into_iter().nth(1) {
-                    if inner.path.is_ident("autospy") {
-                        return Some(inner.tokens.clone());
-                    }
-                }
+            if inner.len() == 2
+                && let Some(Meta::List(inner)) = inner.into_iter().nth(1)
+                && inner.path.is_ident("autospy")
+            {
+                return Some(inner.tokens.clone());
             }
+
             None
         }
         _ => None,
