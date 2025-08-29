@@ -1,4 +1,5 @@
-use crate::inspect::{cfg, generics_idents};
+use crate::generics::generics_idents;
+use crate::inspect::cfg;
 use crate::{attribute, inspect};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};

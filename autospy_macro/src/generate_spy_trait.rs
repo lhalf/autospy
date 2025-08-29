@@ -1,5 +1,6 @@
 use crate::associated_types::AssociatedSpyTypes;
-use crate::inspect::{cfg, generics_idents};
+use crate::generics::generics_idents;
+use crate::inspect::cfg;
 use crate::strip_attributes::{strip_attributes_from_signature, strip_autospy_attributes};
 use crate::{attribute, edit, generate, inspect};
 use proc_macro2::TokenStream;

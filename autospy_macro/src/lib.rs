@@ -7,6 +7,7 @@ mod generate;
 mod generate_spy_default;
 mod generate_spy_struct;
 mod generate_spy_trait;
+mod generics;
 mod inspect;
 mod strip_attributes;
 
