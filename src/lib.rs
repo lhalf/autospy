@@ -5,15 +5,12 @@
 //!
 //! # Usage
 //!
-//! To use autospy simply:
 //! - Attribute your trait using `#[autospy]`
-//! - Specify return values with [`push_back()`](Returns::push_back)
-//! - Assert on your captured arguments using [`take_all()`](Arguments::take_all)
+//! - Specify return values using [`push_back()`](Returns::push_back)
+//! - Get captured arguments using [`take_all()`](Arguments::take_all)
 //!
 //! ```rust
-//! use autospy::autospy;
-//!
-//! #[autospy]
+//! #[autospy::autospy]
 //! trait MyTrait {
 //!     fn foo(&self, argument: u32) -> u32;
 //! }
@@ -36,7 +33,7 @@
 //!   To disable this see <a href="#features">features</a>.
 //!
 //!   It is recommended to use
-//!   <code>#[cfg_attr(test, autospy)]</code>, likewise for all attributes discussed here,
+//!   <code>#[cfg_attr(test, autospy)]</code>, as well for all attributes discussed below,
 //!   to make it transparent autospy is only expanded under test.
 //! </div>
 //!
@@ -45,9 +42,7 @@
 //! Methods with multiple arguments are captured in a tuple.
 //!
 //! ```rust
-//! use autospy::autospy;
-//!
-//! #[autospy]
+//! #[autospy::autospy]
 //! trait MyTrait {
 //!     fn foo(&self, arg1: u32, arg2: String);
 //! }
@@ -64,14 +59,12 @@
 //! assert_eq!(vec![(10, "hello!".to_string())], spy.foo.arguments.take_all());
 //! ```
 //!
-//! ## References
+//! ## Reference arguments
 //!
-//! `#[autospy]` will automatically convert reference arguments into owned types.
+//! `#[autospy]` will automatically convert reference arguments into owned types when captured.
 //!
 //! ```rust
-//! use autospy::autospy;
-//!
-//! #[autospy]
+//! #[autospy::autospy]
 //! trait MyTrait {
 //!     fn foo(&self, argument: &str);
 //! }
@@ -93,9 +86,7 @@
 //! Arguments can be ignored using `#[autospy(ignore)]` if you do not wish to capture them in the spy.
 //!
 //! ```rust
-//! use autospy::autospy;
-//!
-//! #[autospy]
+//! #[autospy::autospy]
 //! trait MyTrait {
 //!     fn foo(&self, #[autospy(ignore)] ignored: &str, argument: &str);
 //! }
@@ -117,9 +108,7 @@
 //! An `#[autospy(TYPE)]` attribute can be applied to associated types to tell the spy how to capture them.
 //!
 //! ```rust
-//! use autospy::autospy;
-//!
-//! #[autospy]
+//! #[autospy::autospy]
 //! trait MyTrait {
 //!     #[autospy(String)]
 //!     type Item;
@@ -143,10 +132,9 @@
 //! External traits can be turned into a spy using `#[autospy(external)]`, you will need to include the signatures for the external trait functions you want the spy to implement.
 //!
 //! ```rust
-//! use autospy::autospy;
 //! use std::io::Read;
 //!
-//! #[autospy(external)]
+//! #[autospy::autospy(external)]
 //! trait Read {
 //!     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize>;
 //! }
@@ -164,12 +152,10 @@
 //!
 //! ## Returns attribute
 //!
-//! Trait functions that return generics can have the type specified using the `#[autospy(returns = "TYPE")]` attribute.
+//! Trait functions that return generics can have the return type specified using the `#[autospy(returns = "TYPE")]` attribute.
 //!
 //! ```rust
-//! use autospy::autospy;
-//!
-//! #[autospy]
+//! #[autospy::autospy]
 //! trait MyTrait {
 //!     #[autospy(returns = "String")]
 //!     fn foo(&self) -> impl ToString;
@@ -190,9 +176,7 @@
 //! Trait functions that have generic arguments and are [`'static`](https://doc.rust-lang.org/rust-by-example/scope/lifetime/static_lifetime.html) will automatically be captured in a [`Box`].
 //!
 //! ```rust
-//! use autospy::autospy;
-//!
-//! #[autospy]
+//! #[autospy::autospy]
 //! trait MyTrait {
 //!     fn foo(&self, argument: impl ToString + 'static);
 //! }
@@ -214,9 +198,7 @@
 //! The spy will have the same generics as the trait definition.
 //!
 //! ```rust
-//! use autospy::autospy;
-//!
-//! #[autospy]
+//! #[autospy::autospy]
 //! trait MyTrait<A: Copy, R> {
 //!     fn foo(&self, argument: A) -> R;
 //! }
@@ -241,12 +223,10 @@
 //! </div>
 //!
 //! ```rust
-//! use autospy::autospy;
-//! use async_trait::async_trait;
 //! use pollster::FutureExt as _;
 //!
-//! #[autospy]
-//! #[async_trait]
+//! #[autospy::autospy]
+//! #[async_trait::async_trait]
 //! trait MyTrait {
 //!     async fn foo(&self, argument: &str);
 //! }
@@ -268,12 +248,10 @@
 //! `recv()` is enabled by the default feature [**async**](#features) and, as an `async` function, will need to be called from within an async test.
 //!
 //! ```rust
-//! use autospy::autospy;
-//! use async_trait::async_trait;
 //! use std::time::Duration;
 //!
-//! #[autospy]
-//! #[async_trait]
+//! #[autospy::autospy]
+//! #[async_trait::async_trait]
 //! trait MyTrait: Send + 'static {
 //!     async fn foo(&self, argument: &str);
 //! }
@@ -303,9 +281,8 @@
 //!
 //! ```rust
 //! use std::net::Ipv4Addr;
-//! use autospy::autospy;
 //!
-//! #[autospy]
+//! #[autospy::autospy]
 //! trait MyTrait {
 //!     fn foo(&self, #[autospy(into="Ipv4Addr")] ip: [u8; 4]);
 //! }
@@ -328,9 +305,8 @@
 //!
 //! ```rust
 //! use std::string::FromUtf8Error;
-//! use autospy::autospy;
 //!
-//! #[autospy]
+//! #[autospy::autospy]
 //! trait MyTrait {
 //!     fn foo(&self, #[autospy(into = "Result<String, FromUtf8Error>", with = "String::from_utf8")] bytes: Vec<u8>);
 //! }
@@ -352,9 +328,7 @@
 //! An `#[autospy(VALUE)]` attribute can be applied to associated consts to set them in the spy. Alternatively, if no attribute is provided and the type has a [`Default`] that will be used.
 //!
 //! ```rust
-//! use autospy::autospy;
-//!
-//! #[autospy]
+//! #[autospy::autospy]
 //! trait MyTrait {
 //!     #[autospy(100)]
 //!     const VALUE: u64;
@@ -371,8 +345,7 @@
 //! If your trait has a default implementation for a method, an `#[autospy(use_default)]` attribute can be used on the method to tell the spy to use the default. Therefore, no spy values will be recorded for this function.
 //!
 //! ```rust
-//! use autospy::autospy;
-//! #[autospy]
+//! #[autospy::autospy]
 //! trait MyTrait {
 //!     #[autospy(20)]
 //!     const VALUE: u64;
