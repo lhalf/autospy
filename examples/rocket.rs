@@ -2,8 +2,6 @@
 
 use anyhow::Context;
 use async_trait::async_trait;
-#[cfg(test)]
-use autospy::autospy;
 use rocket::http::Status;
 use rocket::{Build, Rocket, State, get, routes};
 
@@ -33,7 +31,7 @@ async fn handle_request(path: &str, client: &State<Box<dyn MakeUpstreamRequest>>
         .unwrap_or(Status::BadGateway)
 }
 
-#[cfg_attr(test, autospy)]
+#[cfg_attr(test, autospy::autospy)]
 #[async_trait]
 trait MakeUpstreamRequest: Send + Sync {
     async fn make_upstream_request(&self, path: &str) -> Result<Status, anyhow::Error>;

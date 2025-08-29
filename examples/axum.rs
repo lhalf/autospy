@@ -2,8 +2,6 @@
 
 use anyhow::Context;
 use async_trait::async_trait;
-#[cfg(test)]
-use autospy::autospy;
 use axum::Router;
 use axum::body::Bytes;
 use axum::extract::{Path, State};
@@ -39,7 +37,7 @@ async fn handle_request(
     }
 }
 
-#[cfg_attr(test, autospy)]
+#[cfg_attr(test, autospy::autospy)]
 #[async_trait]
 trait SaveFile: Send + Sync + 'static {
     async fn save_file(&self, filename: String, contents: &[u8]) -> Result<(), anyhow::Error>;

@@ -3,8 +3,6 @@
 use actix_web::{App, HttpResponse, HttpServer, Responder, web};
 use anyhow::Context;
 use async_trait::async_trait;
-#[cfg(test)]
-use autospy::autospy;
 
 #[actix_web::main]
 async fn main() -> Result<(), anyhow::Error> {
@@ -32,7 +30,7 @@ async fn handle_request(
     .finish()
 }
 
-#[cfg_attr(test, autospy)]
+#[cfg_attr(test, autospy::autospy)]
 #[async_trait]
 trait SaveFile {
     async fn save_file(&self, filename: String, contents: &[u8]) -> Result<(), anyhow::Error>;
