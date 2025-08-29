@@ -1,7 +1,6 @@
-use autospy::autospy;
 use std::io::Read;
 
-#[autospy(external)]
+#[autospy::autospy(external)]
 trait Read {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize>;
 }

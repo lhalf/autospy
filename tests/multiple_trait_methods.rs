@@ -1,6 +1,4 @@
-use autospy::autospy;
-
-#[autospy]
+#[autospy::autospy]
 trait MyTrait {
     fn function_one(&self);
     fn function_two(&self);

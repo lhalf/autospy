@@ -1,6 +1,4 @@
-use autospy::autospy;
-
-#[autospy]
+#[autospy::autospy]
 trait MyTrait<A, R> {
     fn function(&self, argument: A) -> R;
 }

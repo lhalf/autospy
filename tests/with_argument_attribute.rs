@@ -1,7 +1,6 @@
-use autospy::autospy;
 use std::string::FromUtf8Error;
 
-#[autospy]
+#[autospy::autospy]
 trait MyTrait {
     fn function(
         &self,

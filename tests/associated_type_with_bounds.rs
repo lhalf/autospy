@@ -1,6 +1,4 @@
-use autospy::autospy;
-
-#[autospy]
+#[autospy::autospy]
 trait TestTrait {
     #[autospy(String)]
     type Item: Clone;

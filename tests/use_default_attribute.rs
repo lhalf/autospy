@@ -1,6 +1,4 @@
-use autospy::autospy;
-
-#[autospy]
+#[autospy::autospy]
 trait TestTrait {
     #[autospy(20)]
     const VALUE: u64;

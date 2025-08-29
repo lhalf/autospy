@@ -1,11 +1,9 @@
-use autospy::autospy;
-
 #[derive(PartialEq, Debug)]
 struct MyStruct {
     value: String,
 }
 
-#[autospy]
+#[autospy::autospy]
 trait MyTrait {
     fn function(&self, argument: MyStruct);
 }

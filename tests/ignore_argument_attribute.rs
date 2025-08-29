@@ -1,6 +1,4 @@
-use autospy::autospy;
-
-#[autospy]
+#[autospy::autospy]
 trait MyTrait {
     fn function(&self, #[autospy(ignore)] ignored: &str, captured: &str);
 }

@@ -1,8 +1,5 @@
-use async_trait::async_trait;
-use autospy::autospy;
-
-#[autospy]
-#[async_trait]
+#[autospy::autospy]
+#[async_trait::async_trait]
 trait MyTrait: Send + 'static {
     async fn function(&self, argument: String);
 }
