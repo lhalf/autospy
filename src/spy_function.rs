@@ -33,7 +33,9 @@ impl<A, R> From<&'static str> for SpyFunction<A, R> {
 
 impl<A, R> SpyFunction<A, R> {
     /// Captures the arguments into [`arguments`](Self::arguments) and tries to return the next value from [`returns`](Self::returns).
-    /// Will panic if not enough return values have been specified for the number of times the function is called.
+    /// <div class="warning">
+    /// Panics if not enough return values have been specified for the number of times the function is called.
+    /// </div>
     pub fn spy(&self, arguments: A) -> R {
         self.arguments.push(arguments);
         self.returns.next().unwrap_or_else(|| {
@@ -103,6 +105,20 @@ impl<A> Arguments<A> {
     }
 }
 
+/// # Panics
+/// Panics if not enough return values have been specified for the number of times the function is called.
+///
+/// ```should_panic
+/// #[autospy::autospy]
+/// trait MyTrait {
+///     fn foo(&self);
+/// }
+///
+/// let spy = MyTraitSpy::default();
+///
+/// // panics because we haven't set a return value
+/// spy.foo()
+/// ```
 pub struct Returns<R>(Arc<Mutex<VecDeque<R>>>);
 
 impl<R> Clone for Returns<R> {
