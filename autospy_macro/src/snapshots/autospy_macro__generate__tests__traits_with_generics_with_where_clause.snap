@@ -1,6 +1,6 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 408
+assertion_line: 429
 expression: "generate_pretty(parse_quote! { trait TestTrait<T> where T: Copy {} })"
 ---
 trait TestTrait<T>
@@ -8,11 +8,20 @@ where
     T: Copy,
 {}
 #[cfg(test)]
-#[derive(Default, Clone)]
+#[derive(Clone)]
 struct TestTraitSpy<T>
 where
     T: Copy,
 {}
+#[cfg(test)]
+impl<T> Default for TestTraitSpy<T>
+where
+    T: Copy,
+{
+    fn default() -> Self {
+        Self {}
+    }
+}
 #[cfg(test)]
 impl<T> TestTrait<T> for TestTraitSpy<T>
 where

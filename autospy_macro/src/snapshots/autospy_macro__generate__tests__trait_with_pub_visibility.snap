@@ -1,15 +1,23 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 120
-expression: "generate_pretty(quote! { pub trait TestTrait { fn function(&self); } })"
+assertion_line: 169
+expression: "generate_pretty(parse_quote! { pub trait TestTrait { fn function(&self); } })"
 ---
 pub trait TestTrait {
     fn function(&self);
 }
 #[cfg(test)]
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct TestTraitSpy {
     pub function: autospy::SpyFunction<(), ()>,
+}
+#[cfg(test)]
+impl Default for TestTraitSpy {
+    fn default() -> Self {
+        Self {
+            function: autospy::SpyFunction::from("function"),
+        }
+    }
 }
 #[cfg(test)]
 impl TestTrait for TestTraitSpy {

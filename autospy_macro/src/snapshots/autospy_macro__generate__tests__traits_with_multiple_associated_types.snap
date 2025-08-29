@@ -1,7 +1,7 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 260
-expression: "generate_pretty(quote!\n{\n    trait TestTrait\n    {\n        #[autospy(String)] type Argument; #[autospy(String)] type Return; fn\n        function(&self, argument: Self::Argument) -> Self::Return;\n    }\n})"
+assertion_line: 329
+expression: "generate_pretty(parse_quote!\n{\n    trait TestTrait\n    {\n        #[autospy(String)] type Argument; #[autospy(String)] type Return; fn\n        function(&self, argument: Self::Argument) -> Self::Return;\n    }\n})"
 ---
 trait TestTrait {
     type Argument;
@@ -9,9 +9,17 @@ trait TestTrait {
     fn function(&self, argument: Self::Argument) -> Self::Return;
 }
 #[cfg(test)]
-#[derive(Default, Clone)]
+#[derive(Clone)]
 struct TestTraitSpy {
     pub function: autospy::SpyFunction<String, String>,
+}
+#[cfg(test)]
+impl Default for TestTraitSpy {
+    fn default() -> Self {
+        Self {
+            function: autospy::SpyFunction::from("function"),
+        }
+    }
 }
 #[cfg(test)]
 impl TestTrait for TestTraitSpy {

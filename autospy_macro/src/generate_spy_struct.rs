@@ -1,4 +1,5 @@
 use crate::associated_types::AssociatedSpyTypes;
+use crate::inspect::cfg;
 use crate::{attribute, edit, generate, inspect};
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
@@ -9,10 +10,7 @@ pub fn generate_spy_struct(
     item_trait: &ItemTrait,
     associated_spy_types: &AssociatedSpyTypes,
 ) -> ItemStruct {
-    let cfg = match cfg!(feature = "test") {
-        true => quote! { #[cfg(test)] },
-        false => TokenStream::new(),
-    };
+    let cfg = cfg();
 
     let visibility = &item_trait.vis;
     let spy_name = format_ident!("{}Spy", item_trait.ident);
@@ -23,7 +21,7 @@ pub fn generate_spy_struct(
 
     parse_quote! {
         #cfg
-        #[derive(Default, Clone)]
+        #[derive(Clone)]
         #visibility struct #spy_name #generics #generics_where_clause {
             #(#spy_fields),*
         }
@@ -112,7 +110,7 @@ mod tests {
 
         let expected: ItemStruct = parse_quote! {
             #[cfg(test)]
-            #[derive(Default, Clone)]
+            #[derive(Clone)]
             struct ExampleSpy {}
         };
 
@@ -132,7 +130,7 @@ mod tests {
 
         let expected: ItemStruct = parse_quote! {
             #[cfg(test)]
-            #[derive(Default, Clone)]
+            #[derive(Clone)]
             pub struct ExampleSpy {
                 pub foo: autospy::SpyFunction<(), ()>
             }
@@ -154,7 +152,7 @@ mod tests {
 
         let expected: ItemStruct = parse_quote! {
             #[cfg(test)]
-            #[derive(Default, Clone)]
+            #[derive(Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction<(), String>
             }
@@ -176,7 +174,7 @@ mod tests {
 
         let expected: ItemStruct = parse_quote! {
             #[cfg(test)]
-            #[derive(Default, Clone)]
+            #[derive(Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction< < str as ToOwned > :: Owned , () >
             }
@@ -200,7 +198,7 @@ mod tests {
 
         let expected: ItemStruct = parse_quote! {
             #[cfg(test)]
-            #[derive(Default, Clone)]
+            #[derive(Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction< String , () >
             }
@@ -227,7 +225,7 @@ mod tests {
 
         let expected: ItemStruct = parse_quote! {
             #[cfg(test)]
-            #[derive(Default, Clone)]
+            #[derive(Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction< (), String >
             }
@@ -255,7 +253,7 @@ mod tests {
 
         let expected: ItemStruct = parse_quote! {
             #[cfg(test)]
-            #[derive(Default, Clone)]
+            #[derive(Clone)]
             struct ExampleSpy {}
         };
 
@@ -275,7 +273,7 @@ mod tests {
 
         let expected: ItemStruct = parse_quote! {
             #[cfg(test)]
-            #[derive(Default, Clone)]
+            #[derive(Clone)]
             pub struct ExampleSpy<T> {
                 pub foo: autospy::SpyFunction<(), ()>
             }
@@ -297,7 +295,7 @@ mod tests {
 
         let expected: ItemStruct = parse_quote! {
             #[cfg(test)]
-            #[derive(Default, Clone)]
+            #[derive(Clone)]
             pub struct ExampleSpy<T, R> {
                 pub foo: autospy::SpyFunction<(), ()>
             }
@@ -319,7 +317,7 @@ mod tests {
 
         let expected: ItemStruct = parse_quote! {
             #[cfg(test)]
-            #[derive(Default, Clone)]
+            #[derive(Clone)]
             pub struct ExampleSpy<T, R> where T: Copy {
                 pub foo: autospy::SpyFunction<(), ()>
             }

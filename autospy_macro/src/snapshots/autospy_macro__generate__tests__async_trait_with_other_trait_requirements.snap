@@ -1,16 +1,24 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 283
-expression: "generate_pretty(quote!\n{\n    #[async_trait] trait TestTrait: Send + Sync + 'static\n    { async fn function(&self); }\n})"
+assertion_line: 352
+expression: "generate_pretty(parse_quote!\n{\n    #[async_trait] trait TestTrait: Send + Sync + 'static\n    { async fn function(&self); }\n})"
 ---
 #[async_trait]
 trait TestTrait: Send + Sync + 'static {
     async fn function(&self);
 }
 #[cfg(test)]
-#[derive(Default, Clone)]
+#[derive(Clone)]
 struct TestTraitSpy {
     pub function: autospy::SpyFunction<(), ()>,
+}
+#[cfg(test)]
+impl Default for TestTraitSpy {
+    fn default() -> Self {
+        Self {
+            function: autospy::SpyFunction::from("function"),
+        }
+    }
 }
 #[cfg(test)]
 #[async_trait]

@@ -1,12 +1,20 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 55
+assertion_line: 58
 expression: "prettyplease::unparse(&syn::parse_file(&expanded).unwrap())"
 ---
 #[cfg(test)]
-#[derive(Default, Clone)]
+#[derive(Clone)]
 struct ReadSpy {
     pub read: autospy::SpyFunction<<[u8] as ToOwned>::Owned, std::io::Result<usize>>,
+}
+#[cfg(test)]
+impl Default for ReadSpy {
+    fn default() -> Self {
+        Self {
+            read: autospy::SpyFunction::from("read"),
+        }
+    }
 }
 #[cfg(test)]
 impl Read for ReadSpy {

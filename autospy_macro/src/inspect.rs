@@ -1,6 +1,9 @@
 use crate::attribute;
+use proc_macro2::TokenStream;
+use quote::quote;
 use syn::{
-    Expr, FnArg, Ident, ItemTrait, Pat, PatType, TraitItem, TraitItemConst, TraitItemFn, Type,
+    Expr, FnArg, GenericParam, Generics, Ident, ItemTrait, Pat, PatType, TraitItem, TraitItemConst,
+    TraitItemFn, Type,
 };
 
 pub fn associated_consts(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitItemConst> {
@@ -31,6 +34,27 @@ pub struct SpyableArgument {
 
 pub fn is_argument_marked_as_ignore(argument: &PatType) -> bool {
     argument.attrs.iter().any(attribute::is_ignore_attribute)
+}
+
+pub fn generics_idents(generics: &Generics) -> Generics {
+    let mut generics_idents = generics.clone();
+
+    for param in generics_idents.params.iter_mut() {
+        if let GenericParam::Type(ty_param) = param {
+            ty_param.bounds.clear();
+            ty_param.eq_token = None;
+            ty_param.default = None;
+        }
+    }
+
+    generics_idents
+}
+
+pub fn cfg() -> TokenStream {
+    match cfg!(feature = "test") {
+        true => quote! { #[cfg(test)] },
+        false => TokenStream::new(),
+    }
 }
 
 fn non_self_function_arguments(function: &TraitItemFn) -> impl Iterator<Item = &PatType> {

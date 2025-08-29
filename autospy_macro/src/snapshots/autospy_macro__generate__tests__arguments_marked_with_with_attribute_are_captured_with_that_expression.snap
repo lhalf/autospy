@@ -1,15 +1,23 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 53
-expression: "generate_pretty(quote!\n{\n    trait MyTrait\n    {\n        fn\n        function(&self,\n        #[autospy(into=\"Result<String,Utf8Error>\", with=\"String::from_utf8\")]\n        bytes: Vec<u8>,);\n    }\n})"
+assertion_line: 81
+expression: "generate_pretty(parse_quote!\n{\n    trait MyTrait\n    {\n        fn\n        function(&self,\n        #[autospy(into=\"Result<String,Utf8Error>\", with=\"String::from_utf8\")]\n        bytes: Vec<u8>,);\n    }\n})"
 ---
 trait MyTrait {
     fn function(&self, bytes: Vec<u8>);
 }
 #[cfg(test)]
-#[derive(Default, Clone)]
+#[derive(Clone)]
 struct MyTraitSpy {
     pub function: autospy::SpyFunction<Result<String, Utf8Error>, ()>,
+}
+#[cfg(test)]
+impl Default for MyTraitSpy {
+    fn default() -> Self {
+        Self {
+            function: autospy::SpyFunction::from("function"),
+        }
+    }
 }
 #[cfg(test)]
 impl MyTrait for MyTraitSpy {

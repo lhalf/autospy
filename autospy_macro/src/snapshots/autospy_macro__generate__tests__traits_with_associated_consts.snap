@@ -1,16 +1,24 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 292
-expression: "generate_pretty(quote!\n{\n    trait TestTrait\n    { #[autospy(\"example\")] const VALUE: &'static str; fn function(&self); }\n})"
+assertion_line: 362
+expression: "generate_pretty(parse_quote!\n{\n    trait TestTrait\n    { #[autospy(\"example\")] const VALUE: &'static str; fn function(&self); }\n})"
 ---
 trait TestTrait {
     const VALUE: &'static str;
     fn function(&self);
 }
 #[cfg(test)]
-#[derive(Default, Clone)]
+#[derive(Clone)]
 struct TestTraitSpy {
     pub function: autospy::SpyFunction<(), ()>,
+}
+#[cfg(test)]
+impl Default for TestTraitSpy {
+    fn default() -> Self {
+        Self {
+            function: autospy::SpyFunction::from("function"),
+        }
+    }
 }
 #[cfg(test)]
 impl TestTrait for TestTraitSpy {

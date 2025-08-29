@@ -8,6 +8,7 @@ pub struct SpyFunction<A, R> {
     pub arguments: Arguments<A>,
     /// The return values of the function.
     pub returns: Returns<R>,
+    name: &'static str,
 }
 
 impl<A, R> Clone for SpyFunction<A, R> {
@@ -15,15 +16,17 @@ impl<A, R> Clone for SpyFunction<A, R> {
         Self {
             arguments: self.arguments.clone(),
             returns: self.returns.clone(),
+            name: self.name,
         }
     }
 }
 
-impl<A, R> Default for SpyFunction<A, R> {
-    fn default() -> Self {
+impl<A, R> From<&'static str> for SpyFunction<A, R> {
+    fn from(name: &'static str) -> Self {
         Self {
             arguments: Arguments::default(),
             returns: Returns::default(),
+            name,
         }
     }
 }
@@ -33,9 +36,12 @@ impl<A, R> SpyFunction<A, R> {
     /// Will panic if not enough return values have been specified for the number of times the spy is called.
     pub fn spy(&self, arguments: A) -> R {
         self.arguments.push(arguments);
-        self.returns
-            .next()
-            .expect("spy function called more times than expected")
+        self.returns.next().unwrap_or_else(|| {
+            panic!(
+                "function '{}' was called with no return value specified",
+                self.name
+            )
+        })
     }
 }
 

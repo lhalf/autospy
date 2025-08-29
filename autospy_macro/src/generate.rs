@@ -1,4 +1,5 @@
 use crate::associated_types::get_associated_types;
+use crate::generate_spy_default::generate_spy_default;
 use crate::generate_spy_struct::generate_spy_struct;
 use crate::generate_spy_trait::generate_spy_trait;
 use crate::strip_attributes::strip_attributes;
@@ -16,11 +17,13 @@ pub fn generate(item_trait: ItemTrait, external_trait: bool) -> TokenStream {
         }
     };
     let spy_struct = generate_spy_struct(&item_trait, &associated_type);
+    let spy_default = generate_spy_default(&item_trait);
     let spy_trait = generate_spy_trait(&item_trait, &associated_type);
 
     quote! {
         #stripped_item_trait
         #spy_struct
+        #spy_default
         #spy_trait
     }
 }

@@ -1,18 +1,26 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 83
-expression: "generate_pretty(quote!\n{\n    trait TestTrait\n    {\n        fn\n        function(&self, #[autospy(ignore)] ignored1: &str, #[autospy(ignore)]\n        ignored2: &str, captured1: &str, captured2: &str);\n    }\n})"
+assertion_line: 132
+expression: "generate_pretty(parse_quote!\n{\n    trait TestTrait\n    {\n        fn\n        function(&self, #[autospy(ignore)] ignored1: &str, #[autospy(ignore)]\n        ignored2: &str, captured1: &str, captured2: &str);\n    }\n})"
 ---
 trait TestTrait {
     fn function(&self, ignored1: &str, ignored2: &str, captured1: &str, captured2: &str);
 }
 #[cfg(test)]
-#[derive(Default, Clone)]
+#[derive(Clone)]
 struct TestTraitSpy {
     pub function: autospy::SpyFunction<
         (<str as ToOwned>::Owned, <str as ToOwned>::Owned),
         (),
     >,
+}
+#[cfg(test)]
+impl Default for TestTraitSpy {
+    fn default() -> Self {
+        Self {
+            function: autospy::SpyFunction::from("function"),
+        }
+    }
 }
 #[cfg(test)]
 impl TestTrait for TestTraitSpy {

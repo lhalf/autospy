@@ -4,6 +4,7 @@ mod associated_types;
 mod attribute;
 mod edit;
 mod generate;
+mod generate_spy_default;
 mod generate_spy_struct;
 mod generate_spy_trait;
 mod inspect;

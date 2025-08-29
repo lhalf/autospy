@@ -1,11 +1,17 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 387
+assertion_line: 408
 expression: "generate_pretty(parse_quote! { trait TestTrait<T> {} })"
 ---
 trait TestTrait<T> {}
 #[cfg(test)]
-#[derive(Default, Clone)]
+#[derive(Clone)]
 struct TestTraitSpy<T> {}
+#[cfg(test)]
+impl<T> Default for TestTraitSpy<T> {
+    fn default() -> Self {
+        Self {}
+    }
+}
 #[cfg(test)]
 impl<T> TestTrait<T> for TestTraitSpy<T> {}

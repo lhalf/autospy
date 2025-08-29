@@ -1,20 +1,16 @@
 use crate::associated_types::AssociatedSpyTypes;
+use crate::inspect::{cfg, generics_idents};
 use crate::strip_attributes::{strip_attributes_from_signature, strip_autospy_attributes};
 use crate::{attribute, edit, generate, inspect};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{
-    GenericParam, Generics, ItemTrait, Token, TraitItemConst, TraitItemFn, Type, parse_quote,
-};
+use syn::{ItemTrait, Token, TraitItemConst, TraitItemFn, Type, parse_quote};
 
 pub fn generate_spy_trait(
     item_trait: &ItemTrait,
     associated_spy_types: &AssociatedSpyTypes,
 ) -> TokenStream {
-    let cfg = match cfg!(feature = "test") {
-        true => quote! { #[cfg(test)] },
-        false => TokenStream::new(),
-    };
+    let cfg = cfg();
 
     let trait_attributes = &item_trait.attrs;
     let trait_name = &item_trait.ident;
@@ -129,20 +125,6 @@ fn associated_const_as_spy_associated_const(associated_const: &TraitItemConst) -
     strip_autospy_attributes(&mut associated_const.attrs);
 
     quote! { #associated_const }
-}
-
-pub fn generics_idents(generics: &Generics) -> Generics {
-    let mut generics_idents = generics.clone();
-
-    for param in generics_idents.params.iter_mut() {
-        if let GenericParam::Type(ty_param) = param {
-            ty_param.bounds.clear();
-            ty_param.eq_token = None;
-            ty_param.default = None;
-        }
-    }
-
-    generics_idents
 }
 
 #[cfg(test)]

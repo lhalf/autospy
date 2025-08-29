@@ -1,7 +1,7 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 302
-expression: "generate_pretty(quote!\n{\n    trait TestTrait { #[autospy(use_default)] fn function(&self) -> u8 { 1 } }\n})"
+assertion_line: 384
+expression: "generate_pretty(parse_quote!\n{\n    trait TestTrait { #[autospy(use_default)] fn function(&self) -> u8 { 1 } }\n})"
 ---
 trait TestTrait {
     fn function(&self) -> u8 {
@@ -9,8 +9,14 @@ trait TestTrait {
     }
 }
 #[cfg(test)]
-#[derive(Default, Clone)]
+#[derive(Clone)]
 struct TestTraitSpy {}
+#[cfg(test)]
+impl Default for TestTraitSpy {
+    fn default() -> Self {
+        Self {}
+    }
+}
 #[cfg(test)]
 impl TestTrait for TestTraitSpy {
     fn function(&self) -> u8 {
