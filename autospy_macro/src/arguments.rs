@@ -87,4 +87,64 @@ mod tests {
 
         assert_eq!(vec![expected], spy_arguments(&input).collect::<Vec<_>>());
     }
+
+    #[test]
+    fn ignore_attribute_argument() {
+        let input: TraitItemFn = parse_quote! {
+            fn foo(&self, #[autospy(ignore)] bar: bool);
+        };
+
+        assert_eq!(0, spy_arguments(&input).count());
+    }
+
+    #[test]
+    fn reference_argument() {
+        let input: TraitItemFn = parse_quote! {
+            fn foo(&self, bar: &u32);
+        };
+
+        let expected = SpyArgument {
+            name: parse_quote! { bar },
+            into_type: None,
+            with_expression: None,
+            dereferenced_type: parse_quote! { u32 },
+            dereference_count: 1,
+        };
+
+        assert_eq!(vec![expected], spy_arguments(&input).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn double_reference_argument() {
+        let input: TraitItemFn = parse_quote! {
+            fn foo(&self, bar: &&String);
+        };
+
+        let expected = SpyArgument {
+            name: parse_quote! { bar },
+            into_type: None,
+            with_expression: None,
+            dereferenced_type: parse_quote! { String },
+            dereference_count: 2,
+        };
+
+        assert_eq!(vec![expected], spy_arguments(&input).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn into_attribute_argument() {
+        let input: TraitItemFn = parse_quote! {
+            fn foo(&self, #[autospy(into="Ipv4Addr")] ip: [u8; 4]);
+        };
+
+        let expected = SpyArgument {
+            name: parse_quote! { ip },
+            into_type: Some(parse_quote! { Ipv4Addr }),
+            with_expression: None,
+            dereferenced_type: parse_quote! { [u8; 4] },
+            dereference_count: 0,
+        };
+
+        assert_eq!(vec![expected], spy_arguments(&input).collect::<Vec<_>>());
+    }
 }
