@@ -1,5 +1,6 @@
 extern crate proc_macro;
 
+mod arguments;
 mod associated_types;
 mod attribute;
 mod edit;

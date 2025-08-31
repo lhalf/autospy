@@ -1,6 +1,6 @@
 use crate::associated_types::AssociatedSpyTypes;
 use crate::inspect::cfg;
-use crate::{attribute, edit, generate, inspect};
+use crate::{arguments, attribute, edit, generate, inspect};
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
 use syn::visit_mut::VisitMut;
@@ -49,7 +49,7 @@ fn function_as_spy_field(
     let function = replace_associated_types(function.clone(), associated_spy_types);
 
     let spy_argument_type =
-        generate::tuple_or_single(inspect::spyable_arguments(&function).map(argument_spy_type));
+        generate::tuple_or_single(arguments::spy_arguments(&function).map(argument_spy_type));
 
     let return_type = function_return_type(&function);
 
@@ -69,7 +69,7 @@ fn replace_associated_types(
     function
 }
 
-fn argument_spy_type(argument: inspect::SpyableArgument) -> TokenStream {
+fn argument_spy_type(argument: arguments::SpyArgument) -> TokenStream {
     if let Some(into_type) = argument.into_type {
         return quote! { #into_type };
     }

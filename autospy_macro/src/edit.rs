@@ -1,5 +1,5 @@
+use crate::arguments::is_argument_marked_as_ignore;
 use crate::associated_types::AssociatedSpyTypes;
-use crate::inspect;
 use syn::visit_mut::VisitMut;
 use syn::{FnArg, PatType, Signature, TypePath, parse_quote};
 
@@ -43,7 +43,7 @@ impl AssociatedTypeReplacer<'_> {
 // TODO: do this by visitor pattern too?
 pub fn underscore_ignored_arguments_in_signature(signature: &mut Signature) {
     non_self_signature_arguments_mut(signature)
-        .filter(|argument| inspect::is_argument_marked_as_ignore(argument))
+        .filter(|argument| is_argument_marked_as_ignore(argument))
         .for_each(rename_argument_to_underscore);
 }
 

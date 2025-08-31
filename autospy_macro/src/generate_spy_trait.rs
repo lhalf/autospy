@@ -2,7 +2,7 @@ use crate::associated_types::AssociatedSpyTypes;
 use crate::generics::generics_idents;
 use crate::inspect::cfg;
 use crate::strip_attributes::{strip_attributes_from_signature, strip_autospy_attributes};
-use crate::{attribute, edit, generate, inspect};
+use crate::{arguments, attribute, edit, generate, inspect};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{ItemTrait, Token, TraitItemConst, TraitItemFn, Type, parse_quote};
@@ -61,7 +61,7 @@ fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
 
     let function_name = &function.sig.ident;
     let spy_arguments = generate::tuple_or_single(
-        inspect::spyable_arguments(function).map(argument_to_spy_expression),
+        arguments::spy_arguments(function).map(argument_to_spy_expression),
     );
 
     edit::underscore_ignored_arguments_in_signature(&mut signature);
@@ -74,7 +74,7 @@ fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
     }
 }
 
-fn argument_to_spy_expression(argument: inspect::SpyableArgument) -> TokenStream {
+fn argument_to_spy_expression(argument: arguments::SpyArgument) -> TokenStream {
     let argument_name = &argument.name;
 
     if let Some(with_expression) = argument.with_expression {
@@ -99,7 +99,7 @@ fn argument_to_spy_expression(argument: inspect::SpyableArgument) -> TokenStream
     }
 }
 
-fn dereference_tokens(argument: &inspect::SpyableArgument) -> TokenStream {
+fn dereference_tokens(argument: &arguments::SpyArgument) -> TokenStream {
     "*".repeat((argument.dereference_count - 1) as usize)
         .parse()
         .expect("always valid token stream")
