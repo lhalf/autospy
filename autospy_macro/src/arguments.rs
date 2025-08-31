@@ -2,6 +2,7 @@ use crate::attribute;
 use proc_macro2::Ident;
 use syn::{Expr, FnArg, Pat, PatType, TraitItemFn, Type};
 
+#[derive(PartialEq, Debug)]
 pub struct SpyArgument {
     pub name: Ident,
     pub into_type: Option<Type>,
@@ -58,7 +59,7 @@ fn remove_references(argument_type: &Type) -> (Type, u8) {
 
 #[cfg(test)]
 mod tests {
-    use super::spy_arguments;
+    use super::{SpyArgument, spy_arguments};
     use syn::{TraitItemFn, parse_quote};
 
     #[test]
@@ -68,5 +69,22 @@ mod tests {
         };
 
         assert_eq!(0, spy_arguments(&input).count());
+    }
+
+    #[test]
+    fn single_argument() {
+        let input: TraitItemFn = parse_quote! {
+            fn foo(&self, bar: bool);
+        };
+
+        let expected = SpyArgument {
+            name: parse_quote! { bar },
+            into_type: None,
+            with_expression: None,
+            dereferenced_type: parse_quote! { bool },
+            dereference_count: 0,
+        };
+
+        assert_eq!(vec![expected], spy_arguments(&input).collect::<Vec<_>>());
     }
 }
