@@ -22,10 +22,7 @@ and to verify input parameters after the spy has been used.
 The example below demonstrates use in a unit test assuming `autospy` is included in `[dev-dependencies]`.
 
 ```rust
-#[cfg(test)]
-use autospy::autospy;
-
-#[cfg_attr(test, autospy)]
+#[cfg_attr(test, autospy::autospy)]
 trait MyTrait {
     fn foo(&self, x: u32) -> bool;
 }
@@ -42,7 +39,7 @@ mod tests {
     fn test_trait() {
         let spy = MyTraitSpy::default(); // build spy
         
-        spy.foo.returns.push_back(true); // set the return value
+        spy.foo.returns.push_back(true); // set the return values
 
         assert!(use_trait(spy.clone())); // use the spy
         assert_eq!(vec![10], spy.foo.arguments.take_all()) // verify the arguments passed
