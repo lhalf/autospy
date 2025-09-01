@@ -208,6 +208,21 @@ impl<R> Returns<R> {
 
 impl<R: Clone> Returns<R> {
     /// Adds the specified number of return values to the back of the queue for the spy function.
+    ///
+    /// # Examples
+    /// ```rust
+    /// #[autospy::autospy]
+    /// trait MyTrait {
+    ///     fn foo(&self) -> String;
+    /// }
+    ///
+    /// let spy = MyTraitSpy::default();
+    /// spy.foo.returns.push_back_n("ho".to_string(), 3);
+    ///
+    /// assert_eq!("ho", spy.foo());
+    /// assert_eq!("ho", spy.foo());
+    /// assert_eq!("ho", spy.foo());
+    /// ```
     pub fn push_back_n(&self, value: R, count: usize) -> &Self {
         std::iter::repeat_n(value, count).fold(self, |acc, value| acc.push_back(value))
     }
