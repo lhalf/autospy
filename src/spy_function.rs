@@ -41,10 +41,15 @@ impl<A, R> SpyFunction<A, R> {
         self.arguments.push(arguments);
         match self.returns.next() {
             Some(return_value) => return_value,
-            None => panic!(
-                "function '{}' was called with no return value specified",
-                self.name
-            ),
+            None => {
+                let called_count = self.arguments.take_all().len();
+                panic!(
+                    "function '{}' had {} return values specified, but was called {} time(s)",
+                    self.name,
+                    called_count - 1,
+                    called_count
+                )
+            }
         }
     }
 }
