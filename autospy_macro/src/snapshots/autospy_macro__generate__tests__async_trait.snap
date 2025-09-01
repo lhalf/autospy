@@ -23,6 +23,7 @@ impl Default for TestTraitSpy {
 #[cfg(test)]
 #[async_trait]
 impl TestTrait for TestTraitSpy {
+    #[track_caller]
     async fn function(&self) {
         self.function.spy(())
     }

@@ -24,6 +24,7 @@ impl Default for TestTraitSpy {
 }
 #[cfg(test)]
 impl TestTrait for TestTraitSpy {
+    #[track_caller]
     fn function(&self, _: &str, _: &str, captured1: &str, captured2: &str) {
         self.function.spy((captured1.to_owned(), captured2.to_owned()))
     }

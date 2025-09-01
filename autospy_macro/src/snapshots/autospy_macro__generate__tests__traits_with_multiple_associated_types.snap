@@ -25,6 +25,7 @@ impl Default for TestTraitSpy {
 impl TestTrait for TestTraitSpy {
     type Argument = String;
     type Return = String;
+    #[track_caller]
     fn function(&self, argument: Self::Argument) -> Self::Return {
         self.function.spy(argument)
     }

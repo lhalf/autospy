@@ -68,6 +68,7 @@ fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
     strip_attributes_from_signature(&mut signature);
 
     quote! {
+        #[track_caller]
         #signature {
             self.#function_name.spy(#spy_arguments)
         }
@@ -199,6 +200,7 @@ mod tests {
             #[cfg(test)]
             #[async_trait]
             impl Example for ExampleSpy {
+                #[track_caller]
                 async fn function(&self) {
                     self.function.spy(())
                 }
@@ -221,6 +223,7 @@ mod tests {
         let expected = quote! {
             #[cfg(test)]
             impl Example for ExampleSpy {
+                #[track_caller]
                 fn function(&self, _: &str, captured: &str) {
                     self.function.spy(captured.to_owned())
                 }
@@ -243,6 +246,7 @@ mod tests {
         let expected = quote! {
             #[cfg(test)]
             impl Example for ExampleSpy {
+                #[track_caller]
                 fn function(&self, argument: impl ToString + 'static) {
                     self.function.spy(Box::new(argument))
                 }
@@ -265,6 +269,7 @@ mod tests {
         let expected = quote! {
             #[cfg(test)]
             impl Example for ExampleSpy {
+                #[track_caller]
                 fn function(&self, ip: [u8; 4]) {
                     self.function.spy(ip.into())
                 }
@@ -496,6 +501,7 @@ mod tests {
         let expected = quote! {
             #[cfg(test)]
             impl Example for ExampleSpy {
+                #[track_caller]
                 unsafe fn function(&self) {
                     self.function.spy(())
                 }

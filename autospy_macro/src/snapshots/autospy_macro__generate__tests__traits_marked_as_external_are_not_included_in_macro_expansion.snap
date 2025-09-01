@@ -18,6 +18,7 @@ impl Default for ReadSpy {
 }
 #[cfg(test)]
 impl Read for ReadSpy {
+    #[track_caller]
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         self.read.spy(buf.to_owned())
     }

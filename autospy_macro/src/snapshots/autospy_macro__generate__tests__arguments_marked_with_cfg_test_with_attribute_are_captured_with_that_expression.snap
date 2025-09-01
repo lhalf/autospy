@@ -21,6 +21,7 @@ impl Default for MyTraitSpy {
 }
 #[cfg(test)]
 impl MyTrait for MyTraitSpy {
+    #[track_caller]
     fn function(&self, bytes: Vec<u8>) {
         self.function.spy(String::from_utf8(bytes))
     }

@@ -23,6 +23,7 @@ impl Default for TestTraitSpy {
 #[cfg(test)]
 impl TestTrait for TestTraitSpy {
     type Item = String;
+    #[track_caller]
     fn function(&self, argument: Self::Item) {
         self.function.spy(argument)
     }

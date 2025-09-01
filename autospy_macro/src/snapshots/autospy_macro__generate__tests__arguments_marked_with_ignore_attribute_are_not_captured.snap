@@ -21,6 +21,7 @@ impl Default for TestTraitSpy {
 }
 #[cfg(test)]
 impl TestTrait for TestTraitSpy {
+    #[track_caller]
     fn function(&self, _: &str, captured: &str) {
         self.function.spy(captured.to_owned())
     }

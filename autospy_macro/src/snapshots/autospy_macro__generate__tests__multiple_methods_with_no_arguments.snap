@@ -24,9 +24,11 @@ impl Default for TestTraitSpy {
 }
 #[cfg(test)]
 impl TestTrait for TestTraitSpy {
+    #[track_caller]
     fn function1(&self) {
         self.function1.spy(())
     }
+    #[track_caller]
     fn function2(&self) {
         self.function2.spy(())
     }

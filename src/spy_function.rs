@@ -36,14 +36,16 @@ impl<A, R> SpyFunction<A, R> {
     /// <div class="warning">
     /// Panics if not enough return values have been specified for the number of times the function is called.
     /// </div>
+    #[track_caller]
     pub fn spy(&self, arguments: A) -> R {
         self.arguments.push(arguments);
-        self.returns.next().unwrap_or_else(|| {
-            panic!(
+        match self.returns.next() {
+            Some(return_value) => return_value,
+            None => panic!(
                 "function '{}' was called with no return value specified",
                 self.name
-            )
-        })
+            ),
+        }
     }
 }
 

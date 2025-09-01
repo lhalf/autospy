@@ -23,6 +23,7 @@ impl Default for TestTraitSpy {
 #[cfg(test)]
 impl TestTrait for TestTraitSpy {
     const VALUE: &'static str = "example";
+    #[track_caller]
     fn function(&self) {
         self.function.spy(())
     }

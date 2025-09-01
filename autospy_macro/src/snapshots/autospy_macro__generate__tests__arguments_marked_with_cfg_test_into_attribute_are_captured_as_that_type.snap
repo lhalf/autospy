@@ -21,6 +21,7 @@ impl Default for MyTraitSpy {
 }
 #[cfg(test)]
 impl MyTrait for MyTraitSpy {
+    #[track_caller]
     fn function(&self, ip: [u8; 4]) {
         self.function.spy(ip.into())
     }
