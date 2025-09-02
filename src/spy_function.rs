@@ -125,7 +125,6 @@ impl<A> Arguments<A> {
 
 /// # Panics
 /// Panics if not enough return values have been specified for the number of times the function is called.
-///
 /// ```should_panic
 /// #[autospy::autospy]
 /// trait MyTrait {
@@ -134,8 +133,22 @@ impl<A> Arguments<A> {
 ///
 /// let spy = MyTraitSpy::default();
 ///
-/// // panics because we haven't set a return value
+/// spy.foo()  // panics because we haven't set a return value
+/// ```
+///
+/// Panics if too many return values have been specified for the number of times the function is called.
+/// ```should_panic
+/// #[autospy::autospy]
+/// trait MyTrait {
+///     fn foo(&self);
+/// }
+///
+/// let spy = MyTraitSpy::default();
+///
+/// spy.foo.returns.extend([(), ()]);
+///
 /// spy.foo()
+/// // panics because the spy is dropped with unused return values
 /// ```
 pub struct Returns<R>(Arc<Mutex<VecDeque<R>>>);
 
