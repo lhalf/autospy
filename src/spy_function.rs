@@ -31,6 +31,17 @@ impl<A, R> From<&'static str> for SpyFunction<A, R> {
     }
 }
 
+impl<A, R> Drop for SpyFunction<A, R> {
+    fn drop(&mut self) {
+        if !std::thread::panicking() && self.returns.next().is_some() {
+            panic!(
+                "function '{}' had unused return values when dropped",
+                self.name
+            )
+        }
+    }
+}
+
 impl<A, R> SpyFunction<A, R> {
     /// Captures the arguments into [`arguments`](Self::arguments) and tries to return the next value from [`returns`](Self::returns).
     /// <div class="warning">
