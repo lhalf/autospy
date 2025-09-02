@@ -1,7 +1,7 @@
 //! A test spy object library.
 //!
-//! [`#[autospy]`](attr.autospy.html) is a macro to create spy versions of almost any trait.
-//! They can be used in unit tests as a stand-in for the real trait.
+//! [`#[autospy]`](attr.autospy.html) is a macro to create a spy from almost any trait.
+//! The spy can be used in unit tests as a stand-in for the real trait.
 //!
 //! # Usage
 //!
