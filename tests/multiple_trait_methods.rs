@@ -14,11 +14,11 @@ fn use_trait<T: MyTrait>(trait_object: T) {
 #[test]
 fn can_spy_on_how_many_times_functions_called() {
     let spy = MyTraitSpy::default();
-    spy.function_one.returns.push_back_n((), 1);
-    spy.function_two.returns.push_back_n((), 2);
+    spy.function_one.returns.set([()]);
+    spy.function_two.returns.set([(), ()]);
 
     use_trait(spy.clone());
 
-    assert_eq!(spy.function_one.arguments.take_all().len(), 1);
-    assert_eq!(spy.function_two.arguments.take_all().len(), 2);
+    assert_eq!(spy.function_one.arguments.get().len(), 1);
+    assert_eq!(spy.function_two.arguments.get().len(), 2);
 }

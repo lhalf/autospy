@@ -39,10 +39,10 @@ mod tests {
     fn test_trait() {
         let spy = MyTraitSpy::default(); // build spy
         
-        spy.foo.returns.push_back(true); // set the return values
+        spy.foo.returns.set([true]); // set the return values
 
         assert!(use_trait(spy.clone())); // use the spy
-        assert_eq!(vec![10], spy.foo.arguments.take_all()) // verify the arguments passed
+        assert_eq!(vec![10], spy.foo.arguments.get()) // get the captured arguments
     }
 }
 ```

@@ -15,7 +15,7 @@ fn external_traits_can_be_mocked() {
     let spy = ReadSpy::default();
     spy.read
         .returns
-        .push_back(Err(std::io::Error::other("deliberate test error")));
+        .set([Err(std::io::Error::other("deliberate test error"))]);
 
     assert!(use_trait(spy).is_err());
 }

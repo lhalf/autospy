@@ -62,7 +62,7 @@ mod tests {
     fn arguments_marked_with_into_attribute_are_captured_as_that_type() {
         insta::assert_snapshot!(generate_pretty(parse_quote! {
             trait MyTrait {
-                fn function(&self, #[autospy(into="IpAddr")] ip: [u8; 4]);
+                fn function(&self, #[autospy(into = "IpAddr")] ip: [u8; 4]);
             }
         }));
     }
@@ -82,7 +82,7 @@ mod tests {
             trait MyTrait {
                 fn function(
                     &self,
-                    #[autospy(into="Result<String,Utf8Error>", with="String::from_utf8")] bytes: Vec<u8>,
+                    #[autospy(into = "Result<String,Utf8Error>", with = "String::from_utf8")] bytes: Vec<u8>,
                 );
             }
         }));

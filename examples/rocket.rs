@@ -62,7 +62,7 @@ mod tests {
         client_spy
             .make_upstream_request
             .returns
-            .push_back(Err(anyhow::anyhow!("deliberate test error")));
+            .set([Err(anyhow::anyhow!("deliberate test error"))]);
 
         let server = Client::tracked(build(Box::new(client_spy))).unwrap();
 
@@ -77,7 +77,7 @@ mod tests {
         client_spy
             .make_upstream_request
             .returns
-            .push_back(Ok(Status::ImATeapot));
+            .set([Ok(Status::ImATeapot)]);
 
         let server = Client::tracked(build(Box::new(client_spy.clone()))).unwrap();
 
@@ -85,7 +85,7 @@ mod tests {
 
         assert_eq!(response.status(), Status::ImATeapot);
         assert_eq!(
-            client_spy.make_upstream_request.arguments.take_all(),
+            client_spy.make_upstream_request.arguments.get(),
             vec!["path"]
         );
     }

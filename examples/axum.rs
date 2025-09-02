@@ -66,7 +66,7 @@ mod tests {
         save_file_spy
             .save_file
             .returns
-            .push_back(Err(anyhow::anyhow!("deliberate test error")));
+            .set([Err(anyhow::anyhow!("deliberate test error"))]);
 
         let response = app(save_file_spy.clone())
             .oneshot(
@@ -85,7 +85,7 @@ mod tests {
     #[tokio::test]
     async fn saving_a_file_returns_200_and_uses_correct_filename_and_contents() {
         let save_file_spy = SaveFileSpy::default();
-        save_file_spy.save_file.returns.push_back(Ok(()));
+        save_file_spy.save_file.returns.set([Ok(())]);
 
         let response = app(save_file_spy.clone())
             .oneshot(
@@ -100,7 +100,7 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::OK);
         assert_eq!(
-            save_file_spy.save_file.arguments.take_all(),
+            save_file_spy.save_file.arguments.get(),
             vec![("filename".to_string(), b"file contents".to_vec())]
         );
     }

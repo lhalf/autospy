@@ -11,11 +11,8 @@ async fn use_trait<T: MyTrait>(trait_object: T) -> String {
 #[tokio::test]
 async fn async_function_argument_captured_and_return_value_returned() {
     let spy = MyTraitSpy::default();
-    spy.function.returns.push_back("return value".to_string());
+    spy.function.returns.set(["return value".to_string()]);
 
     assert_eq!("return value", use_trait(spy.clone()).await);
-    assert_eq!(
-        vec!["argument".to_string()],
-        spy.function.arguments.take_all()
-    )
+    assert_eq!(vec!["argument".to_string()], spy.function.arguments.get())
 }

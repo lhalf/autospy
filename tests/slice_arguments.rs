@@ -10,9 +10,9 @@ fn use_test_trait<T: MyTrait>(trait_object: T) {
 #[test]
 fn borrowed_slice_converted_to_owned_vec() {
     let spy = MyTraitSpy::default();
-    spy.function.returns.push_back(());
+    spy.function.returns.set([()]);
 
     use_test_trait(spy.clone());
 
-    assert_eq!(vec![vec![1]], spy.function.arguments.take_all())
+    assert_eq!(vec![vec![1]], spy.function.arguments.get())
 }

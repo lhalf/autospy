@@ -10,7 +10,7 @@ fn use_trait<T: MyTrait<String>>(trait_object: T) -> String {
 #[test]
 fn spy_object_is_generic() {
     let spy = MyTraitSpy::<String>::default();
-    spy.function.returns.push_back("hello".to_string());
+    spy.function.returns.set(["hello".to_string()]);
 
     assert_eq!("hello", use_trait(spy));
 }

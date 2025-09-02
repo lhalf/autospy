@@ -14,9 +14,9 @@ fn use_trait<T: TestTrait<Argument = String, Return = String>>(trait_object: T) 
 #[test]
 fn trait_with_associated_type_has_attribute_type_captured() {
     let spy = TestTraitSpy::default();
-    spy.function.returns.push_back("world!".to_string());
+    spy.function.returns.set(["world!".to_string()]);
 
     assert_eq!("world!", use_trait(spy.clone()));
 
-    assert_eq!(vec!["hello"], spy.function.arguments.take_all());
+    assert_eq!(vec!["hello"], spy.function.arguments.get());
 }

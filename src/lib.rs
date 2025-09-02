@@ -6,8 +6,8 @@
 //! # Usage
 //!
 //! - Attribute your trait using `#[autospy]`
-//! - Specify return values using [`push_back()`](Returns::push_back)
-//! - Get captured arguments using [`take_all()`](Arguments::take_all)
+//! - Set return values using [`set()`](Returns::set)
+//! - Get captured arguments using [`get()`](Arguments::get)
 //!
 //! ```rust
 //! #[autospy::autospy]
@@ -20,10 +20,10 @@
 //! }
 //!
 //! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(20);
+//! spy.foo.returns.set([20]);
 //!
 //! assert_eq!(20, call_with_ten(spy.clone()));
-//! assert_eq!(vec![10], spy.foo.arguments.take_all());
+//! assert_eq!(vec![10], spy.foo.arguments.get());
 //! ```
 //!
 //! <div class="warning">
@@ -52,11 +52,11 @@
 //! }
 //!
 //! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(());
+//! spy.foo.returns.set([()]);
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec![(10, "hello!".to_string())], spy.foo.arguments.take_all());
+//! assert_eq!(vec![(10, "hello!".to_string())], spy.foo.arguments.get());
 //! ```
 //!
 //! ## Reference arguments
@@ -74,11 +74,11 @@
 //! }
 //!
 //! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(());
+//! spy.foo.returns.set([()]);
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec!["hello!"], spy.foo.arguments.take_all());
+//! assert_eq!(vec!["hello!"], spy.foo.arguments.get());
 //! ```
 //!
 //! ## Ignore arguments
@@ -96,11 +96,11 @@
 //! }
 //!
 //! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(());
+//! spy.foo.returns.set([()]);
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec!["capture me!"], spy.foo.arguments.take_all());
+//! assert_eq!(vec!["capture me!"], spy.foo.arguments.get());
 //! ```
 //!
 //! ## Associated types
@@ -120,11 +120,11 @@
 //! }
 //!
 //! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(());
+//! spy.foo.returns.set([()]);
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec!["hello!"], spy.foo.arguments.take_all());
+//! assert_eq!(vec!["hello!"], spy.foo.arguments.get());
 //! ```
 //!
 //! ## External traits
@@ -145,7 +145,7 @@
 //! }
 //!
 //! let spy = ReadSpy::default();
-//! spy.read.returns.push_back(Err(std::io::Error::other("read fails!")));
+//! spy.read.returns.set([Err(std::io::Error::other("read fails!"))]);
 //!
 //! assert!(use_trait(spy).is_err());
 //! ```
@@ -166,7 +166,7 @@
 //! }
 //!
 //! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back("a string!".to_string());
+//! spy.foo.returns.set(["a string!".to_string()]);
 //!
 //! assert_eq!("a string!", use_trait(spy));
 //! ```
@@ -186,11 +186,11 @@
 //! }
 //!
 //! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(());
+//! spy.foo.returns.set([()]);
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!("hello!", spy.foo.arguments.take_all()[0].to_string())
+//! assert_eq!("hello!", spy.foo.arguments.get()[0].to_string())
 //! ```
 //!
 //! ## Generic traits
@@ -208,11 +208,11 @@
 //! }
 //!
 //! let spy = MyTraitSpy::<u32, String>::default();
-//! spy.foo.returns.push_back("hello!".to_string());
+//! spy.foo.returns.set(["hello!".to_string()]);
 //!
 //! assert_eq!("hello!", use_trait(spy.clone()));
 //!
-//! assert_eq!(vec![10], spy.foo.arguments.take_all())
+//! assert_eq!(vec![10], spy.foo.arguments.get())
 //! ```
 //!
 //! ## Async traits
@@ -236,11 +236,11 @@
 //! }
 //!
 //! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(());
+//! spy.foo.returns.set([()]);
 //!
 //! use_async_trait(spy.clone()).block_on();
 //!
-//! assert_eq!("hello async!", spy.foo.arguments.take_all()[0])
+//! assert_eq!("hello async!", spy.foo.arguments.get()[0])
 //! ```
 //!
 //! If you are using an async trait your spy might not be used immediately, for instance it might be spawned in a task.
@@ -265,11 +265,11 @@
 //!
 //! tokio::runtime::Runtime::new().unwrap().block_on(async {
 //!     let spy = MyTraitSpy::default();
-//!     spy.foo.returns.push_back(());
+//!     spy.foo.returns.set([()]);
 //!
 //!     use_async_trait(spy.clone()).await;
 //!     // spy not used yet
-//!     assert!(spy.foo.arguments.take_all().is_empty());
+//!     assert!(spy.foo.arguments.get().is_empty());
 //!     // spy used after 100ms
 //!     assert_eq!("async used after some time!", spy.foo.arguments.recv().await[0])
 //! })
@@ -284,7 +284,7 @@
 //!
 //! #[autospy::autospy]
 //! trait MyTrait {
-//!     fn foo(&self, #[autospy(into="Ipv4Addr")] ip: [u8; 4]);
+//!     fn foo(&self, #[autospy(into = "Ipv4Addr")] ip: [u8; 4]);
 //! }
 //!
 //! fn use_trait(x: impl MyTrait) {
@@ -292,11 +292,11 @@
 //! }
 //!
 //! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(());
+//! spy.foo.returns.set([()]);
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec![Ipv4Addr::new(192, 168, 0, 1)], spy.foo.arguments.take_all())
+//! assert_eq!(vec![Ipv4Addr::new(192, 168, 0, 1)], spy.foo.arguments.get())
 //! ```
 //!
 //! ## Into with attribute
@@ -316,11 +316,11 @@
 //! }
 //!
 //! let spy = MyTraitSpy::default();
-//! spy.foo.returns.push_back(());
+//! spy.foo.returns.set([()]);
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec![Ok("hello!".to_string())], spy.foo.arguments.take_all())
+//! assert_eq!(vec![Ok("hello!".to_string())], spy.foo.arguments.get())
 //! ```
 //!
 //! ## Associated consts

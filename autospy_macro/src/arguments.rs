@@ -134,7 +134,7 @@ mod tests {
     #[test]
     fn into_attribute_argument() {
         let input: TraitItemFn = parse_quote! {
-            fn foo(&self, #[autospy(into="Ipv4Addr")] ip: [u8; 4]);
+            fn foo(&self, #[autospy(into = "Ipv4Addr")] ip: [u8; 4]);
         };
 
         let expected = SpyArgument {

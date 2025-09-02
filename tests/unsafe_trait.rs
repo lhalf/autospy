@@ -11,7 +11,7 @@ fn use_trait<T: MyTrait>(trait_object: T) -> u32 {
 #[test]
 fn handles_unsafe_trait() {
     let spy = MyTraitSpy::default();
-    spy.function.returns.push_back(10);
+    spy.function.returns.set([10]);
 
     assert_eq!(10, use_trait(spy));
 }

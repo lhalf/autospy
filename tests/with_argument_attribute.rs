@@ -17,12 +17,12 @@ fn use_trait<T: MyTrait>(trait_object: T) {
 #[test]
 fn functions_with_into_with_attribute_return_that_type() {
     let spy = MyTraitSpy::default();
-    spy.function.returns.push_back(());
+    spy.function.returns.set([()]);
 
     use_trait(spy.clone());
 
     assert_eq!(
         vec![Ok(String::from("hello world!"))],
-        spy.function.arguments.take_all()
+        spy.function.arguments.get()
     );
 }

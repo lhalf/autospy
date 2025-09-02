@@ -45,7 +45,7 @@ impl<A, R> Drop for SpyFunction<A, R> {
 impl<A, R> SpyFunction<A, R> {
     /// Captures the arguments into [`arguments`](Self::arguments) and tries to return the next value from [`returns`](Self::returns).
     /// <div class="warning">
-    /// Panics if not enough return values have been specified for the number of times the function is called.
+    /// Panics if not enough return values have been set for the number of times the function is called.
     /// </div>
     #[track_caller]
     pub fn spy(&self, arguments: A) -> R {
@@ -53,9 +53,9 @@ impl<A, R> SpyFunction<A, R> {
         match self.returns.next() {
             Some(return_value) => return_value,
             None => {
-                let called_count = self.arguments.take_all().len();
+                let called_count = self.arguments.get().len();
                 panic!(
-                    "function '{}' had {} return values specified, but was called {} time(s)",
+                    "function '{}' had {} return values set, but was called {} time(s)",
                     self.name,
                     called_count - 1,
                     called_count
@@ -110,7 +110,26 @@ impl<A> Arguments<A> {
     }
 
     /// Returns all captured arguments.
-    pub fn take_all(&self) -> Vec<A> {
+    ///
+    /// # Examples
+    /// ```rust
+    /// #[autospy::autospy]
+    /// trait MyTrait {
+    ///     fn foo(&self, bar: u8);
+    /// }
+    ///
+    /// fn use_trait(trait_object: impl MyTrait) {
+    ///     trait_object.foo(10)
+    /// }
+    ///
+    /// let spy = MyTraitSpy::default();
+    /// spy.foo.returns.set([()]);
+    ///
+    /// use_trait(spy.clone());
+    ///
+    /// assert_eq!(vec![10], spy.foo.arguments.get());
+    /// ```
+    pub fn get(&self) -> Vec<A> {
         std::mem::take(&mut *self.captured.lock().expect("mutex poisoned"))
     }
 
@@ -119,12 +138,12 @@ impl<A> Arguments<A> {
     #[cfg(feature = "async")]
     pub async fn recv(&self) -> Vec<A> {
         self.receiver.recv().await.unwrap();
-        self.take_all()
+        self.get()
     }
 }
 
 /// # Panics
-/// Panics if not enough return values have been specified for the number of times the function is called.
+/// Panics if not enough return values have been set for the number of times the function is called.
 /// ```should_panic
 /// #[autospy::autospy]
 /// trait MyTrait {
@@ -136,7 +155,7 @@ impl<A> Arguments<A> {
 /// spy.foo()  // panics because we haven't set a return value
 /// ```
 ///
-/// Panics if too many return values have been specified for the number of times the function is called.
+/// Panics if too many return values have been set for the number of times the function is called.
 /// ```should_panic
 /// #[autospy::autospy]
 /// trait MyTrait {
@@ -145,7 +164,7 @@ impl<A> Arguments<A> {
 ///
 /// let spy = MyTraitSpy::default();
 ///
-/// spy.foo.returns.extend([(), ()]);
+/// spy.foo.returns.set([(), ()]);
 ///
 /// spy.foo()
 /// // panics because the spy is dropped with unused return values
@@ -165,7 +184,7 @@ impl<R> Default for Returns<R> {
 }
 
 impl<R> Returns<R> {
-    /// Appends a value to the back of the spy return values.
+    /// Set the spy return values.
     ///
     /// # Examples
     /// ```rust
@@ -175,79 +194,19 @@ impl<R> Returns<R> {
     /// }
     ///
     /// let spy = MyTraitSpy::default();
-    /// spy.foo.returns.push_back(42);
-    ///
-    /// assert_eq!(42, spy.foo())
-    /// ```
-    pub fn push_back(&self, value: R) -> &Self {
-        self.0.lock().expect("mutex poisoned").push_back(value);
-        self
-    }
-
-    /// Extends the spy return values with the specified values.
-    ///
-    /// # Examples
-    /// ```rust
-    /// #[autospy::autospy]
-    /// trait MyTrait {
-    ///     fn foo(&self) -> u8;
-    /// }
-    ///
-    /// let spy = MyTraitSpy::default();
-    /// spy.foo.returns.push_back(0);
-    /// spy.foo.returns.extend([1,2]);
+    /// spy.foo.returns.set([0,1,2]);
     ///
     /// assert_eq!(0, spy.foo());
     /// assert_eq!(1, spy.foo());
     /// assert_eq!(2, spy.foo());
     /// ```
-    pub fn extend<I: IntoIterator<Item = R>>(&self, values: I) {
-        self.0.lock().expect("mutex poisoned").extend(values);
-    }
-
-    /// Clears the spy return values.
-    ///
-    /// # Examples
-    /// ```rust
-    /// #[autospy::autospy]
-    /// trait MyTrait {
-    ///     fn foo(&self) -> u8;
-    /// }
-    ///
-    /// let spy = MyTraitSpy::default();
-    /// spy.foo.returns.push_back(42);
-    /// spy.foo.returns.clear();
-    /// spy.foo.returns.push_back(0);
-    ///
-    /// assert_eq!(0, spy.foo())
-    /// ```
-    pub fn clear(&self) {
-        self.0.lock().expect("mutex poisoned").clear()
+    pub fn set<I: IntoIterator<Item = R>>(&self, values: I) {
+        let mut return_values = self.0.lock().expect("mutex poisoned");
+        return_values.clear();
+        return_values.extend(values);
     }
 
     fn next(&self) -> Option<R> {
         self.0.lock().expect("mutex poisoned").pop_front()
-    }
-}
-
-impl<R: Clone> Returns<R> {
-    /// Adds the specified number of return values to the back of the queue for the spy function.
-    ///
-    /// # Examples
-    /// ```rust
-    /// #[autospy::autospy]
-    /// trait MyTrait {
-    ///     fn foo(&self) -> String;
-    /// }
-    ///
-    /// let spy = MyTraitSpy::default();
-    /// spy.foo.returns.push_back_n("ho".to_string(), 3);
-    ///
-    /// assert_eq!("ho", spy.foo());
-    /// assert_eq!("ho", spy.foo());
-    /// assert_eq!("ho", spy.foo());
-    /// ```
-    pub fn push_back_n(&self, value: R, count: usize) -> &Self {
-        std::iter::repeat_n(value, count).fold(self, |acc, value| acc.push_back(value))
     }
 }

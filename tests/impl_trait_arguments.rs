@@ -10,9 +10,9 @@ fn use_trait<T: MyTrait>(trait_object: T) {
 #[test]
 fn trait_argument_captured_in_box() {
     let spy = MyTraitSpy::default();
-    spy.function.returns.push_back(());
+    spy.function.returns.set([()]);
 
     use_trait(spy.clone());
 
-    assert_eq!("hello", spy.function.arguments.take_all()[0].to_string())
+    assert_eq!("hello", spy.function.arguments.get()[0].to_string())
 }

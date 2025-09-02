@@ -14,7 +14,7 @@ async fn use_trait<T: MyTrait>(trait_object: T) {
 #[tokio::test]
 async fn async_function_argument_captured_and_can_be_taken_with_timeout() {
     let spy = MyTraitSpy::default();
-    spy.function.returns.push_back(());
+    spy.function.returns.set([()]);
 
     use_trait(spy.clone()).await;
 

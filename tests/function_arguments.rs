@@ -14,12 +14,12 @@ fn eight() -> u8 {
 #[test]
 fn borrowed_argument_coverted_to_owned() {
     let spy = MyTraitSpy::default();
-    spy.function.returns.push_back(());
+    spy.function.returns.set([()]);
 
     use_test_trait(spy.clone());
 
     assert_eq!(
         eight as *const (),
-        spy.function.arguments.take_all()[0] as *const ()
+        spy.function.arguments.get()[0] as *const ()
     )
 }

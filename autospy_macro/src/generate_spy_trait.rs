@@ -262,7 +262,7 @@ mod tests {
     fn arguments_with_into_attribute_are_captured() {
         let input: ItemTrait = parse_quote! {
             trait Example {
-                fn function(&self, #[autospy(into="IpAddr")] ip: [u8; 4]);
+                fn function(&self, #[autospy(into = "IpAddr")] ip: [u8; 4]);
             }
         };
 

@@ -10,12 +10,9 @@ fn use_test_trait<T: MyTrait>(trait_object: T) {
 #[test]
 fn arguments_marked_with_ignore_attribute_are_not_captured() {
     let spy = MyTraitSpy::default();
-    spy.function.returns.push_back(());
+    spy.function.returns.set([()]);
 
     use_test_trait(spy.clone());
 
-    assert_eq!(
-        vec!["captured".to_string()],
-        spy.function.arguments.take_all()
-    );
+    assert_eq!(vec!["captured".to_string()], spy.function.arguments.get());
 }

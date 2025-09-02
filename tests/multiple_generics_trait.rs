@@ -10,8 +10,8 @@ fn use_trait<T: MyTrait<u32, String>>(trait_object: T) -> String {
 #[test]
 fn spy_object_is_generic_over_all_generics() {
     let spy = MyTraitSpy::<u32, String>::default();
-    spy.function.returns.push_back("hello".to_string());
+    spy.function.returns.set(["hello".to_string()]);
 
     assert_eq!("hello", use_trait(spy.clone()));
-    assert_eq!(vec![100u32], spy.function.arguments.take_all())
+    assert_eq!(vec![100u32], spy.function.arguments.get())
 }

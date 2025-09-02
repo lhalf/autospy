@@ -12,12 +12,12 @@ fn use_trait<T: MyTrait>(trait_object: T) {
 #[test]
 fn functions_with_into_attribute_return_that_type() {
     let spy = MyTraitSpy::default();
-    spy.function.returns.push_back(());
+    spy.function.returns.set([()]);
 
     use_trait(spy.clone());
 
     assert_eq!(
         vec![Ipv4Addr::new(192, 168, 1, 1)],
-        spy.function.arguments.take_all()
+        spy.function.arguments.get()
     );
 }
