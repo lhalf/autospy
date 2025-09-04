@@ -1,3 +1,4 @@
+use std::sync::MutexGuard;
 use std::{
     collections::VecDeque,
     sync::{Arc, Mutex},
@@ -7,7 +8,7 @@ pub struct SpyFunction<A, R> {
     /// The captured arguments the function was called with.
     pub arguments: Arguments<A>,
     /// The return values of the function.
-    pub returns: Returns<R>,
+    pub returns: Returns<A, R>,
     name: &'static str,
 }
 
@@ -49,7 +50,14 @@ impl<A, R> SpyFunction<A, R> {
     /// </div>
     #[track_caller]
     pub fn spy(&self, arguments: A) -> R {
+        let return_value = self.returns.get_fn().map(|return_fn| return_fn(&arguments));
+
         self.arguments.push(arguments);
+
+        if let Some(return_value) = return_value {
+            return return_value;
+        }
+
         match self.returns.next() {
             Some(return_value) => return_value,
             None => {
@@ -169,21 +177,45 @@ impl<A> Arguments<A> {
 /// spy.foo()
 /// // panics because the spy is dropped with unused return values
 /// ```
-pub struct Returns<R>(Arc<Mutex<VecDeque<R>>>);
+///
+/// Will never panic if a return function is set.
+/// ```
+/// #[autospy::autospy]
+/// trait MyTrait {
+///     fn foo(&self);
+/// }
+///
+/// let spy = MyTraitSpy::default();
+///
+/// spy.foo.returns.set_fn(|_| ());
+///
+/// spy.foo() // will always return ()
+/// ```
+pub struct Returns<A, R> {
+    queue: Arc<Mutex<VecDeque<R>>>,
+    #[allow(clippy::type_complexity)]
+    r#fn: Arc<Mutex<Option<fn(&A) -> R>>>,
+}
 
-impl<R> Clone for Returns<R> {
+impl<A, R> Clone for Returns<A, R> {
     fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self {
+            queue: self.queue.clone(),
+            r#fn: self.r#fn.clone(),
+        }
     }
 }
 
-impl<R> Default for Returns<R> {
+impl<A, R> Default for Returns<A, R> {
     fn default() -> Self {
-        Self(Arc::new(Mutex::new(VecDeque::new())))
+        Self {
+            queue: Arc::new(Mutex::new(VecDeque::new())),
+            r#fn: Arc::new(Mutex::new(None)),
+        }
     }
 }
 
-impl<R> Returns<R> {
+impl<A, R> Returns<A, R> {
     /// Set the spy return values.
     ///
     /// # Examples
@@ -201,12 +233,35 @@ impl<R> Returns<R> {
     /// assert_eq!(2, spy.foo());
     /// ```
     pub fn set<I: IntoIterator<Item = R>>(&self, values: I) {
-        let mut return_values = self.0.lock().expect("mutex poisoned");
+        let mut return_values = self.queue.lock().expect("mutex poisoned");
         return_values.clear();
         return_values.extend(values);
     }
 
+    /// Set a return function for the spy that can use the function arguments. The spy will always return using this function.
+    ///
+    /// # Examples
+    /// ```rust
+    /// #[autospy::autospy]
+    /// trait MyTrait {
+    ///     fn foo(&self, bar: &str) -> usize;
+    /// }
+    ///
+    /// let spy = MyTraitSpy::default();
+    /// spy.foo.returns.set_fn(|bar| bar.len());
+    ///
+    /// assert_eq!(3, spy.foo("baz"));
+    /// ```
+    pub fn set_fn(&self, r#fn: fn(&A) -> R) {
+        self.r#fn.lock().expect("mutex poisoned").replace(r#fn);
+    }
+
+    #[allow(clippy::type_complexity)]
+    fn get_fn(&self) -> MutexGuard<'_, Option<fn(&A) -> R>> {
+        self.r#fn.lock().expect("mutex poisoned")
+    }
+
     fn next(&self) -> Option<R> {
-        self.0.lock().expect("mutex poisoned").pop_front()
+        self.queue.lock().expect("mutex poisoned").pop_front()
     }
 }

@@ -11,7 +11,7 @@ fn use_trait<R: Read>(mut trait_object: R) -> std::io::Result<usize> {
 }
 
 #[test]
-fn external_traits_can_be_mocked() {
+fn external_traits_can_be_spied() {
     let spy = ReadSpy::default();
     spy.read
         .returns
