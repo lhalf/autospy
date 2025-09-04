@@ -238,7 +238,7 @@ impl<A, R> Returns<A, R> {
         return_values.extend(values);
     }
 
-    /// Set a return function for the spy that can use the function arguments. The spy will always return using this function.
+    /// Set a return function for the spy that can use the function [arguments](Arguments). The spy will always return using this function.
     ///
     /// # Examples
     /// ```rust
