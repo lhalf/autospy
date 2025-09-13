@@ -61,7 +61,7 @@ impl<A, R> SpyFunction<A, R> {
         match self.returns.next() {
             Some(return_value) => return_value,
             None => {
-                let called_count = self.arguments.get().len();
+                let called_count = self.arguments.take().len();
                 panic!(
                     "function '{}' had {} return values set, but was called {} time(s)",
                     self.name,
@@ -117,7 +117,42 @@ impl<A> Arguments<A> {
         let _ = self.sender.send_blocking(());
     }
 
-    /// Returns all captured arguments.
+    /// Takes the captured arguments.
+    ///
+    /// # Examples
+    /// ```rust
+    /// #[autospy::autospy]
+    /// trait MyTrait {
+    ///     fn foo(&self, bar: u8);
+    /// }
+    ///
+    /// fn use_trait(trait_object: impl MyTrait) {
+    ///     trait_object.foo(10)
+    /// }
+    ///
+    /// let spy = MyTraitSpy::default();
+    /// spy.foo.returns.set([()]);
+    ///
+    /// use_trait(spy.clone());
+    ///
+    /// assert_eq!(vec![10], spy.foo.arguments.take());
+    /// assert!(spy.foo.arguments.take().is_empty());
+    /// ```
+    pub fn take(&self) -> Vec<A> {
+        std::mem::take(&mut *self.captured.lock().expect("mutex poisoned"))
+    }
+
+    /// Asynchronously returns all captured arguments when the spy is used.
+    /// Enabled by default via the **async** feature.
+    #[cfg(feature = "async")]
+    pub async fn recv(&self) -> Vec<A> {
+        self.receiver.recv().await.unwrap();
+        self.take()
+    }
+}
+
+impl<A: Clone> Arguments<A> {
+    /// Gets the captured arguments.
     ///
     /// # Examples
     /// ```rust
@@ -136,17 +171,10 @@ impl<A> Arguments<A> {
     /// use_trait(spy.clone());
     ///
     /// assert_eq!(vec![10], spy.foo.arguments.get());
+    /// assert_eq!(vec![10], spy.foo.arguments.get());
     /// ```
     pub fn get(&self) -> Vec<A> {
-        std::mem::take(&mut *self.captured.lock().expect("mutex poisoned"))
-    }
-
-    /// Asynchronously returns all captured arguments when the spy is used.
-    /// Enabled by default via the **async** feature.
-    #[cfg(feature = "async")]
-    pub async fn recv(&self) -> Vec<A> {
-        self.receiver.recv().await.unwrap();
-        self.get()
+        self.captured.lock().expect("mutex poisoned").clone()
     }
 }
 

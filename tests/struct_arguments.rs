@@ -25,6 +25,6 @@ fn non_clone_struct_function_argument_captured() {
         vec![MyStruct {
             value: "hello".to_string()
         }],
-        spy.function.arguments.get()
+        spy.function.arguments.take()
     )
 }

@@ -210,7 +210,7 @@
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!("hello!", spy.foo.arguments.get()[0].to_string())
+//! assert_eq!("hello!", spy.foo.arguments.take()[0].to_string())
 //! ```
 //!
 //! ## Generic traits
