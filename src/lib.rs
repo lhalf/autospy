@@ -103,6 +103,26 @@
 //! assert_eq!(vec!["capture me!"], spy.foo.arguments.get());
 //! ```
 //!
+//! Arguments called `_` will also be implicitly ignored.
+//!
+//! ```rust
+//! #[autospy::autospy]
+//! trait MyTrait {
+//!     fn foo(&self, _: &str, argument: &str);
+//! }
+//!
+//! fn use_trait(x: impl MyTrait) {
+//!     x.foo("ignored!", "capture me!")
+//! }
+//!
+//! let spy = MyTraitSpy::default();
+//! spy.foo.returns.set([()]);
+//!
+//! use_trait(spy.clone());
+//!
+//! assert_eq!(vec!["capture me!"], spy.foo.arguments.get());
+//! ```
+//!
 //! ## Associated types
 //!
 //! An `#[autospy(TYPE)]` attribute can be applied to associated types to tell the spy how to capture them.
