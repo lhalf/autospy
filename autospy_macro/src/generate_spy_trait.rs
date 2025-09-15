@@ -3,7 +3,7 @@ use crate::generics::generics_idents;
 use crate::inspect::cfg;
 use crate::strip_attributes::{strip_attributes_from_signature, strip_autospy_attributes};
 use crate::{arguments, attribute, edit, generate, inspect};
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 use syn::{ItemTrait, Token, TraitItemConst, TraitItemFn, Type, parse_quote};
 
@@ -27,6 +27,8 @@ pub fn generate_spy_trait(
     let spy_associated_consts = spy_associated_consts(item_trait);
     let spy_function_definitions = trait_spy_function_definitions(item_trait);
 
+    let spy_supertraits = spy_supertraits(&cfg, &spy_name, item_trait);
+
     quote! {
         #cfg
         #(#trait_attributes)*
@@ -35,6 +37,7 @@ pub fn generate_spy_trait(
             #(#spy_associated_consts)*
             #(#spy_function_definitions)*
         }
+        #(#spy_supertraits)*
     }
 }
 
@@ -47,7 +50,9 @@ fn associated_type_definitions(
 }
 
 fn trait_spy_function_definitions(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {
-    inspect::trait_functions(item_trait).map(function_as_spy_function)
+    inspect::trait_functions(item_trait)
+        .filter(|function| attribute::supertrait_trait(&function.attrs).is_none())
+        .map(function_as_spy_function)
 }
 
 fn function_as_spy_function(function: &TraitItemFn) -> TokenStream {
@@ -127,6 +132,36 @@ fn associated_const_as_spy_associated_const(associated_const: &TraitItemConst) -
     strip_autospy_attributes(&mut associated_const.attrs);
 
     quote! { #associated_const }
+}
+
+fn spy_supertraits(
+    cfg: &TokenStream,
+    spy_name: &Ident,
+    item_trait: &ItemTrait,
+) -> impl Iterator<Item = TokenStream> {
+    inspect::trait_functions(item_trait)
+        .filter_map(|function| {
+            attribute::supertrait_trait(&function.attrs).map(|supertrait| (function, supertrait))
+        })
+        .map(|(function, supertrait)| {
+            function_as_spy_supertrait(cfg, supertrait, spy_name, function)
+        })
+}
+
+fn function_as_spy_supertrait(
+    cfg: &TokenStream,
+    supertrait: TokenStream,
+    spy_name: &Ident,
+    function: &TraitItemFn,
+) -> TokenStream {
+    let spy_function_definition = function_as_spy_function(function);
+
+    quote! {
+        #cfg
+        impl #supertrait for #spy_name {
+            #spy_function_definition
+        }
+    }
 }
 
 #[cfg(test)]
@@ -504,6 +539,39 @@ mod tests {
                 #[track_caller]
                 unsafe fn function(&self) {
                     self.function.spy(())
+                }
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_function_marked_with_supertrait_is_turned_into_trait_impl() {
+        let input: ItemTrait = parse_quote! {
+            trait Example: Supertrait {
+                fn foo(&self);
+                #[cfg(test)]
+                #[autospy(supertrait = "Supertrait")]
+                fn bar(&self);
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Example for ExampleSpy {
+               #[track_caller]
+                fn foo(&self) {
+                    self.foo.spy(())
+                }
+            }
+            #[cfg(test)]
+            impl Supertrait for ExampleSpy {
+               #[track_caller]
+                fn bar(&self) {
+                    self.bar.spy(())
                 }
             }
         };

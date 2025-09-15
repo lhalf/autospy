@@ -20,6 +20,12 @@ pub fn has_use_default_attribute(attributes: &[Attribute]) -> bool {
     autospy_attributes(attributes).any(|attribute| attribute.to_string() == "use_default")
 }
 
+pub fn supertrait_trait(attributes: &[Attribute]) -> Option<TokenStream> {
+    key_value_autospy_attributes(attributes)
+        .find_map(|name_value| matching_meta_name_value(name_value, "supertrait"))
+        .map(parse_literal_expression::<TokenStream>)
+}
+
 pub fn associated_type(attributes: &[Attribute]) -> Option<TypePath> {
     Some(
         syn::parse2(autospy_attributes(attributes).next()?.clone())
