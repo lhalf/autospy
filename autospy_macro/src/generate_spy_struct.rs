@@ -329,6 +329,32 @@ mod tests {
         );
     }
 
+    #[test]
+    fn generated_spy_struct_handles_trait_function_marked_as_supertrait() {
+        let input: ItemTrait = parse_quote! {
+            trait Example: Supertrait {
+                fn foo(&self) -> String;
+                #[cfg(test)]
+                #[autospy(supertrait(Supertrait))]
+                fn bar(&self) -> bool;
+            }
+        };
+
+        let expected: ItemStruct = parse_quote! {
+            #[cfg(test)]
+            #[derive(Clone)]
+            struct ExampleSpy {
+                pub foo: autospy::SpyFunction<(), String>,
+                pub bar: autospy::SpyFunction<(), bool>
+            }
+        };
+
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
+    }
+
     fn associated_spy_types(ident: TokenStream, r#type: TokenStream) -> AssociatedSpyTypes {
         [(parse_quote! { #ident }, parse_quote! { #r#type })]
             .into_iter()
