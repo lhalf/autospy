@@ -4,6 +4,9 @@ use syn::{Attribute, ItemTrait, Signature, TraitItem};
 pub fn strip_attributes(mut item_trait: ItemTrait) -> ItemTrait {
     item_trait
         .items
+        .retain(|item| !is_supertrait_function(item));
+    item_trait
+        .items
         .iter_mut()
         .for_each(strip_attributes_from_item);
     item_trait
@@ -17,6 +20,13 @@ pub fn strip_attributes_from_signature(signature: &mut Signature) {
 
 pub fn strip_autospy_attributes(attributes: &mut Vec<Attribute>) {
     attributes.retain(|attribute| !attribute::is_autospy_attribute(attribute));
+}
+
+fn is_supertrait_function(item: &TraitItem) -> bool {
+    match item {
+        TraitItem::Fn(function) => attribute::supertrait_trait(&function.attrs).is_some(),
+        _ => false,
+    }
 }
 
 fn strip_attributes_from_item(item: &mut TraitItem) {
@@ -182,6 +192,26 @@ mod tests {
                 #[some_attribute]
                 type Item;
                 fn foo(&self, argument: Self::Item);
+            }
+        };
+
+        assert_eq!(expected, strip_attributes(input));
+    }
+
+    #[test]
+    fn supertrait_attributed_functions_are_stripped() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                fn foo(&self);
+                #[cfg(test)]
+                #[autospy(supertrait = "Supertrait")]
+                fn bar(&self);
+            }
+        };
+
+        let expected: ItemTrait = parse_quote! {
+            trait Example {
+                fn foo(&self);
             }
         };
 
