@@ -239,4 +239,32 @@ mod tests {
 
         assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
     }
+
+    #[test]
+    fn supertrait_function_in_trait() {
+        let input: ItemTrait = parse_quote! {
+            trait Example: Supertrait {
+                fn foo(&self);
+                #[cfg(test)]
+                #[autospy(supertrait(SuperTrait))]
+                fn bar(&self);
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Default for ExampleSpy {
+                fn default() -> Self {
+                    Self {
+                        foo: autospy::SpyFunction::from("foo"),
+                        bar: autospy::SpyFunction::from("bar")
+                    }
+                }
+            }
+        };
+
+        let actual = generate_spy_default(&input);
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
 }
