@@ -1,6 +1,8 @@
 use crate::attribute;
-use proc_macro2::Ident;
-use syn::{Expr, FnArg, Pat, PatType, TraitItemFn, Type};
+use proc_macro2::{Ident, TokenStream};
+use quote::ToTokens;
+use std::collections::HashMap;
+use syn::{Expr, FnArg, GenericParam, Generics, Pat, PatType, TraitItemFn, Type, parse_quote};
 
 #[derive(PartialEq, Debug)]
 pub struct SpyArgument {
@@ -12,11 +14,26 @@ pub struct SpyArgument {
 }
 
 pub fn spy_arguments(function: &TraitItemFn) -> impl Iterator<Item = SpyArgument> {
-    non_self_function_arguments(function).filter_map(spy_argument)
+    non_self_function_arguments(function)
+        .filter_map(|argument| spy_argument(generics_map(&function.sig.generics), argument))
 }
 
 pub fn is_argument_marked_as_ignore(argument: &PatType) -> bool {
     argument.attrs.iter().any(attribute::is_ignore_attribute)
+}
+
+fn generics_map(generics: &Generics) -> HashMap<Ident, TokenStream> {
+    generics
+        .params
+        .iter()
+        .filter_map(|param| match param {
+            GenericParam::Type(type_param) => Some((
+                type_param.ident.clone(),
+                type_param.bounds.to_token_stream(),
+            )),
+            _ => None,
+        })
+        .collect()
 }
 
 fn non_self_function_arguments(function: &TraitItemFn) -> impl Iterator<Item = &PatType> {
@@ -26,7 +43,10 @@ fn non_self_function_arguments(function: &TraitItemFn) -> impl Iterator<Item = &
     })
 }
 
-fn spy_argument(argument: &PatType) -> Option<SpyArgument> {
+fn spy_argument(
+    generics_map: HashMap<Ident, TokenStream>,
+    argument: &PatType,
+) -> Option<SpyArgument> {
     let name = match *argument.pat {
         Pat::Ident(ref pat_ident) => pat_ident.ident.clone(),
         _ => return None,
@@ -36,7 +56,15 @@ fn spy_argument(argument: &PatType) -> Option<SpyArgument> {
         return None;
     }
 
-    let (dereferenced_type, dereference_count) = remove_references(&argument.ty);
+    let (mut dereferenced_type, dereference_count) = remove_references(&argument.ty);
+
+    if let Type::Path(type_path) = &dereferenced_type
+        && type_path.qself.is_none()
+        && type_path.path.segments.len() == 1
+        && let Some(bounds) = generics_map.get(&type_path.path.segments[0].ident)
+    {
+        dereferenced_type = parse_quote! { impl #bounds }
+    }
 
     Some(SpyArgument {
         name,
@@ -142,6 +170,40 @@ mod tests {
             into_type: Some(parse_quote! { Ipv4Addr }),
             with_expression: None,
             dereferenced_type: parse_quote! { [u8; 4] },
+            dereference_count: 0,
+        };
+
+        assert_eq!(vec![expected], spy_arguments(&input).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn impl_argument_function() {
+        let input: TraitItemFn = parse_quote! {
+            fn foo(&self, argument: impl ToString + 'static);
+        };
+
+        let expected = SpyArgument {
+            name: parse_quote! { argument },
+            into_type: None,
+            with_expression: None,
+            dereferenced_type: parse_quote! { impl ToString + 'static },
+            dereference_count: 0,
+        };
+
+        assert_eq!(vec![expected], spy_arguments(&input).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn generic_function() {
+        let input: TraitItemFn = parse_quote! {
+            fn foo<T: ToString + 'static>(&self, argument: T);
+        };
+
+        let expected = SpyArgument {
+            name: parse_quote! { argument },
+            into_type: None,
+            with_expression: None,
+            dereferenced_type: parse_quote! { impl ToString + 'static },
             dereference_count: 0,
         };
 

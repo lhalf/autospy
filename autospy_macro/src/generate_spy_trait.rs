@@ -299,6 +299,29 @@ mod tests {
     }
 
     #[test]
+    fn functions_with_static_generic_arguments_are_boxed() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                fn function<T: ToString + 'static>(&self, argument: T);
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Example for ExampleSpy {
+                #[track_caller]
+                fn function<T: ToString + 'static>(&self, argument: T) {
+                    self.function.spy(Box::new(argument))
+                }
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
     fn arguments_with_into_attribute_are_captured() {
         let input: ItemTrait = parse_quote! {
             trait Example {
