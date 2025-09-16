@@ -51,7 +51,7 @@ fn associated_type_definitions(
 
 fn trait_spy_function_definitions(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {
     inspect::trait_functions(item_trait)
-        .filter(|function| attribute::supertrait_trait(&function.attrs).is_none())
+        .filter(|function| attribute::supertrait(&function.attrs).is_none())
         .map(function_as_spy_function)
 }
 
@@ -141,7 +141,7 @@ fn spy_supertraits(
 ) -> impl Iterator<Item = TokenStream> {
     inspect::trait_functions(item_trait)
         .filter_map(|function| {
-            attribute::supertrait_trait(&function.attrs).map(|supertrait| (function, supertrait))
+            attribute::supertrait(&function.attrs).map(|supertrait| (function, supertrait))
         })
         .map(|(function, supertrait)| {
             function_as_spy_supertrait(cfg, supertrait, spy_name, function)

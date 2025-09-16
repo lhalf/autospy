@@ -20,12 +20,6 @@ pub fn has_use_default_attribute(attributes: &[Attribute]) -> bool {
     autospy_attributes(attributes).any(|attribute| attribute.to_string() == "use_default")
 }
 
-pub fn supertrait_trait(attributes: &[Attribute]) -> Option<TokenStream> {
-    key_value_autospy_attributes(attributes)
-        .find_map(|name_value| matching_meta_name_value(name_value, "supertrait"))
-        .map(parse_literal_expression::<TokenStream>)
-}
-
 pub fn associated_type(attributes: &[Attribute]) -> Option<TypePath> {
     Some(
         syn::parse2(autospy_attributes(attributes).next()?.clone())
@@ -35,6 +29,12 @@ pub fn associated_type(attributes: &[Attribute]) -> Option<TypePath> {
 
 pub fn associated_const(attributes: &[Attribute]) -> Option<Expr> {
     syn::parse2::<Expr>(autospy_attributes(attributes).next()?.clone()).ok()
+}
+
+pub fn supertrait(attributes: &[Attribute]) -> Option<TokenStream> {
+    key_value_autospy_attributes(attributes)
+        .find_map(|name_value| matching_meta_name_value(name_value, "supertrait"))
+        .map(parse_literal_expression::<TokenStream>)
 }
 
 pub fn into_type(attributes: &[Attribute]) -> Option<Type> {

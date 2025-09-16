@@ -24,7 +24,7 @@ pub fn strip_autospy_attributes(attributes: &mut Vec<Attribute>) {
 
 fn is_supertrait_function(item: &TraitItem) -> bool {
     match item {
-        TraitItem::Fn(function) => attribute::supertrait_trait(&function.attrs).is_some(),
+        TraitItem::Fn(function) => attribute::supertrait(&function.attrs).is_some(),
         _ => false,
     }
 }
