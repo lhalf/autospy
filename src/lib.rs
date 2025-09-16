@@ -382,6 +382,37 @@
 //! assert_eq!(120, use_trait(MyTraitSpy::default()));
 //! ```
 //!
+//! ## Supertraits
+//!
+//! Supertraits are supported through including the functions they implement with the attribute `#[autospy(supertrait = "TRAIT")]`. The supertrait must be in scope.
+//! As the supertrait functions are not native to the trait being turned into a spy, you **MUST** mark the additional supertrait functions as `#[cfg(test)]`.
+//! This ensures these functions are not included in the trait during regular builds.
+//!
+//! ```rust
+//! use std::io::Read;
+//!
+//! #[autospy::autospy]
+//! trait MyTrait: Read {
+//!     fn foo(&self) -> u64;
+//!     #[cfg(test)]
+//!     #[autospy(supertrait = "Read")]
+//!     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize>;
+//! }
+//!
+//! fn use_trait(mut x: impl MyTrait) -> (u64, std::io::Result<usize>) {
+//!     let mut buf = [];
+//!     (x.foo(), x.read(&mut buf))
+//! }
+//!
+//! let spy = MyTraitSpy::default();
+//! spy.foo.returns.set([1]);
+//! spy.read.returns.set([Ok(0)]);
+//!
+//! let result =  use_trait(spy);
+//! assert_eq!(1, result.0);
+//! assert_eq!(0, result.1.unwrap())
+//! ```
+//!
 
 //! # Examples
 //!
