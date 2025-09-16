@@ -384,7 +384,7 @@
 //!
 //! ## Supertraits
 //!
-//! Supertraits are supported through including the functions they implement with the attribute `#[autospy(supertrait = "TRAIT")]`. The supertrait must be in scope.
+//! Supertraits are supported by including the functions they implement with the attribute `#[autospy(supertrait = "TRAIT")]`. The supertrait must be in scope.
 //! As the supertrait functions are not native to the trait being turned into a spy, you **MUST** mark the additional supertrait functions as `#[cfg(test)]`.
 //! This ensures these functions are not included in the trait during regular builds.
 //!
