@@ -335,7 +335,7 @@ mod tests {
             trait Example: Supertrait {
                 fn foo(&self) -> String;
                 #[cfg(test)]
-                #[autospy(supertrait(Supertrait))]
+                #[autospy(supertrait = "Supertrait")]
                 fn bar(&self) -> bool;
             }
         };
