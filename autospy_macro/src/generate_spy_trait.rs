@@ -5,6 +5,7 @@ use crate::strip_attributes::{strip_attributes_from_signature, strip_autospy_att
 use crate::{arguments, attribute, edit, generate, inspect};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
+use std::collections::HashMap;
 use syn::{ItemTrait, Token, TraitItemConst, TraitItemFn, Type, parse_quote};
 
 pub fn generate_spy_trait(
@@ -139,27 +140,31 @@ fn spy_supertraits(
     spy_name: &Ident,
     item_trait: &ItemTrait,
 ) -> impl Iterator<Item = TokenStream> {
-    inspect::trait_functions(item_trait)
-        .filter_map(|function| {
-            attribute::supertrait(&function.attrs).map(|supertrait| (function, supertrait))
-        })
-        .map(|(function, supertrait)| {
-            function_as_spy_supertrait(cfg, supertrait, spy_name, function)
-        })
+    let mut supertraits: HashMap<Ident, Vec<&TraitItemFn>> = HashMap::new();
+
+    for function in inspect::trait_functions(item_trait) {
+        if let Some(supertrait) = attribute::supertrait(&function.attrs) {
+            supertraits.entry(supertrait).or_default().push(function);
+        }
+    }
+
+    supertraits.into_iter().map(|(supertrait, functions)| {
+        functions_as_spy_supertrait(cfg, supertrait, spy_name, functions)
+    })
 }
 
-fn function_as_spy_supertrait(
+fn functions_as_spy_supertrait(
     cfg: &TokenStream,
-    supertrait: TokenStream,
+    supertrait: Ident,
     spy_name: &Ident,
-    function: &TraitItemFn,
+    functions: Vec<&TraitItemFn>,
 ) -> TokenStream {
-    let spy_function_definition = function_as_spy_function(function);
+    let spy_function_definitions = functions.into_iter().map(function_as_spy_function);
 
     quote! {
         #cfg
         impl #supertrait for #spy_name {
-            #spy_function_definition
+            #(#spy_function_definitions)*
         }
     }
 }
@@ -553,7 +558,6 @@ mod tests {
         let input: ItemTrait = parse_quote! {
             trait Example: Supertrait {
                 fn foo(&self);
-                #[cfg(test)]
                 #[autospy(supertrait = "Supertrait")]
                 fn bar(&self);
             }
@@ -572,6 +576,44 @@ mod tests {
                #[track_caller]
                 fn bar(&self) {
                     self.bar.spy(())
+                }
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_function_marked_with_multiple_functions_in_the_same_supertrait() {
+        let input: ItemTrait = parse_quote! {
+            trait Example: Supertrait {
+                fn foo(&self);
+                #[autospy(supertrait = "Supertrait")]
+                fn bar(&self);
+                #[autospy(supertrait = "Supertrait")]
+                fn baz(&self);
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Example for ExampleSpy {
+               #[track_caller]
+                fn foo(&self) {
+                    self.foo.spy(())
+                }
+            }
+            #[cfg(test)]
+            impl Supertrait for ExampleSpy {
+               #[track_caller]
+                fn bar(&self) {
+                    self.bar.spy(())
+                }
+                #[track_caller]
+                fn baz(&self) {
+                    self.baz.spy(())
                 }
             }
         };

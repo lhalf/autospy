@@ -245,7 +245,6 @@ mod tests {
         let input: ItemTrait = parse_quote! {
             trait Example: Supertrait {
                 fn foo(&self);
-                #[cfg(test)]
                 #[autospy(supertrait = "SuperTrait")]
                 fn bar(&self);
             }
