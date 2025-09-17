@@ -1,6 +1,5 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 362
 expression: "generate_pretty(parse_quote!\n{\n    trait TestTrait\n    { #[autospy(\"example\")] const VALUE: &'static str; fn function(&self); }\n})"
 ---
 trait TestTrait {

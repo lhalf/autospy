@@ -1,6 +1,5 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 422
 expression: "generate_pretty(parse_quote! { trait TestTrait<T: Copy, C: Clone> {} })"
 ---
 trait TestTrait<T: Copy, C: Clone> {}

@@ -137,7 +137,7 @@ mod tests {
     }
 
     #[test]
-    fn method_with_no_arguments() {
+    fn function_with_no_arguments() {
         insta::assert_snapshot!(generate_pretty(parse_quote! {
             trait TestTrait {
                 fn function(&self);
@@ -146,7 +146,7 @@ mod tests {
     }
 
     #[test]
-    fn multiple_methods_with_no_arguments() {
+    fn multiple_functions_with_no_arguments() {
         insta::assert_snapshot!(generate_pretty(parse_quote! {
             trait TestTrait {
                 fn function1(&self);
@@ -183,7 +183,7 @@ mod tests {
     }
 
     #[test]
-    fn method_with_non_void_return_type() {
+    fn function_with_non_void_return_type() {
         insta::assert_snapshot!(generate_pretty(parse_quote! {
             trait TestTrait {
                 fn function(&self) -> bool;

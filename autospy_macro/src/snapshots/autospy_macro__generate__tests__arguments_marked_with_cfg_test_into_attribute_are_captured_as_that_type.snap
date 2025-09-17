@@ -1,6 +1,5 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 72
 expression: "generate_pretty(parse_quote!\n{\n    trait MyTrait\n    {\n        fn\n        function(&self, #[cfg_attr(test, autospy(into=\"IpAddr\"))] ip:\n        [u8; 4]);\n    }\n})"
 ---
 trait MyTrait {

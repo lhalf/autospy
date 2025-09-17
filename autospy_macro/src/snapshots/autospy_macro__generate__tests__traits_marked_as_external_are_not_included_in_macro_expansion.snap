@@ -1,6 +1,5 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 58
 expression: "prettyplease::unparse(&syn::parse_file(&expanded).unwrap())"
 ---
 #[cfg(test)]

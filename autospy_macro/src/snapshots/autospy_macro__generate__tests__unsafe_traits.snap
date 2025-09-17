@@ -1,6 +1,5 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 436
 expression: "generate_pretty(parse_quote! { unsafe trait TestTrait {} })"
 ---
 unsafe trait TestTrait {}

@@ -1,6 +1,5 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 342
 expression: "generate_pretty(parse_quote!\n{ #[async_trait] trait TestTrait { async fn function(&self); } })"
 ---
 #[async_trait]

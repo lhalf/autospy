@@ -1,6 +1,5 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 288
 expression: "generate_pretty(parse_quote!\n{\n    trait TestTrait\n    {\n        #[some_attribute] #[autospy(returns = \"String\")] fn function(&self) ->\n        impl ToString;\n    }\n})"
 ---
 trait TestTrait {

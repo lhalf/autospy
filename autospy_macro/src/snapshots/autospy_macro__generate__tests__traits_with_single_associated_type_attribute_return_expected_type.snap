@@ -1,6 +1,5 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 299
 expression: "generate_pretty(parse_quote!\n{\n    trait TestTrait\n    { #[autospy(String)] type Item; fn function(&self) -> Self::Item; }\n})"
 ---
 trait TestTrait {

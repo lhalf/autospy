@@ -39,7 +39,7 @@
 //!
 //! ## Multiple arguments
 //!
-//! Methods with multiple arguments are captured in a tuple.
+//! Functions with multiple arguments are captured in a tuple.
 //!
 //! ```rust
 //! #[autospy::autospy]
@@ -264,7 +264,7 @@
 //! ```
 //!
 //! If you are using an async trait your spy might not be used immediately, for instance it might be spawned in a task.
-//! You can use the [`recv()`](Arguments::recv) method on arguments to instruct the spy to wait asynchronously until the spy is used.
+//! You can use the [`recv()`](Arguments::recv) function on arguments to instruct the spy to wait asynchronously until the spy is used.
 //! `recv()` is enabled by the default feature [**async**](#features) and, as an `async` function, will need to be called from within an async test.
 //!
 //! ```rust
@@ -362,7 +362,7 @@
 //!
 //! ## Default trait implementations
 //!
-//! If your trait has a default implementation for a method, an `#[autospy(use_default)]` attribute can be used on the method to tell the spy to use the default. Therefore, no spy values will be recorded for this function.
+//! If your trait has a default implementation for a function, an `#[autospy(use_default)]` attribute can be used on the method to tell the spy to use the default. Therefore, no spy values will be recorded for this function.
 //!
 //! ```rust
 //! #[autospy::autospy]

@@ -1,6 +1,5 @@
 ---
 source: autospy_macro/src/generate.rs
-assertion_line: 415
 expression: "generate_pretty(parse_quote! { trait TestTrait<W, O, T> {} })"
 ---
 trait TestTrait<W, O, T> {}
