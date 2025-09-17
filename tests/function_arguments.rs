@@ -20,6 +20,6 @@ fn borrowed_argument_coverted_to_owned() {
 
     assert_eq!(
         eight as *const (),
-        spy.function.arguments.get()[0] as *const ()
+        spy.function.arguments.take()[0] as *const ()
     )
 }

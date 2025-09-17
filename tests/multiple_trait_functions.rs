@@ -19,6 +19,6 @@ fn can_spy_on_how_many_times_functions_called() {
 
     use_trait(spy.clone());
 
-    assert_eq!(spy.function_one.arguments.get().len(), 1);
-    assert_eq!(spy.function_two.arguments.get().len(), 2);
+    assert_eq!(spy.function_one.arguments.take().len(), 1);
+    assert_eq!(spy.function_two.arguments.take().len(), 2);
 }

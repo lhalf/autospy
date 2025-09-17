@@ -18,5 +18,5 @@ fn trait_with_associated_type_has_attribute_type_captured() {
 
     assert_eq!("world!", use_trait(spy.clone()));
 
-    assert_eq!(vec!["hello"], spy.function.arguments.get());
+    assert_eq!(vec!["hello"], spy.function.arguments.take());
 }

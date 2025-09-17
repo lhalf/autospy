@@ -117,6 +117,31 @@ impl<A> Arguments<A> {
         let _ = self.sender.send_blocking(());
     }
 
+    /// Gets the captured arguments. This returns a [`MutexGuard`] which must be dereferenced.
+    ///
+    /// # Examples
+    /// ```rust
+    /// #[autospy::autospy]
+    /// trait MyTrait {
+    ///     fn foo(&self, bar: u8);
+    /// }
+    ///
+    /// fn use_trait(trait_object: impl MyTrait) {
+    ///     trait_object.foo(10)
+    /// }
+    ///
+    /// let spy = MyTraitSpy::default();
+    /// spy.foo.returns.set([()]);
+    ///
+    /// use_trait(spy.clone());
+    ///
+    /// assert_eq!(vec![10], *spy.foo.arguments.get());
+    /// assert_eq!(vec![10], *spy.foo.arguments.get());
+    /// ```
+    pub fn get(&self) -> MutexGuard<'_, Vec<A>> {
+        self.captured.lock().expect("mutex poisoned")
+    }
+
     /// Takes the captured arguments.
     ///
     /// # Examples
@@ -148,33 +173,6 @@ impl<A> Arguments<A> {
     pub async fn recv(&self) -> Vec<A> {
         self.receiver.recv().await.unwrap();
         self.take()
-    }
-}
-
-impl<A: Clone> Arguments<A> {
-    /// Gets the captured arguments.
-    ///
-    /// # Examples
-    /// ```rust
-    /// #[autospy::autospy]
-    /// trait MyTrait {
-    ///     fn foo(&self, bar: u8);
-    /// }
-    ///
-    /// fn use_trait(trait_object: impl MyTrait) {
-    ///     trait_object.foo(10)
-    /// }
-    ///
-    /// let spy = MyTraitSpy::default();
-    /// spy.foo.returns.set([()]);
-    ///
-    /// use_trait(spy.clone());
-    ///
-    /// assert_eq!(vec![10], spy.foo.arguments.get());
-    /// assert_eq!(vec![10], spy.foo.arguments.get());
-    /// ```
-    pub fn get(&self) -> Vec<A> {
-        self.captured.lock().expect("mutex poisoned").clone()
     }
 }
 

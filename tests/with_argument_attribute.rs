@@ -23,6 +23,6 @@ fn functions_with_into_with_attribute_return_that_type() {
 
     assert_eq!(
         vec![Ok(String::from("hello world!"))],
-        spy.function.arguments.get()
+        spy.function.arguments.take()
     );
 }

@@ -85,7 +85,7 @@ mod tests {
 
         assert_eq!(response.status(), Status::ImATeapot);
         assert_eq!(
-            client_spy.make_upstream_request.arguments.get(),
+            client_spy.make_upstream_request.arguments.take(),
             vec!["path"]
         );
     }

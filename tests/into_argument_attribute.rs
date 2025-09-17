@@ -18,6 +18,6 @@ fn functions_with_into_attribute_return_that_type() {
 
     assert_eq!(
         vec![Ipv4Addr::new(192, 168, 1, 1)],
-        spy.function.arguments.get()
+        spy.function.arguments.take()
     );
 }

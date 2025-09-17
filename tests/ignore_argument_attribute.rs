@@ -14,5 +14,5 @@ fn arguments_marked_with_ignore_attribute_are_not_captured() {
 
     use_test_trait(spy.clone());
 
-    assert_eq!(vec!["captured".to_string()], spy.function.arguments.get());
+    assert_eq!(vec!["captured".to_string()], spy.function.arguments.take());
 }

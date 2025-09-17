@@ -14,5 +14,5 @@ fn borrowed_argument_coverted_to_owned() {
 
     use_test_trait(spy.clone());
 
-    assert_eq!(vec![[0; 1]], spy.function.arguments.get())
+    assert_eq!(vec![[0; 1]], spy.function.arguments.take())
 }

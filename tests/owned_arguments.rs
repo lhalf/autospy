@@ -14,5 +14,5 @@ fn owned_function_argument_captured() {
 
     use_trait(spy.clone());
 
-    assert_eq!(vec!["hello".to_string()], spy.function.arguments.get())
+    assert_eq!(vec!["hello".to_string()], spy.function.arguments.take())
 }

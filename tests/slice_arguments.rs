@@ -14,5 +14,5 @@ fn borrowed_slice_converted_to_owned_vec() {
 
     use_test_trait(spy.clone());
 
-    assert_eq!(vec![vec![1]], spy.function.arguments.get())
+    assert_eq!(vec![vec![1]], spy.function.arguments.take())
 }
