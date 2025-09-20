@@ -384,7 +384,7 @@
 //!
 //! ## Supertraits
 //!
-//! Supertraits are supported through the [`supertrait!`](#autospy::supertrait) macro by putting the supertrait
+//! Supertraits are supported through the [`supertrait!`](supertrait) macro by putting the supertrait
 //! definition inside the macro. The supertrait must be in scope. If using autospy as a dev dependency you **MUST** mark the supertrait macro as `#[cfg(test)]`.
 //!
 //! ```rust
