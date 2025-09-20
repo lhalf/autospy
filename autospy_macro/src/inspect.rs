@@ -16,6 +16,13 @@ pub fn trait_functions(item_trait: &ItemTrait) -> impl Iterator<Item = &TraitIte
     })
 }
 
+pub fn owned_trait_functions(item_trait: ItemTrait) -> impl Iterator<Item = TraitItemFn> {
+    item_trait.items.into_iter().filter_map(|item| match item {
+        TraitItem::Fn(function) => Some(function),
+        _ => None,
+    })
+}
+
 pub fn cfg() -> TokenStream {
     match cfg!(feature = "test") {
         true => quote! { #[cfg(test)] },

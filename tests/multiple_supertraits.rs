@@ -1,10 +1,16 @@
 #[autospy::autospy]
 trait MyTrait: Supertrait + Ultratrait {
     fn function(&self);
-    #[autospy(supertrait = "Supertrait")]
-    fn super_function(&self);
-    #[autospy(supertrait = "Ultratrait")]
-    fn ultra_function(&self);
+    autospy::supertrait! {
+        trait Supertrait {
+            fn super_function(&self);
+        }
+    }
+    autospy::supertrait! {
+        trait Ultratrait {
+            fn ultra_function(&self);
+        }
+    }
 }
 
 trait Supertrait {

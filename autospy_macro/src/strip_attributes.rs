@@ -1,10 +1,11 @@
+use crate::supertraits::autospy_supertrait_macro;
 use crate::{attribute, edit};
 use syn::{Attribute, ItemTrait, Signature, TraitItem};
 
 pub fn strip_attributes(mut item_trait: ItemTrait) -> ItemTrait {
     item_trait
         .items
-        .retain(|item| !is_supertrait_function(item));
+        .retain(|item| autospy_supertrait_macro(item).is_none());
     item_trait
         .items
         .iter_mut()
@@ -20,13 +21,6 @@ pub fn strip_attributes_from_signature(signature: &mut Signature) {
 
 pub fn strip_autospy_attributes(attributes: &mut Vec<Attribute>) {
     attributes.retain(|attribute| !attribute::is_autospy_attribute(attribute));
-}
-
-fn is_supertrait_function(item: &TraitItem) -> bool {
-    match item {
-        TraitItem::Fn(function) => attribute::supertrait(&function.attrs).is_some(),
-        _ => false,
-    }
 }
 
 fn strip_attributes_from_item(item: &mut TraitItem) {
@@ -199,18 +193,21 @@ mod tests {
     }
 
     #[test]
-    fn supertrait_attributed_functions_are_stripped() {
+    fn supertrait_macros_are_stripped() {
         let input: ItemTrait = parse_quote! {
-            trait Example {
+            trait Example: Supertrait {
                 fn foo(&self);
                 #[cfg(test)]
-                #[autospy(supertrait = "Supertrait")]
-                fn bar(&self);
+                autospy::supertrait! {
+                    trait Supertrait {
+                       fn bar(&self);
+                    }
+                }
             }
         };
 
         let expected: ItemTrait = parse_quote! {
-            trait Example {
+            trait Example: Supertrait {
                 fn foo(&self);
             }
         };

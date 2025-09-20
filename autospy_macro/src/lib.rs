@@ -11,6 +11,7 @@ mod generate_spy_trait;
 mod generics;
 mod inspect;
 mod strip_attributes;
+mod supertraits;
 
 use generate::generate;
 use proc_macro::TokenStream;

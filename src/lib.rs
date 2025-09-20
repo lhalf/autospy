@@ -384,9 +384,8 @@
 //!
 //! ## Supertraits
 //!
-//! Supertraits are supported by including the functions they implement with the attribute `#[autospy(supertrait = "TRAIT")]`. The supertrait must be in scope.
-//! As the supertrait functions are not native to the trait being turned into a spy, you **MUST** mark the additional supertrait functions as `#[cfg(test)]`.
-//! This ensures these functions are not included in the trait during regular builds.
+//! Supertraits are supported through the [`supertrait!`](#autospy::supertrait) macro by putting the supertrait
+//! definition inside the macro. The supertrait must be in scope. If using autospy as a dev dependency you **MUST** mark the supertrait macro as `#[cfg(test)]`.
 //!
 //! ```rust
 //! use std::io::Read;
@@ -394,9 +393,11 @@
 //! #[autospy::autospy]
 //! trait MyTrait: Read {
 //!     fn foo(&self) -> u64;
-//!     #[cfg(test)]
-//!     #[autospy(supertrait = "Read")]
-//!     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize>;
+//!     autospy::supertrait! {
+//!         trait Read {
+//!             fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize>;
+//!         }   
+//!     }
 //! }
 //!
 //! fn use_trait(mut x: impl MyTrait) -> (u64, std::io::Result<usize>) {
@@ -423,6 +424,7 @@
 //! - **test** - makes the generated spy object and trait impl `#[cfg(test)]` - enabled by default.
 //! - **async** - enables additional async support features on the spy, if you are not using async traits you can safely disable this - enabled by default.
 
+mod macros;
 mod spy_function;
 
 /// The captured arguments of a spy function.

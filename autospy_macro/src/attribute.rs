@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use syn::parse::Parser;
 use syn::{
-    Attribute, Expr, ExprLit, Ident, Lit, Meta, MetaNameValue, Token, Type, TypePath, parse::Parse,
+    Attribute, Expr, ExprLit, Lit, Meta, MetaNameValue, Token, Type, TypePath, parse::Parse,
     punctuated::Punctuated,
 };
 
@@ -29,12 +29,6 @@ pub fn associated_type(attributes: &[Attribute]) -> Option<TypePath> {
 
 pub fn associated_const(attributes: &[Attribute]) -> Option<Expr> {
     syn::parse2::<Expr>(autospy_attributes(attributes).next()?.clone()).ok()
-}
-
-pub fn supertrait(attributes: &[Attribute]) -> Option<Ident> {
-    key_value_autospy_attributes(attributes)
-        .find_map(|name_value| matching_meta_name_value(name_value, "supertrait"))
-        .map(parse_literal_expression::<Ident>)
 }
 
 pub fn into_type(attributes: &[Attribute]) -> Option<Type> {

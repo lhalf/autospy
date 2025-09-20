@@ -1,6 +1,6 @@
 use crate::generics::generics_idents;
 use crate::inspect::cfg;
-use crate::{attribute, inspect};
+use crate::{attribute, inspect, supertraits};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{ItemTrait, TraitItemFn};
@@ -28,7 +28,12 @@ pub fn generate_spy_default(item_trait: &ItemTrait) -> TokenStream {
 }
 
 fn generate_spy_defaults(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {
-    inspect::trait_functions(item_trait).map(function_as_default)
+    inspect::trait_functions(item_trait)
+        .cloned()
+        .chain(
+            supertraits::autospy_supertraits(item_trait).flat_map(inspect::owned_trait_functions),
+        )
+        .map(|function| function_as_default(&function))
 }
 
 fn function_as_default(function: &TraitItemFn) -> TokenStream {
@@ -241,12 +246,15 @@ mod tests {
     }
 
     #[test]
-    fn supertrait_function_in_trait() {
+    fn supertrait_macro_in_trait() {
         let input: ItemTrait = parse_quote! {
             trait Example: Supertrait {
                 fn foo(&self);
-                #[autospy(supertrait = "SuperTrait")]
-                fn bar(&self);
+                autospy::supertrait! {
+                    trait Supertrait {
+                        fn bar(&self) -> bool;
+                    }
+                }
             }
         };
 

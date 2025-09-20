@@ -1,6 +1,6 @@
 use crate::associated_types::AssociatedSpyTypes;
 use crate::inspect::cfg;
-use crate::{arguments, attribute, edit, generate, inspect};
+use crate::{arguments, attribute, edit, generate, inspect, supertraits};
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
 use syn::visit_mut::VisitMut;
@@ -33,7 +33,11 @@ fn generate_spy_fields(
     associated_spy_types: &AssociatedSpyTypes,
 ) -> impl Iterator<Item = TokenStream> {
     inspect::trait_functions(item_trait)
-        .map(|function| function_as_spy_field(function, associated_spy_types))
+        .cloned()
+        .chain(
+            supertraits::autospy_supertraits(item_trait).flat_map(inspect::owned_trait_functions),
+        )
+        .map(|function| function_as_spy_field(&function, associated_spy_types))
 }
 
 fn function_as_spy_field(
@@ -330,12 +334,15 @@ mod tests {
     }
 
     #[test]
-    fn generated_spy_struct_handles_trait_function_marked_as_supertrait() {
+    fn generated_spy_struct_handles_supertrait_macro() {
         let input: ItemTrait = parse_quote! {
             trait Example: Supertrait {
                 fn foo(&self) -> String;
-                #[autospy(supertrait = "Supertrait")]
-                fn bar(&self) -> bool;
+                autospy::supertrait! {
+                    trait Supertrait {
+                        fn bar(&self) -> bool;
+                    }
+                }
             }
         };
 
