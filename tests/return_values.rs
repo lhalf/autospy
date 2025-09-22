@@ -46,3 +46,15 @@ fn if_set_fn_called_with_fn_mut_uses_that_function_to_create_return_values() {
     assert_eq!(use_test_trait(spy.clone(), 0), 2);
     assert_eq!(use_test_trait(spy.clone(), 0), 3);
 }
+
+#[test]
+fn calling_set_overrides_set_fn_and_vice_versa() {
+    let spy = MyTraitSpy::default();
+
+    spy.function.returns.set([0]);
+    spy.function.returns.set_fn(|_| 1);
+    assert_eq!(use_test_trait(spy.clone(), 0), 1);
+
+    spy.function.returns.set([0]);
+    assert_eq!(use_test_trait(spy.clone(), 0), 0);
+}

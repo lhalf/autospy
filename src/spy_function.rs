@@ -36,7 +36,7 @@ impl<A, R> Drop for SpyFunction<A, R> {
     fn drop(&mut self) {
         if !std::thread::panicking()
             && self.returns.is_last_reference()
-            && self.returns.next().is_some()
+            && self.returns.unused_arguments()
         {
             panic!(
                 "function '{}' had unused return values when dropped",
@@ -53,19 +53,11 @@ impl<A, R> SpyFunction<A, R> {
     /// </div>
     #[track_caller]
     pub fn spy(&self, arguments: A) -> R {
-        let return_value = self
-            .returns
-            .get_fn()
-            .as_mut()
-            .map(|return_fn| return_fn(&arguments));
+        let return_value = self.returns.next(&arguments);
 
         self.arguments.push(arguments);
 
-        if let Some(return_value) = return_value {
-            return return_value;
-        }
-
-        match self.returns.next() {
+        match return_value {
             Some(return_value) => return_value,
             None => {
                 let called_count = self.arguments.take().len();
@@ -307,26 +299,17 @@ impl<A> Arguments<A> {
 ///
 /// spy.foo() // will always return ()
 /// ```
-pub struct Returns<A, R> {
-    queue: Arc<Mutex<VecDeque<R>>>,
-    r#fn: Arc<Mutex<Option<GetReturn<A, R>>>>,
-}
+pub struct Returns<A, R>(Arc<Mutex<ReturnQueue<A, R>>>);
 
 impl<A, R> Clone for Returns<A, R> {
     fn clone(&self) -> Self {
-        Self {
-            queue: self.queue.clone(),
-            r#fn: self.r#fn.clone(),
-        }
+        Self(Arc::clone(&self.0))
     }
 }
 
 impl<A, R> Default for Returns<A, R> {
     fn default() -> Self {
-        Self {
-            queue: Arc::new(Mutex::new(VecDeque::new())),
-            r#fn: Arc::new(Mutex::new(None)),
-        }
+        Self(Arc::new(Mutex::new(ReturnQueue::Finite(VecDeque::new()))))
     }
 }
 
@@ -348,9 +331,7 @@ impl<A, R> Returns<A, R> {
     /// assert_eq!(2, spy.foo());
     /// ```
     pub fn set<I: IntoIterator<Item = R>>(&self, values: I) {
-        let mut return_values = self.queue.lock().expect("mutex poisoned");
-        return_values.clear();
-        return_values.extend(values);
+        *self.0.lock().expect("mutex poisoned") = ReturnQueue::Finite(values.into_iter().collect());
     }
 
     /// Set a return function for the spy that can use the function [arguments](Arguments). The spy will always return using this function.
@@ -367,25 +348,39 @@ impl<A, R> Returns<A, R> {
     ///
     /// assert_eq!(3, spy.foo("baz"));
     /// ```
-    pub fn set_fn(&self, r#fn: impl FnMut(&A) -> R + Send + 'static) {
-        self.r#fn
-            .lock()
-            .expect("mutex poisoned")
-            .replace(Box::new(r#fn));
+    pub fn set_fn(&self, getter: impl FnMut(&A) -> R + Send + 'static) {
+        *self.0.lock().expect("mutex poisoned") = ReturnQueue::Infinite(Box::new(getter));
     }
 
-    #[allow(clippy::type_complexity)]
-    fn get_fn(&self) -> MutexGuard<'_, Option<GetReturn<A, R>>> {
-        self.r#fn.lock().expect("mutex poisoned")
-    }
-
-    fn next(&self) -> Option<R> {
-        self.queue.lock().expect("mutex poisoned").pop_front()
+    fn next(&self, arguments: &A) -> Option<R> {
+        self.0.lock().expect("mutex poisoned").next(arguments)
     }
 
     fn is_last_reference(&mut self) -> bool {
-        Arc::get_mut(&mut self.queue).is_some()
+        Arc::get_mut(&mut self.0).is_some()
+    }
+
+    fn unused_arguments(&self) -> bool {
+        self.0.lock().expect("mutex poisoned").unused_arguments()
     }
 }
 
 type GetReturn<A, R> = Box<dyn FnMut(&A) -> R + Send + 'static>;
+
+enum ReturnQueue<A, R> {
+    Finite(VecDeque<R>),
+    Infinite(GetReturn<A, R>),
+}
+
+impl<A, R> ReturnQueue<A, R> {
+    fn next(&mut self, arguments: &A) -> Option<R> {
+        match self {
+            Self::Finite(queue) => queue.pop_front(),
+            Self::Infinite(getter) => Some(getter(arguments)),
+        }
+    }
+
+    fn unused_arguments(&self) -> bool {
+        matches!(self, ReturnQueue::Finite(queue) if !queue.is_empty())
+    }
+}
