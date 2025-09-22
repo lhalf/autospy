@@ -57,18 +57,12 @@ impl<A, R> SpyFunction<A, R> {
 
         self.arguments.push(arguments);
 
-        match return_value {
-            Some(return_value) => return_value,
-            None => {
-                let called_count = self.arguments.take().len();
-                panic!(
-                    "function '{}' had {} return values set, but was called {} time(s)",
-                    self.name,
-                    called_count - 1,
-                    called_count
-                )
-            }
-        }
+        return_value.unwrap_or_else(|error| {
+            panic!(
+                "function '{}' had {} return values set, but was called {} time(s)",
+                self.name, error.returns_set, error.calls_made
+            )
+        })
     }
 }
 
@@ -331,7 +325,7 @@ impl<A, R> Returns<A, R> {
     /// assert_eq!(2, spy.foo());
     /// ```
     pub fn set<I: IntoIterator<Item = R>>(&self, values: I) {
-        *self.0.lock().expect("mutex poisoned") = ReturnQueue::Finite(values.into_iter().collect());
+        *self.0.lock().expect("mutex poisoned") = values.into_iter().collect();
     }
 
     /// Set a return function for the spy that can use the function [arguments](Arguments). The spy will always return using this function.
@@ -352,7 +346,7 @@ impl<A, R> Returns<A, R> {
         *self.0.lock().expect("mutex poisoned") = ReturnQueue::Infinite(Box::new(getter));
     }
 
-    fn next(&self, arguments: &A) -> Option<R> {
+    fn next(&self, arguments: &A) -> Result<R, CalledTooManyTimesError> {
         self.0.lock().expect("mutex poisoned").next(arguments)
     }
 
@@ -372,15 +366,29 @@ enum ReturnQueue<A, R> {
     Infinite(GetReturn<A, R>),
 }
 
+impl<A, R> FromIterator<R> for ReturnQueue<A, R> {
+    fn from_iter<T: IntoIterator<Item = R>>(values: T) -> Self {
+        Self::Finite(values.into_iter().collect())
+    }
+}
+
 impl<A, R> ReturnQueue<A, R> {
-    fn next(&mut self, arguments: &A) -> Option<R> {
+    fn next(&mut self, arguments: &A) -> Result<R, CalledTooManyTimesError> {
         match self {
-            Self::Finite(queue) => queue.pop_front(),
-            Self::Infinite(getter) => Some(getter(arguments)),
+            Self::Finite(queue) => queue.pop_front().ok_or_else(|| CalledTooManyTimesError {
+                returns_set: queue.capacity(),
+                calls_made: queue.capacity() + 1,
+            }),
+            Self::Infinite(getter) => Ok(getter(arguments)),
         }
     }
 
     fn unused_arguments(&self) -> bool {
         matches!(self, ReturnQueue::Finite(queue) if !queue.is_empty())
     }
+}
+
+struct CalledTooManyTimesError {
+    returns_set: usize,
+    calls_made: usize,
 }

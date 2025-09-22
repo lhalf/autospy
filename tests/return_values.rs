@@ -18,11 +18,34 @@ fn returns_items_from_set_command_in_order() {
 }
 
 #[test]
-#[should_panic]
 fn if_no_return_set_then_panics_when_called() {
     let spy = MyTraitSpy::default();
     spy.function.returns.set([]);
+    assert_eq!(
+        panic_message(|| use_test_trait(spy.clone(), 0)),
+        Some("function 'function' had 0 return values set, but was called 1 time(s)".to_string())
+    );
+}
+
+#[test]
+fn if_take_used_then_panics_message_is_still_correct() {
+    let spy = MyTraitSpy::default();
+    spy.function.returns.set([0]);
     use_test_trait(spy.clone(), 0);
+    spy.function.arguments.take();
+    assert_eq!(
+        panic_message(|| use_test_trait(spy.clone(), 0)),
+        Some("function 'function' had 1 return values set, but was called 2 time(s)".to_string())
+    );
+}
+
+fn panic_message<F, R>(function: F) -> Option<String>
+where
+    F: FnOnce() -> R + std::panic::UnwindSafe,
+{
+    std::panic::catch_unwind(function)
+        .err()
+        .and_then(|boxed_any| boxed_any.downcast_ref::<String>().map(|s| s.to_string()))
 }
 
 #[test]
