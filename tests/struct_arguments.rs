@@ -22,9 +22,9 @@ fn non_clone_struct_function_argument_captured() {
     use_trait(spy.clone());
 
     assert_eq!(
-        vec![MyStruct {
+        [MyStruct {
             value: "hello".to_string()
         }],
-        spy.function.arguments.take()
+        spy.function.arguments
     )
 }

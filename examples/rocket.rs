@@ -84,9 +84,6 @@ mod tests {
         let response = server.get("/path").dispatch();
 
         assert_eq!(response.status(), Status::ImATeapot);
-        assert_eq!(
-            client_spy.make_upstream_request.arguments.take(),
-            vec!["path"]
-        );
+        assert_eq!(client_spy.make_upstream_request.arguments, ["path"]);
     }
 }

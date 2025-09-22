@@ -100,8 +100,8 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::OK);
         assert_eq!(
-            save_file_spy.save_file.arguments.take(),
-            vec![("filename".to_string(), b"file contents".to_vec())]
+            save_file_spy.save_file.arguments,
+            [("filename".to_string(), b"file contents".to_vec())]
         );
     }
 }

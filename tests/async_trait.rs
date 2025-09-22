@@ -14,5 +14,5 @@ async fn async_function_argument_captured_and_return_value_returned() {
     spy.function.returns.set(["return value".to_string()]);
 
     assert_eq!("return value", use_trait(spy.clone()).await);
-    assert_eq!(vec!["argument".to_string()], spy.function.arguments.take())
+    assert_eq!(["argument".to_string()], spy.function.arguments)
 }

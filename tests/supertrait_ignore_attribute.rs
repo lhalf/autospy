@@ -24,8 +24,5 @@ fn supertraits_support_ignore_attribute() {
     spy.super_function.returns.set([()]);
 
     use_trait(spy.clone());
-    assert_eq!(
-        vec!["captured".to_string()],
-        spy.super_function.arguments.take()
-    );
+    assert_eq!(["captured".to_string()], spy.super_function.arguments);
 }

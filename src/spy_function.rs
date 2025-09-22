@@ -73,6 +73,29 @@ impl<A, R> SpyFunction<A, R> {
     }
 }
 
+/// Arguments implements [`PartialEq`] for `[A]`, `&[A]` and `Vec<A>`.
+///
+/// # Examples
+/// ```rust
+/// #[autospy::autospy]
+/// trait MyTrait {
+///     fn foo(&self, bar: u8);
+/// }
+///
+/// fn use_trait(trait_object: impl MyTrait) {
+///     trait_object.foo(10)
+/// }
+///
+/// let spy = MyTraitSpy::default();
+/// spy.foo.returns.set([()]);
+///
+/// use_trait(spy.clone());
+///
+/// assert_eq!([10], spy.foo.arguments);
+/// assert_eq!([10].as_slice(), spy.foo.arguments);
+/// assert_eq!(vec![10], spy.foo.arguments);
+/// ```
+#[derive(Debug)]
 pub struct Arguments<A> {
     captured: Arc<Mutex<Vec<A>>>,
     #[cfg(feature = "async")]
@@ -104,6 +127,66 @@ impl<A> Default for Arguments<A> {
             #[cfg(feature = "async")]
             receiver,
         }
+    }
+}
+
+impl<A, B: PartialEq<A>> PartialEq<[B]> for Arguments<A> {
+    fn eq(&self, other: &[B]) -> bool {
+        other == self.get().as_slice()
+    }
+}
+
+impl<A: PartialEq<B>, B> PartialEq<Arguments<A>> for [B] {
+    fn eq(&self, other: &Arguments<A>) -> bool {
+        other.get().as_slice() == self
+    }
+}
+
+impl<A, B: PartialEq<A>, const N: usize> PartialEq<[B; N]> for Arguments<A> {
+    fn eq(&self, other: &[B; N]) -> bool {
+        other == self.get().as_slice()
+    }
+}
+
+impl<A: PartialEq<B>, B, const N: usize> PartialEq<Arguments<A>> for [B; N] {
+    fn eq(&self, other: &Arguments<A>) -> bool {
+        other.get().as_slice() == self
+    }
+}
+
+impl<A, B: PartialEq<A>, const N: usize> PartialEq<&[B; N]> for Arguments<A> {
+    fn eq(&self, other: &&[B; N]) -> bool {
+        *other == self.get().as_slice()
+    }
+}
+
+impl<A: PartialEq<B>, B, const N: usize> PartialEq<Arguments<A>> for &[B; N] {
+    fn eq(&self, other: &Arguments<A>) -> bool {
+        other.get().as_slice() == *self
+    }
+}
+
+impl<A, B: PartialEq<A>> PartialEq<&[B]> for Arguments<A> {
+    fn eq(&self, other: &&[B]) -> bool {
+        *other == self.get().as_slice()
+    }
+}
+
+impl<A: PartialEq<B>, B> PartialEq<Arguments<A>> for &[B] {
+    fn eq(&self, other: &Arguments<A>) -> bool {
+        other.get().as_slice() == *self
+    }
+}
+
+impl<A: PartialEq<B>, B> PartialEq<Vec<B>> for Arguments<A> {
+    fn eq(&self, other: &Vec<B>) -> bool {
+        *self.get() == *other
+    }
+}
+
+impl<A, B: PartialEq<A>> PartialEq<Arguments<A>> for Vec<B> {
+    fn eq(&self, other: &Arguments<A>) -> bool {
+        *self == *other.get()
     }
 }
 

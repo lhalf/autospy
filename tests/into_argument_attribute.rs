@@ -16,8 +16,5 @@ fn functions_with_into_attribute_return_that_type() {
 
     use_trait(spy.clone());
 
-    assert_eq!(
-        vec![Ipv4Addr::new(192, 168, 1, 1)],
-        spy.function.arguments.take()
-    );
+    assert_eq!([Ipv4Addr::new(192, 168, 1, 1)], spy.function.arguments);
 }

@@ -21,8 +21,5 @@ fn functions_with_into_with_attribute_return_that_type() {
 
     use_trait(spy.clone());
 
-    assert_eq!(
-        vec![Ok(String::from("hello world!"))],
-        spy.function.arguments.take()
-    );
+    assert_eq!([Ok(String::from("hello world!"))], spy.function.arguments);
 }
