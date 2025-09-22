@@ -34,7 +34,10 @@ impl<A, R> From<&'static str> for SpyFunction<A, R> {
 
 impl<A, R> Drop for SpyFunction<A, R> {
     fn drop(&mut self) {
-        if !std::thread::panicking() && self.returns.next().is_some() {
+        if !std::thread::panicking()
+            && self.returns.is_last_reference()
+            && self.returns.next().is_some()
+        {
             panic!(
                 "function '{}' had unused return values when dropped",
                 self.name
@@ -50,7 +53,11 @@ impl<A, R> SpyFunction<A, R> {
     /// </div>
     #[track_caller]
     pub fn spy(&self, arguments: A) -> R {
-        let return_value = self.returns.get_fn().map(|return_fn| return_fn(&arguments));
+        let return_value = self
+            .returns
+            .get_fn()
+            .as_mut()
+            .map(|return_fn| return_fn(&arguments));
 
         self.arguments.push(arguments);
 
@@ -302,8 +309,7 @@ impl<A> Arguments<A> {
 /// ```
 pub struct Returns<A, R> {
     queue: Arc<Mutex<VecDeque<R>>>,
-    #[allow(clippy::type_complexity)]
-    r#fn: Arc<Mutex<Option<fn(&A) -> R>>>,
+    r#fn: Arc<Mutex<Option<GetReturn<A, R>>>>,
 }
 
 impl<A, R> Clone for Returns<A, R> {
@@ -361,16 +367,25 @@ impl<A, R> Returns<A, R> {
     ///
     /// assert_eq!(3, spy.foo("baz"));
     /// ```
-    pub fn set_fn(&self, r#fn: fn(&A) -> R) {
-        self.r#fn.lock().expect("mutex poisoned").replace(r#fn);
+    pub fn set_fn(&self, r#fn: impl FnMut(&A) -> R + Send + 'static) {
+        self.r#fn
+            .lock()
+            .expect("mutex poisoned")
+            .replace(Box::new(r#fn));
     }
 
     #[allow(clippy::type_complexity)]
-    fn get_fn(&self) -> MutexGuard<'_, Option<fn(&A) -> R>> {
+    fn get_fn(&self) -> MutexGuard<'_, Option<GetReturn<A, R>>> {
         self.r#fn.lock().expect("mutex poisoned")
     }
 
     fn next(&self) -> Option<R> {
         self.queue.lock().expect("mutex poisoned").pop_front()
     }
+
+    fn is_last_reference(&mut self) -> bool {
+        Arc::get_mut(&mut self.queue).is_some()
+    }
 }
+
+type GetReturn<A, R> = Box<dyn FnMut(&A) -> R + Send + 'static>;
