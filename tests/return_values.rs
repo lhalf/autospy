@@ -39,15 +39,6 @@ fn if_take_used_then_panics_message_is_still_correct() {
     );
 }
 
-fn panic_message<F, R>(function: F) -> Option<String>
-where
-    F: FnOnce() -> R + std::panic::UnwindSafe,
-{
-    std::panic::catch_unwind(function)
-        .err()
-        .and_then(|boxed_any| boxed_any.downcast_ref::<String>().map(|s| s.to_string()))
-}
-
 #[test]
 fn if_set_fn_called_with_fn_uses_that_function_to_create_return_values() {
     let spy = MyTraitSpy::default();
@@ -80,4 +71,13 @@ fn calling_set_overrides_set_fn_and_vice_versa() {
 
     spy.function.returns.set([0]);
     assert_eq!(use_test_trait(spy.clone(), 0), 0);
+}
+
+fn panic_message<F, R>(function: F) -> Option<String>
+where
+    F: FnOnce() -> R + std::panic::UnwindSafe,
+{
+    std::panic::catch_unwind(function)
+        .err()
+        .and_then(|boxed_any| boxed_any.downcast_ref::<String>().map(|s| s.to_string()))
 }
