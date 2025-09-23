@@ -42,7 +42,7 @@ mod tests {
         spy.foo.returns.set([true]); // set the return values
 
         assert!(use_trait(spy.clone())); // use the spy
-        assert_eq!(vec![10], spy.foo.arguments.take()) // take the captured arguments
+        assert_eq!([10], spy.foo.arguments) // check the captured arguments
     }
 }
 ```
