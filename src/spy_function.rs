@@ -328,7 +328,7 @@ impl<A, R> Returns<A, R> {
         *self.0.lock().expect("mutex poisoned") = values.into_iter().collect();
     }
 
-    /// Set a return function for the spy that can use the function [arguments](Arguments). The spy will always return using this function.
+    /// Set a return function for the spy that can use the function [arguments](Arguments). When set, the spy will always return using this function.
     ///
     /// # Examples
     /// ```rust
