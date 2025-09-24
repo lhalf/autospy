@@ -7,7 +7,7 @@
 //!
 //! - Attribute your trait using `#[autospy]`
 //! - Set return values using [`set()`](Returns::set)
-//! - Take captured arguments using [`take()`](Arguments::take)
+//! - Check captured arguments
 //!
 //! ```rust
 //! #[autospy::autospy]
@@ -23,7 +23,7 @@
 //! spy.foo.returns.set([20]);
 //!
 //! assert_eq!(20, call_with_ten(spy.clone()));
-//! assert_eq!(vec![10], spy.foo.arguments.take());
+//! assert_eq!([10], spy.foo.arguments);
 //! ```
 //!
 //! <div class="warning">
@@ -56,7 +56,7 @@
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec![(10, "hello!".to_string())], spy.foo.arguments.take());
+//! assert_eq!([(10, "hello!".to_string())], spy.foo.arguments);
 //! ```
 //!
 //! ## Reference arguments
@@ -78,7 +78,7 @@
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec!["hello!"], spy.foo.arguments.take());
+//! assert_eq!(["hello!"], spy.foo.arguments);
 //! ```
 //!
 //! ## Ignore arguments
@@ -100,7 +100,7 @@
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec!["capture me!"], spy.foo.arguments.take());
+//! assert_eq!(["capture me!"], spy.foo.arguments);
 //! ```
 //!
 //! Arguments called `_` will also be implicitly ignored.
@@ -120,7 +120,7 @@
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec!["capture me!"], spy.foo.arguments.take());
+//! assert_eq!(["capture me!"], spy.foo.arguments);
 //! ```
 //!
 //! ## Associated types
@@ -144,7 +144,7 @@
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec!["hello!"], spy.foo.arguments.take());
+//! assert_eq!(["hello!"], spy.foo.arguments);
 //! ```
 //!
 //! ## External traits
@@ -232,7 +232,7 @@
 //!
 //! assert_eq!("hello!", use_trait(spy.clone()));
 //!
-//! assert_eq!(vec![10], spy.foo.arguments.take())
+//! assert_eq!([10], spy.foo.arguments)
 //! ```
 //!
 //! ## Async traits
@@ -260,7 +260,7 @@
 //!
 //! use_async_trait(spy.clone()).block_on();
 //!
-//! assert_eq!("hello async!", spy.foo.arguments.take()[0])
+//! assert_eq!(["hello async!"], spy.foo.arguments)
 //! ```
 //!
 //! If you are using an async trait your spy might not be used immediately, for instance it might be spawned in a task.
@@ -316,7 +316,7 @@
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec![Ipv4Addr::new(192, 168, 0, 1)], spy.foo.arguments.take())
+//! assert_eq!([Ipv4Addr::new(192, 168, 0, 1)], spy.foo.arguments)
 //! ```
 //!
 //! ## Into with attribute
@@ -340,7 +340,7 @@
 //!
 //! use_trait(spy.clone());
 //!
-//! assert_eq!(vec![Ok("hello!".to_string())], spy.foo.arguments.take())
+//! assert_eq!([Ok("hello!".to_string())], spy.foo.arguments)
 //! ```
 //!
 //! ## Associated consts
