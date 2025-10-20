@@ -66,6 +66,7 @@ impl<A, R> SpyFunction<A, R> {
     }
 }
 
+///
 /// Arguments implements [`PartialEq`] for `[A]`, `&[A]` and `Vec<A>`.
 ///
 /// # Examples
