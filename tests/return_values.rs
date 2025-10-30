@@ -20,11 +20,23 @@ fn returns_items_from_set_command_in_order() {
 #[test]
 fn if_no_return_set_then_panics_when_called() {
     let spy = MyTraitSpy::default();
-    spy.function.returns.set([]);
     assert_eq!(
-        panic_message(|| use_test_trait(spy.clone(), 0)),
+        panic_message(|| use_test_trait(spy, 0)),
         Some("function 'function' had 0 return values set, but was called 1 time(s)".to_string())
     );
+}
+
+#[test]
+#[should_panic(expected = "function 'function' had unused return values when dropped")]
+fn if_a_return_set_and_not_used_then_panics_when_dropped() {
+    let spy = MyTraitSpy::default();
+    spy.function.returns.set([0]);
+}
+
+#[test]
+fn if_set_fn_and_not_used_then_does_not_panic_when_dropped() {
+    let spy = MyTraitSpy::default();
+    spy.function.returns.set_fn(|_| 0);
 }
 
 #[test]
