@@ -378,7 +378,7 @@ impl<A, R> ReturnQueue<A, R> {
         match self {
             Self::Finite(queue) => queue.pop_front().ok_or_else(|| CalledTooManyTimesError {
                 returns_set: queue.capacity(),
-                calls_made: queue.capacity() + 1,
+                calls_made: queue.capacity().wrapping_add(1),
             }),
             Self::Infinite(getter) => Ok(getter(arguments)),
         }
