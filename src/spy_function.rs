@@ -1,4 +1,5 @@
 use std::sync::MutexGuard;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::{
     collections::VecDeque,
     sync::{Arc, Mutex},
@@ -57,10 +58,13 @@ impl<A, R> SpyFunction<A, R> {
 
         self.arguments.push(arguments);
 
-        return_value.unwrap_or_else(|error| {
+        return_value.unwrap_or_else(|_| {
+            let set_count = self.returns.set_count.load(Ordering::Relaxed);
             panic!(
                 "function '{}' had {} return values set, but was called {} time(s)",
-                self.name, error.returns_set, error.calls_made
+                self.name,
+                set_count,
+                set_count.saturating_add(1)
             )
         })
     }
@@ -294,17 +298,26 @@ impl<A> Arguments<A> {
 ///
 /// spy.foo() // will always return ()
 /// ```
-pub struct Returns<A, R>(Arc<Mutex<ReturnQueue<A, R>>>);
+pub struct Returns<A, R> {
+    queue: Arc<Mutex<ReturnQueue<A, R>>>,
+    set_count: Arc<AtomicUsize>,
+}
 
 impl<A, R> Clone for Returns<A, R> {
     fn clone(&self) -> Self {
-        Self(Arc::clone(&self.0))
+        Self {
+            queue: Arc::clone(&self.queue),
+            set_count: Arc::clone(&self.set_count),
+        }
     }
 }
 
 impl<A, R> Default for Returns<A, R> {
     fn default() -> Self {
-        Self(Arc::new(Mutex::new(ReturnQueue::Finite(VecDeque::new()))))
+        Self {
+            queue: Arc::new(Mutex::new(ReturnQueue::Finite(VecDeque::new()))),
+            set_count: Arc::new(AtomicUsize::new(0)),
+        }
     }
 }
 
@@ -326,7 +339,9 @@ impl<A, R> Returns<A, R> {
     /// assert_eq!(2, spy.foo());
     /// ```
     pub fn set<I: IntoIterator<Item = R>>(&self, values: I) {
-        *self.0.lock().expect("mutex poisoned") = values.into_iter().collect();
+        let queue: ReturnQueue<_, _> = values.into_iter().collect();
+        self.set_count.fetch_add(queue.len(), Ordering::Relaxed);
+        *self.queue.lock().expect("mutex poisoned") = queue;
     }
 
     /// Set a return function for the spy that can use the function [arguments](Arguments). When set, the spy will always return using this function.
@@ -344,19 +359,22 @@ impl<A, R> Returns<A, R> {
     /// assert_eq!(3, spy.foo("baz"));
     /// ```
     pub fn set_fn(&self, getter: impl FnMut(&A) -> R + Send + 'static) {
-        *self.0.lock().expect("mutex poisoned") = ReturnQueue::Infinite(Box::new(getter));
+        *self.queue.lock().expect("mutex poisoned") = ReturnQueue::Infinite(Box::new(getter));
     }
 
     fn next(&self, arguments: &A) -> Result<R, CalledTooManyTimesError> {
-        self.0.lock().expect("mutex poisoned").next(arguments)
+        self.queue.lock().expect("mutex poisoned").next(arguments)
     }
 
     fn is_last_reference(&mut self) -> bool {
-        Arc::get_mut(&mut self.0).is_some()
+        Arc::get_mut(&mut self.queue).is_some()
     }
 
     fn unused_arguments(&self) -> bool {
-        self.0.lock().expect("mutex poisoned").unused_arguments()
+        self.queue
+            .lock()
+            .expect("mutex poisoned")
+            .unused_arguments()
     }
 }
 
@@ -376,10 +394,7 @@ impl<A, R> FromIterator<R> for ReturnQueue<A, R> {
 impl<A, R> ReturnQueue<A, R> {
     fn next(&mut self, arguments: &A) -> Result<R, CalledTooManyTimesError> {
         match self {
-            Self::Finite(queue) => queue.pop_front().ok_or_else(|| CalledTooManyTimesError {
-                returns_set: queue.capacity(),
-                calls_made: queue.capacity().wrapping_add(1),
-            }),
+            Self::Finite(queue) => queue.pop_front().ok_or(CalledTooManyTimesError),
             Self::Infinite(getter) => Ok(getter(arguments)),
         }
     }
@@ -387,9 +402,13 @@ impl<A, R> ReturnQueue<A, R> {
     fn unused_arguments(&self) -> bool {
         matches!(self, ReturnQueue::Finite(queue) if !queue.is_empty())
     }
+
+    fn len(&self) -> usize {
+        match self {
+            ReturnQueue::Finite(queue) => queue.len(),
+            ReturnQueue::Infinite(_) => usize::MAX,
+        }
+    }
 }
 
-struct CalledTooManyTimesError {
-    returns_set: usize,
-    calls_made: usize,
-}
+struct CalledTooManyTimesError;
