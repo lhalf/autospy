@@ -27,7 +27,7 @@ fn if_no_return_set_then_panics_when_called() {
 }
 
 #[test]
-#[should_panic(expected = "function 'function' had unused return values when dropped")]
+#[should_panic(expected = "function 'function' had 1 unused return values when dropped")]
 fn if_a_return_set_and_not_used_then_panics_when_dropped() {
     let spy = MyTraitSpy::default();
     spy.function.returns.set([0]);

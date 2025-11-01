@@ -37,11 +37,12 @@ impl<A, R> Drop for SpyFunction<A, R> {
     fn drop(&mut self) {
         if !std::thread::panicking()
             && self.returns.is_last_reference()
-            && self.returns.unused_arguments()
+            && self.returns.queue_len() != 0
         {
             panic!(
-                "function '{}' had unused return values when dropped",
-                self.name
+                "function '{}' had {} unused return values when dropped",
+                self.name,
+                self.returns.queue_len()
             )
         }
     }
@@ -370,11 +371,8 @@ impl<A, R> Returns<A, R> {
         Arc::get_mut(&mut self.queue).is_some()
     }
 
-    fn unused_arguments(&self) -> bool {
-        self.queue
-            .lock()
-            .expect("mutex poisoned")
-            .unused_arguments()
+    fn queue_len(&self) -> usize {
+        self.queue.lock().expect("mutex poisoned").len()
     }
 }
 
@@ -399,14 +397,10 @@ impl<A, R> ReturnQueue<A, R> {
         }
     }
 
-    fn unused_arguments(&self) -> bool {
-        matches!(self, ReturnQueue::Finite(queue) if !queue.is_empty())
-    }
-
     fn len(&self) -> usize {
         match self {
             ReturnQueue::Finite(queue) => queue.len(),
-            ReturnQueue::Infinite(_) => usize::MAX,
+            ReturnQueue::Infinite(_) => 0,
         }
     }
 }
