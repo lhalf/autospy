@@ -23,17 +23,37 @@ pub fn is_argument_marked_as_ignore(argument: &PatType) -> bool {
 }
 
 fn generics_map(generics: &Generics) -> HashMap<Ident, TokenStream> {
-    generics
-        .params
+    let parameter_generics = generics.params.iter().filter_map(|param| match param {
+        GenericParam::Type(type_param) => Some((
+            type_param.ident.clone(),
+            type_param.bounds.to_token_stream(),
+        )),
+        _ => None,
+    });
+
+    let where_clause_generics = generics
+        .where_clause
         .iter()
-        .filter_map(|param| match param {
-            GenericParam::Type(type_param) => Some((
-                type_param.ident.clone(),
-                type_param.bounds.to_token_stream(),
-            )),
-            _ => None,
-        })
-        .collect()
+        .flat_map(|where_clause| where_clause.predicates.iter())
+        .filter_map(|predicate| {
+            let type_predicate = match predicate {
+                syn::WherePredicate::Type(type_predicate) => type_predicate,
+                _ => return None,
+            };
+            let type_path = match &type_predicate.bounded_ty {
+                Type::Path(type_path)
+                    if type_path.qself.is_none() && type_path.path.segments.len() == 1 =>
+                {
+                    type_path
+                }
+                _ => return None,
+            };
+            let ident = type_path.path.segments[0].ident.clone();
+            let bounds = type_predicate.bounds.to_token_stream();
+            Some((ident, bounds))
+        });
+
+    parameter_generics.chain(where_clause_generics).collect()
 }
 
 fn non_self_function_arguments(function: &TraitItemFn) -> impl Iterator<Item = &PatType> {
@@ -197,6 +217,23 @@ mod tests {
     fn generic_function() {
         let input: TraitItemFn = parse_quote! {
             fn foo<T: ToString + 'static>(&self, argument: T);
+        };
+
+        let expected = SpyArgument {
+            name: parse_quote! { argument },
+            into_type: None,
+            with_expression: None,
+            dereferenced_type: parse_quote! { impl ToString + 'static },
+            dereference_count: 0,
+        };
+
+        assert_eq!(vec![expected], spy_arguments(&input).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn generic_function_with_where_clause() {
+        let input: TraitItemFn = parse_quote! {
+            fn foo<T>(&self, argument: T) where T: ToString + 'static;
         };
 
         let expected = SpyArgument {
