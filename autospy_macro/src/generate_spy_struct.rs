@@ -383,6 +383,28 @@ mod tests {
         );
     }
 
+    #[test]
+    fn generated_spy_struct_handles_generic_arguments_with_where_clause() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                fn foo<T>(&self, argument: T) where T: ToString + 'static;
+            }
+        };
+
+        let expected: ItemStruct = parse_quote! {
+            #[cfg(test)]
+            #[derive(Clone)]
+             struct ExampleSpy {
+                pub foo: autospy::SpyFunction<Box<dyn ToString + 'static>, ()>
+            }
+        };
+
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
+    }
+
     fn associated_spy_types(ident: TokenStream, r#type: TokenStream) -> AssociatedSpyTypes {
         [(parse_quote! { #ident }, parse_quote! { #r#type })]
             .into_iter()
