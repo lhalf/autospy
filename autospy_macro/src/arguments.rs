@@ -2,7 +2,10 @@ use crate::attribute;
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 use std::collections::HashMap;
-use syn::{Expr, FnArg, GenericParam, Generics, Pat, PatType, TraitItemFn, Type, parse_quote};
+use syn::{
+    Expr, FnArg, GenericParam, Generics, Pat, PatType, TraitItemFn, Type, WherePredicate,
+    parse_quote,
+};
 
 #[derive(PartialEq, Debug)]
 pub struct SpyArgument {
@@ -22,38 +25,52 @@ pub fn is_argument_marked_as_ignore(argument: &PatType) -> bool {
     argument.attrs.iter().any(attribute::is_ignore_attribute)
 }
 
-fn generics_map(generics: &Generics) -> HashMap<Ident, TokenStream> {
-    let parameter_generics = generics.params.iter().filter_map(|param| match param {
-        GenericParam::Type(type_param) => Some((
-            type_param.ident.clone(),
-            type_param.bounds.to_token_stream(),
-        )),
-        _ => None,
-    });
+pub fn generics_map(generics: &Generics) -> HashMap<Ident, TokenStream> {
+    parameter_generics(generics)
+        .into_iter()
+        .chain(where_clause_generics(generics))
+        .collect()
+}
 
-    let where_clause_generics = generics
+fn parameter_generics(generics: &Generics) -> Vec<(Ident, TokenStream)> {
+    generics
+        .params
+        .iter()
+        .filter_map(type_param_ident_and_bounds)
+        .collect()
+}
+
+fn where_clause_generics(generics: &Generics) -> Vec<(Ident, TokenStream)> {
+    generics
         .where_clause
         .iter()
         .flat_map(|where_clause| where_clause.predicates.iter())
-        .filter_map(|predicate| {
-            let type_predicate = match predicate {
-                syn::WherePredicate::Type(type_predicate) => type_predicate,
-                _ => return None,
-            };
-            let type_path = match &type_predicate.bounded_ty {
-                Type::Path(type_path)
-                    if type_path.qself.is_none() && type_path.path.segments.len() == 1 =>
-                {
-                    type_path
-                }
-                _ => return None,
-            };
+        .filter_map(where_type_ident_and_bounds)
+        .collect()
+}
+
+fn type_param_ident_and_bounds(param: &GenericParam) -> Option<(Ident, TokenStream)> {
+    match param {
+        GenericParam::Type(ty_param) => {
+            Some((ty_param.ident.clone(), ty_param.bounds.to_token_stream()))
+        }
+        _ => None,
+    }
+}
+
+fn where_type_ident_and_bounds(predicate: &WherePredicate) -> Option<(Ident, TokenStream)> {
+    if let WherePredicate::Type(type_predicate) = predicate {
+        let ty = &type_predicate.bounded_ty;
+        if let Type::Path(type_path) = ty
+            && type_path.qself.is_none()
+            && type_path.path.segments.len() == 1
+        {
             let ident = type_path.path.segments[0].ident.clone();
             let bounds = type_predicate.bounds.to_token_stream();
-            Some((ident, bounds))
-        });
-
-    parameter_generics.chain(where_clause_generics).collect()
+            return Some((ident, bounds));
+        }
+    }
+    None
 }
 
 fn non_self_function_arguments(function: &TraitItemFn) -> impl Iterator<Item = &PatType> {
