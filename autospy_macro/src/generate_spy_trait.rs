@@ -20,7 +20,7 @@ pub fn generate_spy_trait(
 
     let generics = &item_trait.generics;
     let generics_where_clause = &generics.where_clause;
-    let (generics_idents_without_elided_lifetime, generics_idents_with_elided_lifetime) =
+    let (generics_idents_with_elided_lifetime, generics_idents_without_elided_lifetime) =
         generic_idents_with_and_without_elided_lifetime(item_trait);
 
     let spy_name = format_ident!("{}Spy", trait_name);
@@ -44,11 +44,11 @@ pub fn generate_spy_trait(
 
 fn generic_idents_with_and_without_elided_lifetime(item_trait: &ItemTrait) -> (Generics, Generics) {
     (
-        generics_idents(&item_trait.generics, false),
         generics_idents(
             &item_trait.generics,
             inspect::has_function_with_no_lifetime_reference(item_trait),
         ),
+        generics_idents(&item_trait.generics, false),
     )
 }
 
