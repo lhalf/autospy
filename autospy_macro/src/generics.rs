@@ -3,20 +3,22 @@ use syn::{GenericParam, Generics, parse_quote};
 pub fn generics_idents(generics: &Generics, elided_lifetime: bool) -> Generics {
     let mut generics_idents = generics.clone();
 
-    for param in generics_idents.params.iter_mut() {
-        if let GenericParam::Type(ty_param) = param {
-            ty_param.bounds.clear();
-            ty_param.colon_token = None;
-            ty_param.eq_token = None;
-            ty_param.default = None;
-        }
-    }
+    generics_idents.params.iter_mut().for_each(clear_bounds);
 
     if elided_lifetime {
         generics_idents.params.push(parse_quote! { '_ });
     }
 
     generics_idents
+}
+
+fn clear_bounds(param: &mut GenericParam) {
+    if let GenericParam::Type(ty_param) = param {
+        ty_param.bounds.clear();
+        ty_param.colon_token = None;
+        ty_param.eq_token = None;
+        ty_param.default = None;
+    }
 }
 
 #[cfg(test)]
