@@ -104,9 +104,7 @@ fn function_return_type(function: &TraitItemFn) -> TokenStream {
 }
 
 fn static_lifetime(type_reference: &TypeReference) -> TokenStream {
-    if let Some(lifetime) = &type_reference.lifetime
-        && lifetime.ident == "static"
-    {
+    if type_reference.lifetime.is_some() {
         return type_reference.to_token_stream();
     }
 
@@ -209,7 +207,7 @@ mod tests {
     }
 
     #[test]
-    fn generated_spy_struct_stores_reference_returns_as_static_references() {
+    fn generated_spy_struct_converts_non_static_reference_returns_to_static() {
         let input: ItemTrait = parse_quote! {
             trait Example {
                 fn foo(&self) -> &u32;
@@ -231,7 +229,7 @@ mod tests {
     }
 
     #[test]
-    fn generated_spy_struct_stores_static_reference_returns_as_static_references() {
+    fn generated_spy_struct_retains_static_lifetime_references_on_returns() {
         let input: ItemTrait = parse_quote! {
             trait Example {
                 fn foo(&self) -> &'static u32;
@@ -243,6 +241,28 @@ mod tests {
             #[derive(Clone)]
             struct ExampleSpy {
                 pub foo: autospy::SpyFunction< () , &'static u32 >
+            }
+        };
+
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
+    }
+
+    #[test]
+    fn generated_spy_struct_retains_lifetime_references_on_returns() {
+        let input: ItemTrait = parse_quote! {
+            trait Example<'a> {
+                fn foo(&self) -> &'a u32;
+            }
+        };
+
+        let expected: ItemStruct = parse_quote! {
+            #[cfg(test)]
+            #[derive(Clone)]
+            struct ExampleSpy<'a> {
+                pub foo: autospy::SpyFunction< () , &'a u32 >
             }
         };
 
