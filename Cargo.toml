@@ -22,7 +22,7 @@ members = ["autospy_macro"]
 [dependencies]
 autospy_macro = { path = "autospy_macro", version = "1.3.1" }
 const-default = { version = "1.0.0", default-features = false }
-async-channel = { version = "2.3.1", default-features = false, features = ["std"], optional = true }
+async-channel = { version = "2.5.0", default-features = false, features = ["std"], optional = true }
 
 [dev-dependencies]
 async-trait = { version = "0.1.89", default-features = false }
