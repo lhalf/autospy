@@ -190,6 +190,51 @@ mod tests {
         );
     }
 
+    // TODO
+    // #[test]
+    // fn generated_spy_struct_stores_reference_returns_as_static_references() {
+    //     let input: ItemTrait = parse_quote! {
+    //         trait Example {
+    //             fn foo(&self) -> &u32;
+    //         }
+    //     };
+    //
+    //     let expected: ItemStruct = parse_quote! {
+    //         #[cfg(test)]
+    //         #[derive(Clone)]
+    //         struct ExampleSpy {
+    //             pub foo: autospy::SpyFunction< () , &'static u32 >
+    //         }
+    //     };
+    //
+    //     assert_eq!(
+    //         expected,
+    //         generate_spy_struct(&input, &AssociatedSpyTypes::new())
+    //     );
+    // }
+
+    #[test]
+    fn generated_spy_struct_stores_static_reference_returns_as_static_references() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                fn foo(&self) -> &'static u32;
+            }
+        };
+
+        let expected: ItemStruct = parse_quote! {
+            #[cfg(test)]
+            #[derive(Clone)]
+            struct ExampleSpy {
+                pub foo: autospy::SpyFunction< () , &'static u32 >
+            }
+        };
+
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
+    }
+
     #[test]
     fn generated_spy_struct_captures_associated_type_arguments() {
         let input: ItemTrait = parse_quote! {
