@@ -4,7 +4,9 @@ use crate::{arguments, attribute, edit, generate, inspect, supertraits};
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
 use syn::visit_mut::VisitMut;
-use syn::{ItemStruct, ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait, parse_quote};
+use syn::{
+    ItemStruct, ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait, TypeReference, parse_quote,
+};
 
 pub fn generate_spy_struct(
     item_trait: &ItemTrait,
@@ -94,8 +96,24 @@ fn function_return_type(function: &TraitItemFn) -> TokenStream {
 
     match &function.sig.output {
         ReturnType::Default => quote! { () },
-        ReturnType::Type(_arrow, return_type) => return_type.to_token_stream(),
+        ReturnType::Type(_arrow, return_type) => match return_type.as_ref() {
+            Type::Reference(type_reference) => static_lifetime(type_reference),
+            _ => return_type.to_token_stream(),
+        },
     }
+}
+
+fn static_lifetime(type_reference: &TypeReference) -> TokenStream {
+    if let Some(lifetime) = &type_reference.lifetime
+        && lifetime.ident == "static"
+    {
+        return type_reference.to_token_stream();
+    }
+
+    let mut static_type_reference = type_reference.clone();
+    static_type_reference.lifetime = Some(parse_quote! { 'static });
+
+    static_type_reference.to_token_stream()
 }
 
 #[cfg(test)]
@@ -190,28 +208,27 @@ mod tests {
         );
     }
 
-    // TODO
-    // #[test]
-    // fn generated_spy_struct_stores_reference_returns_as_static_references() {
-    //     let input: ItemTrait = parse_quote! {
-    //         trait Example {
-    //             fn foo(&self) -> &u32;
-    //         }
-    //     };
-    //
-    //     let expected: ItemStruct = parse_quote! {
-    //         #[cfg(test)]
-    //         #[derive(Clone)]
-    //         struct ExampleSpy {
-    //             pub foo: autospy::SpyFunction< () , &'static u32 >
-    //         }
-    //     };
-    //
-    //     assert_eq!(
-    //         expected,
-    //         generate_spy_struct(&input, &AssociatedSpyTypes::new())
-    //     );
-    // }
+    #[test]
+    fn generated_spy_struct_stores_reference_returns_as_static_references() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                fn foo(&self) -> &u32;
+            }
+        };
+
+        let expected: ItemStruct = parse_quote! {
+            #[cfg(test)]
+            #[derive(Clone)]
+            struct ExampleSpy {
+                pub foo: autospy::SpyFunction< () , &'static u32 >
+            }
+        };
+
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
+    }
 
     #[test]
     fn generated_spy_struct_stores_static_reference_returns_as_static_references() {
