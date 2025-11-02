@@ -1,6 +1,6 @@
-use syn::{GenericParam, Generics};
+use syn::{GenericParam, Generics, parse_quote};
 
-pub fn generics_idents(generics: &Generics) -> Generics {
+pub fn generics_idents(generics: &Generics, elided_lifetime: bool) -> Generics {
     let mut generics_idents = generics.clone();
 
     for param in generics_idents.params.iter_mut() {
@@ -10,6 +10,10 @@ pub fn generics_idents(generics: &Generics) -> Generics {
             ty_param.eq_token = None;
             ty_param.default = None;
         }
+    }
+
+    if elided_lifetime {
+        generics_idents.params.push(parse_quote! { '_ });
     }
 
     generics_idents
@@ -30,7 +34,7 @@ mod tests {
             <T>
         };
 
-        assert_eq!(expected, generics_idents(&input));
+        assert_eq!(expected, generics_idents(&input, false));
     }
 
     #[test]
@@ -43,7 +47,7 @@ mod tests {
             <T>
         };
 
-        assert_eq!(expected, generics_idents(&input));
+        assert_eq!(expected, generics_idents(&input, false));
     }
 
     #[test]
@@ -56,7 +60,7 @@ mod tests {
             <T, U>
         };
 
-        assert_eq!(expected, generics_idents(&input));
+        assert_eq!(expected, generics_idents(&input, false));
     }
 
     #[test]
@@ -69,7 +73,7 @@ mod tests {
             <T, U>
         };
 
-        assert_eq!(expected, generics_idents(&input));
+        assert_eq!(expected, generics_idents(&input, false));
     }
 
     #[test]
@@ -82,7 +86,7 @@ mod tests {
             <'a, const N: usize, T>
         };
 
-        assert_eq!(expected, generics_idents(&input));
+        assert_eq!(expected, generics_idents(&input, false));
     }
 
     #[test]
@@ -95,6 +99,19 @@ mod tests {
             <>
         };
 
-        assert_eq!(expected, generics_idents(&input));
+        assert_eq!(expected, generics_idents(&input, false));
+    }
+
+    #[test]
+    fn with_elided_lifetime() {
+        let input: Generics = parse_quote! {
+            <T: Copy>
+        };
+
+        let expected: Generics = parse_quote! {
+            <T, '_>
+        };
+
+        assert_eq!(expected, generics_idents(&input, true));
     }
 }

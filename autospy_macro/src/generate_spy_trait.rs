@@ -5,7 +5,7 @@ use crate::strip_attributes::{strip_attributes_from_signature, strip_autospy_att
 use crate::{arguments, attribute, edit, generate, inspect, supertraits};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
-use syn::{ItemTrait, Token, TraitItemConst, TraitItemFn, Type, parse_quote};
+use syn::{Generics, ItemTrait, Token, TraitItemConst, TraitItemFn, Type, parse_quote};
 
 pub fn generate_spy_trait(
     item_trait: &ItemTrait,
@@ -20,7 +20,8 @@ pub fn generate_spy_trait(
 
     let generics = &item_trait.generics;
     let generics_where_clause = &generics.where_clause;
-    let generics_idents = generics_idents(generics);
+    let (generics_idents_without_elided_lifetime, generics_idents_with_elided_lifetime) =
+        generic_idents_with_and_without_elided_lifetime(item_trait);
 
     let spy_name = format_ident!("{}Spy", trait_name);
     let associated_type_definitions = associated_type_definitions(associated_spy_types);
@@ -32,13 +33,23 @@ pub fn generate_spy_trait(
     quote! {
         #cfg
         #(#trait_attributes)*
-        #r#unsafe impl #generics #trait_name #generics_idents for #spy_name #generics_idents #generics_where_clause {
+        #r#unsafe impl #generics #trait_name #generics_idents_without_elided_lifetime for #spy_name #generics_idents_with_elided_lifetime #generics_where_clause {
             #(#associated_type_definitions)*
             #(#spy_associated_consts)*
             #(#spy_function_definitions)*
         }
         #(#spy_supertraits)*
     }
+}
+
+fn generic_idents_with_and_without_elided_lifetime(item_trait: &ItemTrait) -> (Generics, Generics) {
+    (
+        generics_idents(&item_trait.generics, false),
+        generics_idents(
+            &item_trait.generics,
+            inspect::has_function_with_no_lifetime_reference(item_trait),
+        ),
+    )
 }
 
 fn associated_type_definitions(
@@ -436,6 +447,74 @@ mod tests {
             impl Example for ExampleSpy {
                fn one(&self) -> u8 {
                     1
+                }
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_impl_has_elided_lifetime_if_function_has_no_lifetime_reference_return() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                fn foo(&self) -> &str;
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Example for ExampleSpy<'_> {
+                #[track_caller]
+                fn foo(&self) -> &str {
+                    self.foo.spy(())
+                }
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_impl_is_generic_over_trait_lifetime() {
+        let input: ItemTrait = parse_quote! {
+            trait Example<'a> {}
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl<'a> Example<'a> for ExampleSpy<'a> {}
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_impl_is_generic_over_trait_lifetime_and_elided_lifetime_if_no_lifetime_reference_return()
+     {
+        let input: ItemTrait = parse_quote! {
+            trait Example<'a> {
+                fn foo(&self) -> &str;
+                fn bar(&self) -> &'a str;
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl<'a> Example<'a> for ExampleSpy<'a, '_> {
+                #[track_caller]
+                fn foo(&self) -> &str {
+                    self.foo.spy(())
+                }
+                #[track_caller]
+                fn bar(&self) -> &'a str {
+                    self.bar.spy(())
                 }
             }
         };

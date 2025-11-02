@@ -3,13 +3,13 @@ use crate::inspect::cfg;
 use crate::{attribute, inspect, supertraits};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{ItemTrait, TraitItemFn};
+use syn::{Generics, ItemTrait, TraitItemFn};
 
 pub fn generate_spy_default(item_trait: &ItemTrait) -> TokenStream {
     let cfg = cfg();
 
     let generics = &item_trait.generics;
-    let generics_idents = generics_idents(generics);
+    let generics_idents = generic_idents(item_trait);
     let generics_where_clause = &generics.where_clause;
 
     let spy_name = format_ident!("{}Spy", &item_trait.ident);
@@ -25,6 +25,13 @@ pub fn generate_spy_default(item_trait: &ItemTrait) -> TokenStream {
             }
         }
     }
+}
+
+fn generic_idents(item_trait: &ItemTrait) -> Generics {
+    generics_idents(
+        &item_trait.generics,
+        inspect::has_function_with_no_lifetime_reference(item_trait),
+    )
 }
 
 fn generate_spy_defaults(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {
@@ -261,6 +268,80 @@ mod tests {
         let expected = quote! {
             #[cfg(test)]
             impl Default for ExampleSpy {
+                fn default() -> Self {
+                    Self {
+                        foo: autospy::SpyFunction::from("foo"),
+                        bar: autospy::SpyFunction::from("bar")
+                    }
+                }
+            }
+        };
+
+        let actual = generate_spy_default(&input);
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_with_lifetime() {
+        let input: ItemTrait = parse_quote! {
+            trait Example<'a> {
+                fn foo(&self) -> &'a str;
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl<'a> Default for ExampleSpy<'a> {
+                fn default() -> Self {
+                    Self {
+                        foo: autospy::SpyFunction::from("foo")
+                    }
+                }
+            }
+        };
+
+        let actual = generate_spy_default(&input);
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_with_no_lifetime_reference_return() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                fn foo(&self) -> &str;
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Default for ExampleSpy<'_> {
+                fn default() -> Self {
+                    Self {
+                        foo: autospy::SpyFunction::from("foo")
+                    }
+                }
+            }
+        };
+
+        let actual = generate_spy_default(&input);
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_with_lifetime_and_no_lifetime_reference_return() {
+        let input: ItemTrait = parse_quote! {
+            trait Example<'a> {
+                fn foo(&self) -> &'a str;
+                fn bar(&self) -> &str;
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl<'a> Default for ExampleSpy<'a, '_> {
                 fn default() -> Self {
                     Self {
                         foo: autospy::SpyFunction::from("foo"),
