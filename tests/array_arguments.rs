@@ -8,7 +8,7 @@ fn use_test_trait<T: MyTrait>(trait_object: T) {
 }
 
 #[test]
-fn borrowed_argument_coverted_to_owned() {
+fn borrowed_argument_converted_to_owned() {
     let spy = MyTraitSpy::default();
     spy.function.returns.set([()]);
 
