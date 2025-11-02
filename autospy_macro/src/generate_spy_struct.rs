@@ -34,7 +34,7 @@ pub fn generate_spy_struct(
 fn generate_struct_generics(item_trait: &ItemTrait) -> Generics {
     let mut generics = item_trait.generics.clone();
 
-    if inspect::has_function_with_no_lifetime_reference(item_trait) {
+    if inspect::has_function_returning_no_lifetime_reference(item_trait) {
         generics.params.push(parse_quote! { 'spy });
     }
 

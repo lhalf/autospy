@@ -30,7 +30,7 @@ pub fn generate_spy_default(item_trait: &ItemTrait) -> TokenStream {
 fn generic_idents(item_trait: &ItemTrait) -> Generics {
     generics_idents(
         &item_trait.generics,
-        inspect::has_function_with_no_lifetime_reference(item_trait),
+        inspect::has_function_returning_no_lifetime_reference(item_trait),
     )
 }
 

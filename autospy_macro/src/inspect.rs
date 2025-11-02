@@ -30,11 +30,11 @@ pub fn cfg() -> TokenStream {
     }
 }
 
-pub fn has_function_with_no_lifetime_reference(item_trait: &ItemTrait) -> bool {
-    trait_functions(item_trait).any(function_has_no_lifetime_reference)
+pub fn has_function_returning_no_lifetime_reference(item_trait: &ItemTrait) -> bool {
+    trait_functions(item_trait).any(function_return_has_no_lifetime_reference)
 }
 
-fn function_has_no_lifetime_reference(function: &TraitItemFn) -> bool {
+fn function_return_has_no_lifetime_reference(function: &TraitItemFn) -> bool {
     matches!(
         &function.sig.output,
         ReturnType::Type(_, return_type)

@@ -46,7 +46,7 @@ fn generic_idents_with_and_without_elided_lifetime(item_trait: &ItemTrait) -> (G
     (
         generics_idents(
             &item_trait.generics,
-            inspect::has_function_with_no_lifetime_reference(item_trait),
+            inspect::has_function_returning_no_lifetime_reference(item_trait),
         ),
         generics_idents(&item_trait.generics, false),
     )
