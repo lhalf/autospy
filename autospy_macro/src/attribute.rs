@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use syn::parse::Parser;
 use syn::{
-    Attribute, Expr, ExprLit, Lit, Meta, MetaNameValue, Token, Type, TypePath, parse::Parse,
+    Attribute, Expr, ExprLit, Lit, Meta, MetaNameValue, Token, Type, parse::Parse,
     punctuated::Punctuated,
 };
 
@@ -20,7 +20,7 @@ pub fn has_use_default_attribute(attributes: &[Attribute]) -> bool {
     autospy_attributes(attributes).any(|attribute| attribute.to_string() == "use_default")
 }
 
-pub fn associated_type(attributes: &[Attribute]) -> Option<TypePath> {
+pub fn associated_type(attributes: &[Attribute]) -> Option<Type> {
     Some(
         syn::parse2(autospy_attributes(attributes).next()?.clone())
             .expect("invalid associated type"),

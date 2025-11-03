@@ -1,24 +1,29 @@
 use crate::arguments::is_argument_marked_as_ignore;
 use crate::associated_types::AssociatedSpyTypes;
 use syn::visit_mut::VisitMut;
-use syn::{FnArg, PatType, Signature, TypePath, parse_quote};
+use syn::{FnArg, PatType, Signature, Type, parse_quote};
 
 pub struct AssociatedTypeReplacer<'a> {
     pub associated_spy_types: &'a AssociatedSpyTypes,
 }
 
 impl VisitMut for AssociatedTypeReplacer<'_> {
-    fn visit_type_path_mut(&mut self, type_path: &mut TypePath) {
-        if let Some(replacement) = self.associated_type_replacement(type_path) {
-            *type_path = replacement;
+    fn visit_type_mut(&mut self, r#type: &mut Type) {
+        if let Some(replacement) = self.associated_type_replacement(r#type) {
+            *r#type = replacement;
         }
 
-        syn::visit_mut::visit_type_path_mut(self, type_path);
+        syn::visit_mut::visit_type_mut(self, r#type);
     }
 }
 
 impl AssociatedTypeReplacer<'_> {
-    fn associated_type_replacement(&self, type_path: &mut TypePath) -> Option<TypePath> {
+    fn associated_type_replacement(&self, r#type: &mut Type) -> Option<Type> {
+        let type_path = match r#type {
+            Type::Path(type_path) => type_path,
+            _ => return None,
+        };
+
         if type_path.qself.is_some() || type_path.path.segments.len() != 2 {
             return None;
         }

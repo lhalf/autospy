@@ -1,8 +1,8 @@
 use crate::attribute;
 use std::collections::BTreeMap;
-use syn::{Ident, ItemTrait, TraitItem, TraitItemType, TypePath};
+use syn::{Ident, ItemTrait, TraitItem, TraitItemType, Type};
 
-pub type AssociatedSpyTypes = BTreeMap<Ident, TypePath>;
+pub type AssociatedSpyTypes = BTreeMap<Ident, Type>;
 
 pub fn get_associated_types(item_trait: &ItemTrait) -> AssociatedSpyTypes {
     item_trait
@@ -20,7 +20,7 @@ fn associated_types(item: &TraitItem) -> Option<&TraitItemType> {
     }
 }
 
-fn associated_type_name_and_spy_type(trait_item: &TraitItemType) -> Option<(Ident, TypePath)> {
+fn associated_type_name_and_spy_type(trait_item: &TraitItemType) -> Option<(Ident, Type)> {
     Some((
         trait_item.ident.clone(),
         attribute::associated_type(&trait_item.attrs)?,
@@ -31,8 +31,8 @@ fn associated_type_name_and_spy_type(trait_item: &TraitItemType) -> Option<(Iden
 mod tests {
     use crate::associated_types::{AssociatedSpyTypes, get_associated_types};
 
-    use quote::{ToTokens, format_ident};
-    use syn::{ItemTrait, parse_quote};
+    use quote::format_ident;
+    use syn::{ItemTrait, Type, parse_quote};
 
     #[test]
     fn empty_trait_has_no_associated_types() {
@@ -52,7 +52,7 @@ mod tests {
             }
         };
 
-        let expected = to_associated_spy_types([("Hello", "String")]);
+        let expected = to_associated_spy_types([("Hello", parse_quote! { String })]);
 
         assert_eq!(expected, get_associated_types(&input));
     }
@@ -65,10 +65,19 @@ mod tests {
                 type Hello;
                 #[autospy(bool)]
                 type Nope;
+                #[autospy(&str)]
+                type Reference;
+                #[autospy(&'static str)]
+                type StaticReference;
             }
         };
 
-        let expected = to_associated_spy_types([("Hello", "String"), ("Nope", "bool")]);
+        let expected = to_associated_spy_types([
+            ("Hello", parse_quote! { String }),
+            ("Nope", parse_quote! { bool }),
+            ("Reference", parse_quote! { &str }),
+            ("StaticReference", parse_quote! { &'static str }),
+        ]);
 
         assert_eq!(expected, get_associated_types(&input));
     }
@@ -86,7 +95,10 @@ mod tests {
             }
         };
 
-        let expected = to_associated_spy_types([("Hello", "String"), ("Nope", "bool")]);
+        let expected = to_associated_spy_types([
+            ("Hello", parse_quote! { String }),
+            ("Nope", parse_quote! { bool }),
+        ]);
 
         assert_eq!(expected, get_associated_types(&input));
     }
@@ -102,7 +114,7 @@ mod tests {
             }
         };
 
-        let expected = to_associated_spy_types([("Hello", "String")]);
+        let expected = to_associated_spy_types([("Hello", parse_quote! { String })]);
 
         assert_eq!(expected, get_associated_types(&input));
     }
@@ -119,22 +131,17 @@ mod tests {
             }
         };
 
-        let expected = to_associated_spy_types([("Hello", "String")]);
+        let expected = to_associated_spy_types([("Hello", parse_quote! { String })]);
 
         assert_eq!(expected, get_associated_types(&input));
     }
 
     fn to_associated_spy_types(
-        items: impl IntoIterator<Item = (&'static str, &'static str)>,
+        items: impl IntoIterator<Item = (&'static str, Type)>,
     ) -> AssociatedSpyTypes {
         items
             .into_iter()
-            .map(|(ident, r#type)| {
-                (
-                    format_ident!("{ident}"),
-                    syn::parse2(format_ident!("{type}").to_token_stream()).unwrap(),
-                )
-            })
+            .map(|(ident, r#type)| (format_ident!("{ident}"), r#type))
             .collect()
     }
 }
