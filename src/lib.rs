@@ -92,14 +92,14 @@
 //!     fn foo(&self) -> &str;
 //! }
 //!
-//! fn use_trait(x: impl MyTrait) -> &str {
+//! fn use_trait(x: &impl MyTrait) -> &str {
 //!     x.foo()
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.set(["hello!"]);
 //!
-//! assert_eq!("hello!", use_trait(spy););
+//! assert_eq!("hello!", use_trait(&spy));
 //! ```
 //!
 //! ## Ignore arguments
@@ -457,7 +457,7 @@
 //!
 //! - **test** - makes the generated spy object and trait impl `#[cfg(test)]` - enabled by default.
 //! - **async** - enables additional async support features on the spy, if you are not using async
-//! traits you can safely disable this - enabled by default.
+//!   traits you can safely disable this - enabled by default.
 
 mod macros;
 mod spy_function;
