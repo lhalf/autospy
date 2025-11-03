@@ -81,6 +81,27 @@
 //! assert_eq!(["hello!"], spy.foo.arguments);
 //! ```
 //!
+//! ## Reference returns
+//!
+//! Functions that return non-mutable and mutable references are supported. If an explicit lifetime
+//! is not provided the lifetime of the reference will be the same as the spy.
+//!
+//! ```rust
+//! #[autospy::autospy]
+//! trait MyTrait {
+//!     fn foo(&self) -> &str;
+//! }
+//!
+//! fn use_trait(x: impl MyTrait) -> &str {
+//!     x.foo()
+//! }
+//!
+//! let spy = MyTraitSpy::default();
+//! spy.foo.returns.set(["hello!"]);
+//!
+//! assert_eq!("hello!", use_trait(spy););
+//! ```
+//!
 //! ## Ignore arguments
 //!
 //! Arguments can be ignored using `#[autospy(ignore)]` if you do not wish to capture them in the spy.
@@ -149,7 +170,8 @@
 //!
 //! ## External traits
 //!
-//! External traits can be turned into a spy using `#[autospy(external)]`, you will need to include the signatures for the external trait functions you want the spy to implement.
+//! External traits can be turned into a spy using `#[autospy(external)]`, you will need to include
+//! the signatures for the external trait functions you want the spy to implement.
 //!
 //! ```rust
 //! use std::io::Read;
@@ -172,7 +194,8 @@
 //!
 //! ## Returns attribute
 //!
-//! Trait functions that return generics can have the return type specified using the `#[autospy(returns = "TYPE")]` attribute.
+//! Trait functions that return generics can have the return type specified using the
+//! `#[autospy(returns = "TYPE")]` attribute.
 //!
 //! ```rust
 //! #[autospy::autospy]
@@ -193,7 +216,9 @@
 //!
 //! ## Static trait arguments
 //!
-//! Trait functions that have generic arguments and are [`'static`](https://doc.rust-lang.org/rust-by-example/scope/lifetime/static_lifetime.html) will automatically be captured in a [`Box`].
+//! Trait functions that have generic arguments and are
+//! [`'static`](https://doc.rust-lang.org/rust-by-example/scope/lifetime/static_lifetime.html)
+//! will automatically be captured in a [`Box`].
 //!
 //! ```rust
 //! #[autospy::autospy]
@@ -237,7 +262,10 @@
 //!
 //! ## Async traits
 //!
-//! Async functions in traits are stable as of [Rust 1.75](https://blog.rust-lang.org/2023/12/28/Rust-1.75.0/); however, this did not include support for using traits containing async functions as `dyn Trait`. They can be used via the [`async_trait`](https://docs.rs/async-trait/latest/async_trait/) crate. `#[autospy]` is compatible with the `#[async_trait]` macro.
+//! Async functions in traits are stable as of [Rust 1.75](https://blog.rust-lang.org/2023/12/28/Rust-1.75.0/);
+//! however, this did not include support for using traits containing async functions as `dyn Trait`.
+//! They can be used via the [`async_trait`](https://docs.rs/async-trait/latest/async_trait/) crate.
+//! `#[autospy]` is compatible with the `#[async_trait]` macro.
 //! <div class="warning">
 //! <code>#[autospy]</code> must come before <code>#[async_trait]</code>.
 //! </div>
@@ -297,7 +325,8 @@
 //!
 //! ## Into attribute
 //!
-//! If you wish to capture an argument as a different type, and it implements [`From`] you can use the `#[autospy(into = "TYPE")]` attribute on the argument.
+//! If you wish to capture an argument as a different type, and it implements [`From`] you can
+//! use the `#[autospy(into = "TYPE")]` attribute on the argument.
 //!
 //! ```rust
 //! use std::net::Ipv4Addr;
@@ -321,7 +350,8 @@
 //!
 //! ## Into with attribute
 //!
-//! If you wish to capture an argument as a different type, and it doesn't implement [`From`] you can use the `#[autospy(into = "TYPE", with = "FUNCTION")]` attribute on the argument.
+//! If you wish to capture an argument as a different type, and it doesn't implement [`From`] you
+//! can use the `#[autospy(into = "TYPE", with = "FUNCTION")]` attribute on the argument.
 //!
 //! ```rust
 //! use std::string::FromUtf8Error;
@@ -345,7 +375,8 @@
 //!
 //! ## Associated consts
 //!
-//! An `#[autospy(VALUE)]` attribute can be applied to associated consts to set them in the spy. Alternatively, if no attribute is provided and the type has a [`Default`] that will be used.
+//! An `#[autospy(VALUE)]` attribute can be applied to associated consts to set them in the spy.
+//! Alternatively, if no attribute is provided and the type has a [`Default`] that will be used.
 //!
 //! ```rust
 //! #[autospy::autospy]
@@ -362,7 +393,9 @@
 //!
 //! ## Default trait implementations
 //!
-//! If your trait has a default implementation for a function, an `#[autospy(use_default)]` attribute can be used on the method to tell the spy to use the default. Therefore, no spy values will be recorded for this function.
+//! If your trait has a default implementation for a function, an `#[autospy(use_default)]`
+//! attribute can be used on the method to tell the spy to use the default.
+//! Therefore, no spy values will be recorded for this function.
 //!
 //! ```rust
 //! #[autospy::autospy]
@@ -385,7 +418,8 @@
 //! ## Supertraits
 //!
 //! Supertraits are supported through the [`supertrait!`](supertrait) macro by putting the supertrait
-//! definition inside the macro. The supertrait must be in scope. If using autospy as a dev dependency you **MUST** mark the supertrait macro as `#[cfg(test)]`.
+//! definition inside the macro. The supertrait must be in scope. If using autospy as a dev dependency
+//! you **MUST** mark the supertrait macro as `#[cfg(test)]`.
 //!
 //! ```rust
 //! use std::io::Read;
@@ -422,7 +456,8 @@
 //! # Features
 //!
 //! - **test** - makes the generated spy object and trait impl `#[cfg(test)]` - enabled by default.
-//! - **async** - enables additional async support features on the spy, if you are not using async traits you can safely disable this - enabled by default.
+//! - **async** - enables additional async support features on the spy, if you are not using async
+//! traits you can safely disable this - enabled by default.
 
 mod macros;
 mod spy_function;
