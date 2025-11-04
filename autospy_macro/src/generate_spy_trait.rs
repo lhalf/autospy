@@ -772,6 +772,7 @@ mod tests {
     fn associated_types_are_replaced() {
         let input: ItemTrait = parse_quote! {
             trait Example {
+                #[autospy(String)]
                 type Hello;
             }
         };
@@ -802,6 +803,7 @@ mod tests {
     fn generic_associated_types_are_replaced() {
         let input: ItemTrait = parse_quote! {
             trait Example {
+                #[autospy(String)]
                 type Hello<'a> where Self: 'a;
             }
         };
