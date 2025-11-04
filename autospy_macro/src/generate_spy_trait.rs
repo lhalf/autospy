@@ -170,7 +170,7 @@ fn supertrait_as_spy_trait(
 
 #[cfg(test)]
 mod tests {
-    use crate::associated_types::AssociatedSpyTypes;
+    use crate::associated_types::{AssociatedSpyTypes, AssociatedType};
 
     use super::generate_spy_trait;
     use quote::{ToTokens, quote};
@@ -761,6 +761,36 @@ mod tests {
         };
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn associated_types_are_replaced() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                type Hello;
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Example for ExampleSpy {
+                type Hello = String;
+            }
+        };
+
+        let mut associated_spy_types = AssociatedSpyTypes::new();
+
+        associated_spy_types.insert(
+            parse_quote! { Hello },
+            AssociatedType {
+                r#type: parse_quote! { String },
+                generics: parse_quote! {},
+            },
+        );
+
+        let actual = generate_spy_trait(&input, &associated_spy_types);
 
         assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
     }
