@@ -1,6 +1,6 @@
 use crate::attribute;
 use std::collections::BTreeMap;
-use syn::{Generics, Ident, ItemTrait, TraitItem, TraitItemType, Type};
+use syn::{Generics, Ident, ItemTrait, Lifetime, TraitItem, TraitItemType, Type};
 
 pub type AssociatedSpyTypes = BTreeMap<Ident, AssociatedType>;
 
@@ -8,6 +8,15 @@ pub type AssociatedSpyTypes = BTreeMap<Ident, AssociatedType>;
 pub struct AssociatedType {
     pub r#type: Type,
     pub generics: Generics,
+}
+
+impl AssociatedType {
+    pub fn lifetime(&self) -> Option<&Lifetime> {
+        match &self.r#type {
+            Type::Reference(reference) => reference.lifetime.as_ref(),
+            _ => None,
+        }
+    }
 }
 
 pub fn get_associated_types(item_trait: &ItemTrait) -> AssociatedSpyTypes {

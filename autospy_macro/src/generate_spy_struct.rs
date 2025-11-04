@@ -1,4 +1,4 @@
-use crate::associated_types::AssociatedSpyTypes;
+use crate::associated_types::{AssociatedSpyTypes, AssociatedType};
 use crate::inspect::cfg;
 use crate::{arguments, attribute, edit, generate, inspect, supertraits};
 use proc_macro2::TokenStream;
@@ -17,7 +17,7 @@ pub fn generate_spy_struct(
 
     let visibility = &item_trait.vis;
     let spy_name = format_ident!("{}Spy", item_trait.ident);
-    let generics = generate_struct_generics(item_trait);
+    let generics = generate_struct_generics(item_trait, associated_spy_types);
     let generics_where_clause = &generics.where_clause;
 
     let spy_fields = generate_spy_fields(item_trait, associated_spy_types);
@@ -31,11 +31,21 @@ pub fn generate_spy_struct(
     }
 }
 
-fn generate_struct_generics(item_trait: &ItemTrait) -> Generics {
+fn generate_struct_generics(
+    item_trait: &ItemTrait,
+    associated_spy_types: &AssociatedSpyTypes,
+) -> Generics {
     let mut generics = item_trait.generics.clone();
 
     if inspect::has_function_returning_no_lifetime_reference(item_trait) {
         generics.params.push(parse_quote! { 'spy });
+    }
+
+    for lifetime in associated_spy_types
+        .values()
+        .filter_map(AssociatedType::lifetime)
+    {
+        generics.params.push(parse_quote! { #lifetime });
     }
 
     generics
@@ -354,6 +364,62 @@ mod tests {
             generate_spy_struct(
                 &input,
                 &associated_spy_types(quote! { Item }, quote! { String })
+            )
+        );
+    }
+
+    #[test]
+    fn generated_spy_struct_has_lifetimes_of_associated_types() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                #[autospy(&'a str)]
+                type Item;
+                fn foo(&self) -> Self::Item;
+            }
+        };
+
+        let expected: ItemStruct = parse_quote! {
+            #[cfg(test)]
+            #[derive(Clone)]
+            struct ExampleSpy<'a> {
+                pub foo: autospy::SpyFunction< (), &'a str >
+            }
+        };
+
+        assert_eq!(
+            expected,
+            generate_spy_struct(
+                &input,
+                &associated_spy_types(quote! { Item }, quote! { &'a str })
+            )
+        );
+    }
+
+    #[test]
+    fn generated_spy_struct_has_lifetimes_of_associated_types_and_any_trait_lifetimes() {
+        let input: ItemTrait = parse_quote! {
+            trait Example<'a> {
+                #[autospy(&'b str)]
+                type Item;
+                fn foo(&self) -> Self::Item;
+                fn bar(&self) -> &'a str;
+            }
+        };
+
+        let expected: ItemStruct = parse_quote! {
+            #[cfg(test)]
+            #[derive(Clone)]
+            struct ExampleSpy<'a, 'b> {
+                pub foo: autospy::SpyFunction< (), &'b str >,
+                pub bar: autospy::SpyFunction< (), &'a str >
+            }
+        };
+
+        assert_eq!(
+            expected,
+            generate_spy_struct(
+                &input,
+                &associated_spy_types(quote! { Item }, quote! { &'b str })
             )
         );
     }
