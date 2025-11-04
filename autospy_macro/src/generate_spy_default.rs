@@ -56,7 +56,7 @@ fn function_as_default(function: &TraitItemFn) -> TokenStream {
 #[cfg(test)]
 mod tests {
     use crate::generate_spy_default::generate_spy_default;
-    use quote::{ToTokens, quote};
+    use quote::quote;
     use syn::{ItemTrait, parse_quote};
 
     #[test]
@@ -78,7 +78,7 @@ mod tests {
 
         let actual = generate_spy_default(&input);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -102,7 +102,7 @@ mod tests {
 
         let actual = generate_spy_default(&input);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -128,7 +128,7 @@ mod tests {
 
         let actual = generate_spy_default(&input);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -153,7 +153,7 @@ mod tests {
 
         let actual = generate_spy_default(&input);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -177,7 +177,7 @@ mod tests {
 
         let actual = generate_spy_default(&input);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -201,7 +201,7 @@ mod tests {
 
         let actual = generate_spy_default(&input);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -225,7 +225,7 @@ mod tests {
 
         let actual = generate_spy_default(&input);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -249,7 +249,7 @@ mod tests {
 
         let actual = generate_spy_default(&input);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -279,7 +279,7 @@ mod tests {
 
         let actual = generate_spy_default(&input);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -303,7 +303,7 @@ mod tests {
 
         let actual = generate_spy_default(&input);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -327,7 +327,7 @@ mod tests {
 
         let actual = generate_spy_default(&input);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -353,6 +353,6 @@ mod tests {
 
         let actual = generate_spy_default(&input);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 }
