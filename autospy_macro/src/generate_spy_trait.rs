@@ -176,7 +176,7 @@ mod tests {
     use crate::associated_types::{AssociatedSpyTypes, AssociatedType};
 
     use super::generate_spy_trait;
-    use quote::{ToTokens, quote};
+    use quote::quote;
     use syn::{ItemTrait, TraitItemType, parse_quote};
 
     #[test]
@@ -192,7 +192,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -208,7 +208,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -226,7 +226,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -251,7 +251,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -274,7 +274,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -297,7 +297,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -320,7 +320,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -343,7 +343,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -364,7 +364,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -384,7 +384,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -407,7 +407,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -431,7 +431,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -456,7 +456,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -479,7 +479,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -495,7 +495,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -524,7 +524,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -540,7 +540,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -556,7 +556,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -572,7 +572,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -588,7 +588,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -604,7 +604,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -620,7 +620,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -643,7 +643,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -678,7 +678,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -718,7 +718,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -765,7 +765,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -796,7 +796,7 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &associated_spy_types);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 
     #[test]
@@ -830,6 +830,6 @@ mod tests {
 
         let actual = generate_spy_trait(&input, &associated_spy_types);
 
-        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+        assert_eq!(actual.to_string(), expected.to_string());
     }
 }
