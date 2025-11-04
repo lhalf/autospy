@@ -156,10 +156,11 @@ mod tests {
             }
         };
 
-        let mut expected = to_associated_spy_types([("Hello", parse_quote! { String })]);
+        let mut expected = AssociatedSpyTypes::new();
 
         // couldn't get parse_quote! to work directly on a syn::Generics
         let associated_type: TraitItemType = parse_quote! { type Hello<'a> where Self: 'a; };
+
         expected.insert(
             parse_quote! { Hello },
             AssociatedType {
