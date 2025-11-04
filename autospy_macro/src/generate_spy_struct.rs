@@ -124,7 +124,7 @@ fn to_spy_lifetime(type_reference: &TypeReference) -> TokenStream {
 
 #[cfg(test)]
 mod tests {
-    use crate::associated_types::AssociatedSpyTypes;
+    use crate::associated_types::{AssociatedSpyTypes, AssociatedType};
     use crate::generate_spy_struct::generate_spy_struct;
     use proc_macro2::TokenStream;
     use quote::quote;
@@ -520,8 +520,14 @@ mod tests {
     }
 
     fn associated_spy_types(ident: TokenStream, r#type: TokenStream) -> AssociatedSpyTypes {
-        [(parse_quote! { #ident }, parse_quote! { #r#type })]
-            .into_iter()
-            .collect()
+        [(
+            parse_quote! { #ident },
+            AssociatedType {
+                r#type: parse_quote! { #r#type },
+                generics: parse_quote! {},
+            },
+        )]
+        .into_iter()
+        .collect()
     }
 }

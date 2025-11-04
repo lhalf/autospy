@@ -1,5 +1,5 @@
 use crate::arguments::is_argument_marked_as_ignore;
-use crate::associated_types::AssociatedSpyTypes;
+use crate::associated_types::{AssociatedSpyTypes, AssociatedType};
 use syn::visit_mut::VisitMut;
 use syn::{FnArg, PatType, Signature, Type, parse_quote};
 
@@ -36,12 +36,12 @@ impl AssociatedTypeReplacer<'_> {
 
         let second = &type_path.path.segments[1].ident;
 
-        let (_, associated_type) = self
+        let (_, AssociatedType { r#type, .. }) = self
             .associated_spy_types
             .iter()
             .find(|(ident, _)| *ident == second)?;
 
-        Some(associated_type.clone())
+        Some(r#type.clone())
     }
 }
 

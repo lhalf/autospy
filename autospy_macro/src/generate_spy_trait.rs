@@ -1,4 +1,4 @@
-use crate::associated_types::AssociatedSpyTypes;
+use crate::associated_types::{AssociatedSpyTypes, AssociatedType};
 use crate::generics::generics_idents;
 use crate::inspect::cfg;
 use crate::strip_attributes::{strip_attributes_from_signature, strip_autospy_attributes};
@@ -57,7 +57,7 @@ fn associated_type_definitions(
 ) -> impl Iterator<Item = TokenStream> {
     associated_spy_types
         .iter()
-        .map(|(name, r#type)| quote! { type #name = #r#type; })
+        .map(|(name, AssociatedType { r#type, .. })| quote! { type #name = #r#type; })
 }
 
 fn trait_spy_function_definitions(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {

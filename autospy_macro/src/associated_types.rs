@@ -1,8 +1,14 @@
 use crate::attribute;
 use std::collections::BTreeMap;
-use syn::{Ident, ItemTrait, TraitItem, TraitItemType, Type};
+use syn::{Generics, Ident, ItemTrait, TraitItem, TraitItemType, Type};
 
-pub type AssociatedSpyTypes = BTreeMap<Ident, Type>;
+pub type AssociatedSpyTypes = BTreeMap<Ident, AssociatedType>;
+
+#[derive(Debug, PartialEq)]
+pub struct AssociatedType {
+    pub r#type: Type,
+    pub generics: Generics,
+}
 
 pub fn get_associated_types(item_trait: &ItemTrait) -> AssociatedSpyTypes {
     item_trait
@@ -20,19 +26,24 @@ fn associated_types(item: &TraitItem) -> Option<&TraitItemType> {
     }
 }
 
-fn associated_type_name_and_spy_type(trait_item: &TraitItemType) -> Option<(Ident, Type)> {
+fn associated_type_name_and_spy_type(
+    trait_item: &TraitItemType,
+) -> Option<(Ident, AssociatedType)> {
     Some((
         trait_item.ident.clone(),
-        attribute::associated_type(&trait_item.attrs)?,
+        AssociatedType {
+            r#type: attribute::associated_type(&trait_item.attrs)?,
+            generics: trait_item.generics.clone(),
+        },
     ))
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::associated_types::{AssociatedSpyTypes, get_associated_types};
+    use crate::associated_types::{AssociatedSpyTypes, AssociatedType, get_associated_types};
 
     use quote::format_ident;
-    use syn::{ItemTrait, Type, parse_quote};
+    use syn::{ItemTrait, TraitItemType, Type, parse_quote};
 
     #[test]
     fn empty_trait_has_no_associated_types() {
@@ -136,12 +147,44 @@ mod tests {
         assert_eq!(expected, get_associated_types(&input));
     }
 
+    #[test]
+    fn associated_type_with_generic_associated_type_captures_generics() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                #[autospy(String)]
+                type Hello<'a> where Self: 'a;
+            }
+        };
+
+        let mut expected = to_associated_spy_types([("Hello", parse_quote! { String })]);
+
+        // couldn't get parse_quote! to work directly on a syn::Generics
+        let associated_type: TraitItemType = parse_quote! { type Hello<'a> where Self: 'a; };
+        expected.insert(
+            parse_quote! { Hello },
+            AssociatedType {
+                r#type: parse_quote! { String },
+                generics: associated_type.generics,
+            },
+        );
+
+        assert_eq!(expected, get_associated_types(&input));
+    }
+
     fn to_associated_spy_types(
         items: impl IntoIterator<Item = (&'static str, Type)>,
     ) -> AssociatedSpyTypes {
         items
             .into_iter()
-            .map(|(ident, r#type)| (format_ident!("{ident}"), r#type))
+            .map(|(ident, r#type)| {
+                (
+                    format_ident!("{ident}"),
+                    AssociatedType {
+                        r#type,
+                        generics: parse_quote! {},
+                    },
+                )
+            })
             .collect()
     }
 }
