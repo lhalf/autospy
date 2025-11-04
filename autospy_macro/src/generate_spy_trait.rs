@@ -57,7 +57,10 @@ fn associated_type_definitions(
 ) -> impl Iterator<Item = TokenStream> {
     associated_spy_types
         .iter()
-        .map(|(name, AssociatedType { r#type, .. })| quote! { type #name = #r#type; })
+        .map(|(name, AssociatedType { r#type, generics })| {
+            let generics_where_clause = &generics.where_clause;
+            quote! { type #name #generics = #r#type #generics_where_clause; }
+        })
 }
 
 fn trait_spy_function_definitions(item_trait: &ItemTrait) -> impl Iterator<Item = TokenStream> {
@@ -174,7 +177,7 @@ mod tests {
 
     use super::generate_spy_trait;
     use quote::{ToTokens, quote};
-    use syn::{ItemTrait, parse_quote};
+    use syn::{ItemTrait, TraitItemType, parse_quote};
 
     #[test]
     fn empty_generated_trait() {
@@ -787,6 +790,39 @@ mod tests {
             AssociatedType {
                 r#type: parse_quote! { String },
                 generics: parse_quote! {},
+            },
+        );
+
+        let actual = generate_spy_trait(&input, &associated_spy_types);
+
+        assert_eq!(actual.to_token_stream().to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn generic_associated_types_are_replaced() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                type Hello<'a> where Self: 'a;
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Example for ExampleSpy {
+                type Hello<'a> = String where Self: 'a;
+            }
+        };
+
+        let mut associated_spy_types = AssociatedSpyTypes::new();
+
+        // couldn't get parse_quote! to work directly on a syn::Generics
+        let associated_type: TraitItemType = parse_quote! { type Hello<'a> where Self: 'a; };
+
+        associated_spy_types.insert(
+            parse_quote! { Hello },
+            AssociatedType {
+                r#type: parse_quote! { String },
+                generics: associated_type.generics,
             },
         );
 
