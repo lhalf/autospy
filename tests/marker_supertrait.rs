@@ -6,8 +6,6 @@ trait MyTrait: Unpin {
     }
 }
 
-// trait MarkerTrait {}
-
 fn use_trait<T: MyTrait>(trait_object: T) {
     trait_object.function();
 }
