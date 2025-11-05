@@ -168,6 +168,34 @@
 //! assert_eq!(["hello!"], spy.foo.arguments);
 //! ```
 //!
+//! ## Generic associated types
+//!
+//! [Generic associated types](https://blog.rust-lang.org/2022/10/28/gats-stabilization/) are also supported via the `#[autospy(TYPE)]` attribute.
+//!
+//! ```rust
+//! #[autospy::autospy]
+//! trait LendingIterator {
+//!     #[autospy(&'a str)]
+//!     type Item<'a>
+//!     where
+//!         Self: 'a;
+//!
+//!     fn next<'a>(&'a mut self) -> Self::Item<'a>;
+//! }
+//!
+//! fn use_trait<T>(lending_iterator: &mut T) -> &str
+//! where
+//!     T: for<'a> LendingIterator<Item<'a> = &'a str>,
+//! {
+//!     lending_iterator.next()
+//! }
+//!
+//!  let mut spy = LendingIteratorSpy::default();
+//!  spy.next.returns.set(["hello!"]);
+//!
+//!  assert_eq!("hello!", use_trait(&mut spy));
+//! ```
+//!
 //! ## External traits
 //!
 //! External traits can be turned into a spy using `#[autospy(external)]`, you will need to include
