@@ -21,7 +21,7 @@ pub fn generate_spy_trait(
     let generics = &item_trait.generics;
     let generics_where_clause = &generics.where_clause;
     let (generics_idents_with_elided_lifetime, generics_idents_without_elided_lifetime) =
-        generic_idents_with_and_without_elided_lifetime(item_trait);
+        generic_idents_with_and_without_elided_lifetime(item_trait, associated_spy_types);
 
     let spy_name = format_ident!("{}Spy", trait_name);
     let associated_type_definitions = associated_type_definitions(associated_spy_types);
@@ -42,11 +42,17 @@ pub fn generate_spy_trait(
     }
 }
 
-fn generic_idents_with_and_without_elided_lifetime(item_trait: &ItemTrait) -> (Generics, Generics) {
+fn generic_idents_with_and_without_elided_lifetime(
+    item_trait: &ItemTrait,
+    associated_spy_types: &AssociatedSpyTypes,
+) -> (Generics, Generics) {
     (
         generics_idents(
             &item_trait.generics,
-            inspect::has_function_returning_no_lifetime_reference(item_trait),
+            inspect::has_function_returning_no_lifetime_reference(item_trait)
+                || associated_spy_types
+                    .values()
+                    .any(AssociatedType::has_lifetime),
         ),
         generics_idents(&item_trait.generics, false),
     )
@@ -800,7 +806,7 @@ mod tests {
     }
 
     #[test]
-    fn generic_associated_types_are_replaced() {
+    fn generic_associated_types_with_no_lifetime_are_replaced() {
         let input: ItemTrait = parse_quote! {
             trait Example {
                 #[autospy(String)]
@@ -824,6 +830,40 @@ mod tests {
             parse_quote! { Hello },
             AssociatedType {
                 r#type: parse_quote! { String },
+                generics: associated_type.generics,
+            },
+        );
+
+        let actual = generate_spy_trait(&input, &associated_spy_types);
+
+        assert_eq!(actual.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_impl_has_elided_lifetime_if_associated_type_has_explicit_lifetime_reference() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                #[autospy(&'a str)]
+                type Hello<'a> where Self: 'a;
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Example for ExampleSpy<'_> {
+                type Hello<'a> = &'a str where Self: 'a;
+            }
+        };
+
+        let mut associated_spy_types = AssociatedSpyTypes::new();
+
+        // couldn't get parse_quote! to work directly on a syn::Generics
+        let associated_type: TraitItemType = parse_quote! { type Hello<'a> where Self: 'a; };
+
+        associated_spy_types.insert(
+            parse_quote! { Hello },
+            AssociatedType {
+                r#type: parse_quote! { &'a str },
                 generics: associated_type.generics,
             },
         );
