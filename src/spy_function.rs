@@ -90,6 +90,7 @@ impl<A, R> SpyFunction<A, R> {
 ///
 /// use_trait(spy.clone());
 ///
+/// // all valid PartialEq implementations
 /// assert_eq!([10], spy.foo.arguments);
 /// assert_eq!([10].as_slice(), spy.foo.arguments);
 /// assert_eq!(vec![10], spy.foo.arguments);
@@ -217,6 +218,7 @@ impl<A> Arguments<A> {
     ///
     /// use_trait(spy.clone());
     ///
+    /// // get will not clear the captured spy arguments
     /// assert_eq!(vec![10], *spy.foo.arguments.get());
     /// assert_eq!(vec![10], *spy.foo.arguments.get());
     /// ```
@@ -242,6 +244,7 @@ impl<A> Arguments<A> {
     ///
     /// use_trait(spy.clone());
     ///
+    /// // take will clear the captured spy arguments
     /// assert_eq!(vec![10], spy.foo.arguments.take());
     /// assert!(spy.foo.arguments.take().is_empty());
     /// ```
@@ -249,8 +252,37 @@ impl<A> Arguments<A> {
         std::mem::take(&mut *self.captured.lock().expect("mutex poisoned"))
     }
 
-    /// Asynchronously returns all captured arguments when the spy is used.
+    /// Asynchronously takes all captured arguments when the spy is used.
     /// Enabled by default via the **async** feature.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use std::time::Duration;
+    ///
+    /// #[autospy::autospy]
+    /// #[async_trait::async_trait]
+    /// trait MyTrait: Send + 'static {
+    ///     async fn foo(&self, argument: &str);
+    /// }
+    ///
+    /// async fn use_async_trait(x: impl MyTrait) {
+    ///     tokio::task::spawn(async move {
+    ///         tokio::time::sleep(Duration::from_millis(100)).await;
+    ///         x.foo("async used after some time!").await;
+    ///     });
+    /// }
+    ///
+    /// tokio::runtime::Runtime::new().unwrap().block_on(async {
+    ///     let spy = MyTraitSpy::default();
+    ///     spy.foo.returns.set([()]);
+    ///
+    ///     use_async_trait(spy.clone()).await;
+    ///     // spy not used yet
+    ///     assert!(spy.foo.arguments.take().is_empty());
+    ///     // spy used after 100ms
+    ///     assert_eq!("async used after some time!", spy.foo.arguments.recv().await[0])
+    /// })
+    /// ```
     #[cfg(feature = "async")]
     pub async fn recv(&self) -> Vec<A> {
         self.receiver.recv().await.unwrap();
@@ -335,6 +367,7 @@ impl<A, R> Returns<A, R> {
     /// let spy = MyTraitSpy::default();
     /// spy.foo.returns.set([0,1,2]);
     ///
+    /// // return values are returned in order from left to right
     /// assert_eq!(0, spy.foo());
     /// assert_eq!(1, spy.foo());
     /// assert_eq!(2, spy.foo());
