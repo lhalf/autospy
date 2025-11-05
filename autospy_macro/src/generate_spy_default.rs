@@ -1,3 +1,4 @@
+use crate::associated_types::{AssociatedSpyTypes, AssociatedType};
 use crate::generics::generics_idents;
 use crate::inspect::cfg;
 use crate::{attribute, inspect, supertraits};
@@ -5,11 +6,14 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{Generics, ItemTrait, TraitItemFn};
 
-pub fn generate_spy_default(item_trait: &ItemTrait) -> TokenStream {
+pub fn generate_spy_default(
+    item_trait: &ItemTrait,
+    associated_spy_types: &AssociatedSpyTypes,
+) -> TokenStream {
     let cfg = cfg();
 
     let generics = &item_trait.generics;
-    let generics_idents = generic_idents(item_trait);
+    let generics_idents = generic_idents(item_trait, associated_spy_types);
     let generics_where_clause = &generics.where_clause;
 
     let spy_name = format_ident!("{}Spy", &item_trait.ident);
@@ -27,10 +31,13 @@ pub fn generate_spy_default(item_trait: &ItemTrait) -> TokenStream {
     }
 }
 
-fn generic_idents(item_trait: &ItemTrait) -> Generics {
+fn generic_idents(item_trait: &ItemTrait, associated_spy_types: &AssociatedSpyTypes) -> Generics {
     generics_idents(
         &item_trait.generics,
-        inspect::has_function_returning_no_lifetime_reference(item_trait),
+        inspect::has_function_returning_no_lifetime_reference(item_trait)
+            || associated_spy_types
+                .values()
+                .any(AssociatedType::has_lifetime),
     )
 }
 
@@ -55,6 +62,7 @@ fn function_as_default(function: &TraitItemFn) -> TokenStream {
 
 #[cfg(test)]
 mod tests {
+    use crate::associated_types::{AssociatedSpyTypes, AssociatedType};
     use crate::generate_spy_default::generate_spy_default;
     use quote::quote;
     use syn::{ItemTrait, parse_quote};
@@ -76,7 +84,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_default(&input);
+        let actual = generate_spy_default(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_string(), expected.to_string());
     }
@@ -100,7 +108,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_default(&input);
+        let actual = generate_spy_default(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_string(), expected.to_string());
     }
@@ -126,7 +134,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_default(&input);
+        let actual = generate_spy_default(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_string(), expected.to_string());
     }
@@ -151,7 +159,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_default(&input);
+        let actual = generate_spy_default(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_string(), expected.to_string());
     }
@@ -175,7 +183,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_default(&input);
+        let actual = generate_spy_default(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_string(), expected.to_string());
     }
@@ -199,7 +207,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_default(&input);
+        let actual = generate_spy_default(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_string(), expected.to_string());
     }
@@ -223,7 +231,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_default(&input);
+        let actual = generate_spy_default(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_string(), expected.to_string());
     }
@@ -247,7 +255,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_default(&input);
+        let actual = generate_spy_default(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_string(), expected.to_string());
     }
@@ -277,7 +285,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_default(&input);
+        let actual = generate_spy_default(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_string(), expected.to_string());
     }
@@ -301,7 +309,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_default(&input);
+        let actual = generate_spy_default(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_string(), expected.to_string());
     }
@@ -325,7 +333,7 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_default(&input);
+        let actual = generate_spy_default(&input, &AssociatedSpyTypes::new());
 
         assert_eq!(actual.to_string(), expected.to_string());
     }
@@ -351,7 +359,78 @@ mod tests {
             }
         };
 
-        let actual = generate_spy_default(&input);
+        let actual = generate_spy_default(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_with_no_lifetime_and_associated_type_with_lifetime_makes_default_impl_have_elided_lifetime()
+     {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                #[autospy(&'a str)]
+                type Example;
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Default for ExampleSpy<'_> {
+                fn default() -> Self {
+                    Self {}
+                }
+            }
+        };
+
+        let mut associated_types = AssociatedSpyTypes::new();
+
+        associated_types.insert(
+            parse_quote! { Example },
+            AssociatedType {
+                r#type: parse_quote! { &'a str },
+                generics: parse_quote! {},
+            },
+        );
+
+        let actual = generate_spy_default(&input, &associated_types);
+
+        assert_eq!(actual.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_with_no_lifetime_reference_return_and_associated_type_with_lifetime_makes_only_one_elided_lifetime()
+     {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                #[autospy(&'a str)]
+                type Example;
+                fn foo(&self) -> &str;
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Default for ExampleSpy<'_> {
+                fn default() -> Self {
+                    Self {
+                        foo: autospy::SpyFunction::from("foo")
+                    }
+                }
+            }
+        };
+
+        let mut associated_types = AssociatedSpyTypes::new();
+
+        associated_types.insert(
+            parse_quote! { Example },
+            AssociatedType {
+                r#type: parse_quote! { &'a str },
+                generics: parse_quote! {},
+            },
+        );
+
+        let actual = generate_spy_default(&input, &associated_types);
 
         assert_eq!(actual.to_string(), expected.to_string());
     }

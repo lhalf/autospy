@@ -8,7 +8,7 @@ use quote::quote;
 use syn::ItemTrait;
 
 pub fn generate(item_trait: ItemTrait, external_trait: bool) -> TokenStream {
-    let associated_type = get_associated_types(&item_trait);
+    let associated_types = get_associated_types(&item_trait);
     let stripped_item_trait = match external_trait {
         true => TokenStream::new(),
         false => {
@@ -16,9 +16,9 @@ pub fn generate(item_trait: ItemTrait, external_trait: bool) -> TokenStream {
             quote! { #stripped_item_trait }
         }
     };
-    let spy_struct = generate_spy_struct(&item_trait, &associated_type);
-    let spy_default = generate_spy_default(&item_trait);
-    let spy_trait = generate_spy_trait(&item_trait, &associated_type);
+    let spy_struct = generate_spy_struct(&item_trait, &associated_types);
+    let spy_default = generate_spy_default(&item_trait, &associated_types);
+    let spy_trait = generate_spy_trait(&item_trait, &associated_types);
 
     quote! {
         #stripped_item_trait

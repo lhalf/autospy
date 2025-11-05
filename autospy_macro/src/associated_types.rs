@@ -17,6 +17,10 @@ impl AssociatedType {
             _ => None,
         }
     }
+
+    pub fn has_lifetime(&self) -> bool {
+        self.lifetime().is_some()
+    }
 }
 
 pub fn get_associated_types(item_trait: &ItemTrait) -> AssociatedSpyTypes {
