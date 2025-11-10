@@ -1,5 +1,6 @@
 #[allow(clippy::missing_safety_doc)]
 #[autospy::autospy]
+#[allow(unsafe_code)]
 unsafe trait MyTrait {
     fn function(&self) -> u32;
 }
