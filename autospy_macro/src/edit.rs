@@ -28,18 +28,14 @@ impl AssociatedTypeReplacer<'_> {
             return None;
         }
 
-        let first = &type_path.path.segments[0].ident;
-
-        if first != "Self" {
+        if type_path.path.segments[0].ident != "Self" {
             return None;
         }
-
-        let second = &type_path.path.segments[1].ident;
 
         let (_, AssociatedType { r#type, .. }) = self
             .associated_spy_types
             .iter()
-            .find(|(ident, _)| *ident == second)?;
+            .find(|(ident, _)| **ident == type_path.path.segments[1].ident)?;
 
         Some(r#type.clone())
     }
