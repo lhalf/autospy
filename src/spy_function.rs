@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Formatter};
 use std::sync::MutexGuard;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::{
@@ -95,13 +96,21 @@ impl<A, R> SpyFunction<A, R> {
 /// assert_eq!([10].as_slice(), spy.foo.arguments);
 /// assert_eq!(vec![10], spy.foo.arguments);
 /// ```
-#[derive(Debug)]
 pub struct Arguments<A> {
     captured: Arc<Mutex<Vec<A>>>,
     #[cfg(feature = "async")]
     sender: async_channel::Sender<()>,
     #[cfg(feature = "async")]
     receiver: async_channel::Receiver<()>,
+}
+
+impl<A: Debug> Debug for Arguments<A> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self.captured.lock() {
+            Ok(captured) => captured.fmt(f),
+            Err(_) => write!(f, "mutex poisoned"),
+        }
+    }
 }
 
 impl<A> Clone for Arguments<A> {
