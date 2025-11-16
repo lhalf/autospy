@@ -28,12 +28,12 @@ async-channel = { version = "2.5.0", default-features = false, features = ["std"
 async-trait = { version = "0.1.89", default-features = false }
 pollster = { version = "0.4.0", default-features = false }
 tokio = { version = "1.48.0", default-features = false, features = ["rt-multi-thread"] }
-axum = { version = "0.8.6", default-features = false, features = ["tokio", "http2"] }
+axum = { version = "0.8.7", default-features = false, features = ["tokio", "http2"] }
 anyhow = { version = "1.0.100", default-features = false }
 tower = { version = "0.5.2", default-features = false, features = ["util"] }
 rocket = { version = "0.5.1", default-features = false }
 reqwest = { version = "0.12.24", default-features = false }
-actix-web = { version = "4.11.0", default-features = false, features = ["macros"] }
+actix-web = { version = "4.12.0", default-features = false, features = ["macros"] }
 
 [lints.rust]
 unsafe_code = "deny"
