@@ -198,8 +198,8 @@
 //!
 //! ## External traits
 //!
-//! External traits can be turned into a spy using `#[autospy(external)]`, you will need to include
-//! the signatures for the external trait functions you want the spy to implement.
+//! External traits can be turned into a spy using `#[autospy(external)]`. The external trait must be
+//! in scope, and you will need to include the signatures for the external trait functions you want the spy to implement.
 //!
 //! ```rust
 //! use std::io::Read;
