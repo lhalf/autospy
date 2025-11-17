@@ -261,6 +261,58 @@ impl<A> Arguments<A> {
         std::mem::take(&mut *self.captured.lock().expect("mutex poisoned"))
     }
 
+    /// Returns `true` if the captured arguments contain no elements.
+    ///
+    /// # Examples
+    /// ```rust
+    /// #[autospy::autospy]
+    /// trait MyTrait {
+    ///     fn foo(&self, bar: u8);
+    /// }
+    ///
+    /// fn use_trait(trait_object: impl MyTrait) {
+    ///     trait_object.foo(10)
+    /// }
+    ///
+    /// let spy = MyTraitSpy::default();
+    /// spy.foo.returns.set([()]);
+    ///
+    /// assert!(spy.foo.arguments.is_empty());
+    ///
+    /// use_trait(spy.clone());
+    ///
+    /// assert!(!spy.foo.arguments.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.get().is_empty()
+    }
+
+    /// Returns the number of captured arguments.
+    ///
+    /// # Examples
+    /// ```rust
+    /// #[autospy::autospy]
+    /// trait MyTrait {
+    ///     fn foo(&self, bar: u8);
+    /// }
+    ///
+    /// fn use_trait(trait_object: impl MyTrait) {
+    ///     trait_object.foo(1);
+    ///     trait_object.foo(2);
+    ///     trait_object.foo(3);
+    /// }
+    ///
+    /// let spy = MyTraitSpy::default();
+    /// spy.foo.returns.set([(),(),()]);
+    ///
+    /// use_trait(spy.clone());
+    ///
+    /// assert_eq!(3, spy.foo.arguments.len());
+    /// ```
+    pub fn len(&self) -> usize {
+        self.get().len()
+    }
+
     /// Asynchronously takes all captured arguments when the spy is used.
     /// Enabled by default via the **async** feature.
     ///
