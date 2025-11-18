@@ -3,7 +3,7 @@
 ###### *🎵 autospy record, autospy replace 🎵*
 
 [![Crates.io Version](https://img.shields.io/crates/v/autospy)](https://crates.io/crates/autospy)
-[![docs.rs](https://img.shields.io/docsrs/autospy)](https://docs.rs/autospy/latest/autospy/)
+[![docs.rs](https://img.shields.io/docsrs/autospy)](https://docs.rs/autospy)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/lhalf/autospy/on_commit.yml)](https://github.com/lhalf/autospy/actions/workflows/on_commit.yml)
 [![MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
