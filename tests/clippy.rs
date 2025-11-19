@@ -1,21 +1,13 @@
-#![deny(missing_docs)]
+#![deny(
+    missing_docs,
+    clippy::missing_docs_in_private_items,
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc
+)]
 
-//! example documentation
+//! expanded macro does not trigger any of the above clippy lints
 #[autospy::autospy]
+#[allow(dead_code)]
 trait MyTrait {
     fn function(&self);
-}
-
-fn use_trait<T: MyTrait>(trait_object: T) {
-    trait_object.function();
-}
-
-#[test]
-fn clippy_does_not_warn_for_missing_docs_on_expanded_spy() {
-    let spy = MyTraitSpy::default();
-    spy.function.returns.set([()]);
-
-    use_trait(spy.clone());
-
-    assert_eq!([()], spy.function.arguments);
 }
