@@ -17,6 +17,7 @@ use generate::generate;
 use proc_macro::TokenStream;
 use syn::parse_quote;
 
+#[allow(clippy::missing_panics_doc)]
 #[proc_macro_attribute]
 pub fn autospy(attributes: TokenStream, item: TokenStream) -> TokenStream {
     let item = proc_macro2::TokenStream::from(item);

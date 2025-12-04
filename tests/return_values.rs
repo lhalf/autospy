@@ -44,7 +44,7 @@ fn if_take_used_then_panics_message_is_correct() {
     let spy = MyTraitSpy::default();
     spy.function.returns.set([0]);
     use_test_trait(&spy, 0);
-    spy.function.arguments.take();
+    let _ = spy.function.arguments.take();
     assert_eq!(
         panic_message(|| use_test_trait(&spy, 0)),
         Some("function 'function' had 1 return values set, but was called 2 time(s)".to_string())
@@ -58,7 +58,7 @@ fn if_take_used_and_then_more_returns_set_panic_message_is_correct() {
     use_test_trait(&spy, 0);
     spy.function.returns.set([0]);
     use_test_trait(&spy, 0);
-    spy.function.arguments.take();
+    let _ = spy.function.arguments.take();
     assert_eq!(
         panic_message(|| use_test_trait(&spy, 0)),
         Some("function 'function' had 2 return values set, but was called 3 time(s)".to_string())

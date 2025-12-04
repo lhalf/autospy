@@ -51,9 +51,8 @@ impl<A, R> Drop for SpyFunction<A, R> {
 
 impl<A, R> SpyFunction<A, R> {
     /// Captures the arguments into [`arguments`](Self::arguments) and tries to return the next value from [`returns`](Self::returns).
-    /// <div class="warning">
-    /// Panics if not enough return values have been set for the number of times the function is called.
-    /// </div>
+    /// # Panics
+    /// The spy will panic if not enough return values have been set for the number of times the function is called.
     #[track_caller]
     pub fn spy(&self, arguments: A) -> R {
         let return_value = self.returns.next(&arguments);
@@ -218,19 +217,20 @@ impl<A> Arguments<A> {
     ///     fn foo(&self, bar: u8);
     /// }
     ///
-    /// fn use_trait(trait_object: impl MyTrait) {
-    ///     trait_object.foo(10)
+    /// fn use_trait(trait_object: &impl MyTrait) {
+    ///     trait_object.foo(10);
     /// }
     ///
     /// let spy = MyTraitSpy::default();
     /// spy.foo.returns.set([()]);
     ///
-    /// use_trait(spy.clone());
+    /// use_trait(&spy);
     ///
     /// // get will not clear the captured spy arguments
     /// assert_eq!(vec![10], *spy.foo.arguments.get());
     /// assert_eq!(vec![10], *spy.foo.arguments.get());
     /// ```
+    #[allow(clippy::missing_panics_doc)]
     pub fn get(&self) -> MutexGuard<'_, Vec<A>> {
         self.captured.lock().expect("mutex poisoned")
     }
@@ -244,19 +244,21 @@ impl<A> Arguments<A> {
     ///     fn foo(&self, bar: u8);
     /// }
     ///
-    /// fn use_trait(trait_object: impl MyTrait) {
-    ///     trait_object.foo(10)
+    /// fn use_trait(trait_object: &impl MyTrait) {
+    ///     trait_object.foo(10);
     /// }
     ///
     /// let spy = MyTraitSpy::default();
     /// spy.foo.returns.set([()]);
     ///
-    /// use_trait(spy.clone());
+    /// use_trait(&spy);
     ///
     /// // take will clear the captured spy arguments
     /// assert_eq!(vec![10], spy.foo.arguments.take());
     /// assert!(spy.foo.arguments.take().is_empty());
     /// ```
+    #[allow(clippy::missing_panics_doc)]
+    #[must_use]
     pub fn take(&self) -> Vec<A> {
         std::mem::take(&mut *self.captured.lock().expect("mutex poisoned"))
     }
@@ -270,8 +272,8 @@ impl<A> Arguments<A> {
     ///     fn foo(&self, bar: u8);
     /// }
     ///
-    /// fn use_trait(trait_object: impl MyTrait) {
-    ///     trait_object.foo(10)
+    /// fn use_trait(trait_object: &impl MyTrait) {
+    ///     trait_object.foo(10);
     /// }
     ///
     /// let spy = MyTraitSpy::default();
@@ -279,10 +281,11 @@ impl<A> Arguments<A> {
     ///
     /// assert!(spy.foo.arguments.is_empty());
     ///
-    /// use_trait(spy.clone());
+    /// use_trait(&spy);
     ///
     /// assert!(!spy.foo.arguments.is_empty());
     /// ```
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.get().is_empty()
     }
@@ -296,7 +299,7 @@ impl<A> Arguments<A> {
     ///     fn foo(&self, bar: u8);
     /// }
     ///
-    /// fn use_trait(trait_object: impl MyTrait) {
+    /// fn use_trait(trait_object: &impl MyTrait) {
     ///     trait_object.foo(1);
     ///     trait_object.foo(2);
     ///     trait_object.foo(3);
@@ -305,12 +308,41 @@ impl<A> Arguments<A> {
     /// let spy = MyTraitSpy::default();
     /// spy.foo.returns.set([(),(),()]);
     ///
-    /// use_trait(spy.clone());
+    /// use_trait(&spy);
     ///
     /// assert_eq!(3, spy.foo.arguments.len());
     /// ```
+    #[must_use]
     pub fn len(&self) -> usize {
         self.get().len()
+    }
+
+    /// Clear the captured arguments.
+    ///
+    /// # Examples
+    /// ```rust
+    /// #[autospy::autospy]
+    /// trait MyTrait {
+    ///     fn foo(&self, bar: u8);
+    /// }
+    ///
+    /// fn use_trait(trait_object: &impl MyTrait) {
+    ///     trait_object.foo(10);
+    /// }
+    ///
+    /// let spy = MyTraitSpy::default();
+    /// spy.foo.returns.set([()]);
+    ///
+    /// use_trait(&spy);
+    ///
+    /// assert_eq!([10], spy.foo.arguments);
+    /// // clear the captured spy arguments
+    /// spy.foo.arguments.clear();
+    /// assert!(spy.foo.arguments.take().is_empty());
+    /// ```
+    #[allow(clippy::missing_panics_doc)]
+    pub fn clear(&self) {
+        let _ = self.take();
     }
 
     /// Asynchronously takes all captured arguments when the spy is used.
@@ -344,9 +376,10 @@ impl<A> Arguments<A> {
     ///     assert_eq!("async used after some time!", spy.foo.arguments.recv().await[0])
     /// })
     /// ```
+    #[allow(clippy::missing_panics_doc)]
     #[cfg(feature = "async")]
     pub async fn recv(&self) -> Vec<A> {
-        self.receiver.recv().await.unwrap();
+        self.receiver.recv().await.expect("no more messages");
         self.take()
     }
 }
@@ -433,6 +466,7 @@ impl<A, R> Returns<A, R> {
     /// assert_eq!(1, spy.foo());
     /// assert_eq!(2, spy.foo());
     /// ```
+    #[allow(clippy::missing_panics_doc)]
     pub fn set<I: IntoIterator<Item = R>>(&self, values: I) {
         let queue: ReturnQueue<_, _> = values.into_iter().collect();
         self.set_count.fetch_add(queue.len(), Ordering::Relaxed);
@@ -453,6 +487,7 @@ impl<A, R> Returns<A, R> {
     ///
     /// assert_eq!(3, spy.foo("baz"));
     /// ```
+    #[allow(clippy::missing_panics_doc)]
     pub fn set_fn(&self, getter: impl FnMut(&A) -> R + Send + 'static) {
         *self.queue.lock().expect("mutex poisoned") = ReturnQueue::Infinite(Box::new(getter));
     }
