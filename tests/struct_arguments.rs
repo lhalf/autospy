@@ -26,7 +26,7 @@ fn non_clone_struct_function_argument_captured() {
             value: "hello".to_string()
         }],
         spy.function.arguments
-    )
+    );
 }
 
 struct NonDebugStruct {
@@ -51,5 +51,5 @@ fn non_debug_struct_function_argument_captured() {
 
     use_trait2(spy.clone());
 
-    assert_eq!("hello", spy.function.arguments.get()[0].value)
+    assert_eq!("hello", spy.function.arguments.get()[0].value);
 }

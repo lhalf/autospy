@@ -14,5 +14,5 @@ fn reference_argument_converted_to_owned() {
 
     use_test_trait(spy.clone());
 
-    assert_eq!(["hello".to_string()], spy.function.arguments)
+    assert_eq!(["hello".to_string()], spy.function.arguments);
 }

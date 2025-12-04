@@ -24,7 +24,7 @@ fn non_clone_struct_can_be_returned_by_spy() {
             value: "hello".to_string()
         },
         use_trait(spy)
-    )
+    );
 }
 
 struct NonDebugStruct {

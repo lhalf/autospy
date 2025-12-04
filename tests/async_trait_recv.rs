@@ -21,5 +21,5 @@ async fn async_function_argument_captured_and_can_be_taken_with_timeout() {
     assert_eq!(
         vec!["argument".to_string()],
         spy.function.arguments.recv().await
-    )
+    );
 }

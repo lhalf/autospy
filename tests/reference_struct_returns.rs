@@ -25,5 +25,5 @@ fn supports_returning_referenced_structs() {
             value: "hello".to_string()
         },
         use_trait(&spy)
-    )
+    );
 }

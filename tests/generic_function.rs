@@ -14,5 +14,5 @@ fn trait_functions_can_be_generic() {
 
     use_trait(spy.clone());
 
-    assert_eq!("10", spy.function.arguments.take()[0].to_string())
+    assert_eq!("10", spy.function.arguments.take()[0].to_string());
 }

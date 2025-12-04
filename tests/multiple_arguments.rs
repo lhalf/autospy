@@ -17,5 +17,5 @@ fn multiple_arguments_are_captured_in_spy() {
 
     use_trait(spy.clone());
 
-    assert_eq!(100, spy.function.arguments.take().len())
+    assert_eq!(100, spy.function.arguments.take().len());
 }

@@ -14,5 +14,5 @@ fn owned_function_argument_captured() {
 
     use_trait(spy.clone());
 
-    assert_eq!(["hello"], spy.function.arguments)
+    assert_eq!(["hello"], spy.function.arguments);
 }

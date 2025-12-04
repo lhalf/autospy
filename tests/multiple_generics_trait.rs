@@ -13,5 +13,5 @@ fn spy_object_is_generic_over_all_generics() {
     spy.function.returns.set(["hello".to_string()]);
 
     assert_eq!("hello", use_trait(spy.clone()));
-    assert_eq!([100u32], spy.function.arguments)
+    assert_eq!([100u32], spy.function.arguments);
 }

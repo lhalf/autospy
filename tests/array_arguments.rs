@@ -14,5 +14,5 @@ fn borrowed_argument_converted_to_owned() {
 
     use_test_trait(spy.clone());
 
-    assert_eq!([[0; 1]], spy.function.arguments)
+    assert_eq!([[0; 1]], spy.function.arguments);
 }

@@ -15,5 +15,5 @@ fn trait_functions_can_have_lifetimes() {
 
     assert_eq!(10, use_trait(spy.clone()));
 
-    assert_eq!(["hello"], spy.function.arguments)
+    assert_eq!(["hello"], spy.function.arguments);
 }

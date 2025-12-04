@@ -38,5 +38,5 @@ fn supports_multiple_functions_returning_references_with_different_lifetimes() {
             "there"
         ),
         use_trait(&spy)
-    )
+    );
 }

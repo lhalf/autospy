@@ -14,5 +14,5 @@ fn trait_argument_captured_in_box() {
 
     use_trait(spy.clone());
 
-    assert_eq!("hello", spy.function.arguments.take()[0].to_string())
+    assert_eq!("hello", spy.function.arguments.take()[0].to_string());
 }
