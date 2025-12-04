@@ -4,7 +4,7 @@ trait MyTrait: Send + 'static {
     async fn function(&self, argument: String);
 }
 
-async fn use_trait<T: MyTrait>(trait_object: T) {
+fn use_trait<T: MyTrait>(trait_object: T) {
     tokio::task::spawn(async move {
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
         trait_object.function("argument".to_string()).await;
@@ -16,7 +16,7 @@ async fn async_function_argument_captured_and_can_be_taken_with_timeout() {
     let spy = MyTraitSpy::default();
     spy.function.returns.set([()]);
 
-    use_trait(spy.clone()).await;
+    use_trait(spy.clone());
 
     // spy not used yet
     assert!(spy.function.arguments.take().is_empty());
