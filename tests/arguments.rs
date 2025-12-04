@@ -3,7 +3,7 @@ trait MyTrait {
     fn function(&self, argument: String);
 }
 
-fn use_trait<T: MyTrait>(trait_object: T) {
+fn use_trait<T: MyTrait>(trait_object: &T) {
     trait_object.function("hello".to_string());
 }
 
@@ -12,7 +12,7 @@ fn arguments_are_partial_eq_to_standard_types() {
     let spy = MyTraitSpy::default();
     spy.function.returns.set([()]);
 
-    use_trait(spy.clone());
+    use_trait(&spy);
 
     assert_eq!(["hello"], spy.function.arguments);
     assert_eq!(&["hello"], spy.function.arguments);

@@ -3,7 +3,7 @@ trait MyTrait {
     fn function(&self, _: &str, captured: &str);
 }
 
-fn use_test_trait<T: MyTrait>(trait_object: T) {
+fn use_test_trait<T: MyTrait>(trait_object: &T) {
     trait_object.function("ignored", "captured");
 }
 
@@ -12,7 +12,7 @@ fn arguments_with_no_name_are_not_captured() {
     let spy = MyTraitSpy::default();
     spy.function.returns.set([()]);
 
-    use_test_trait(spy.clone());
+    use_test_trait(&spy);
 
     assert_eq!(["captured".to_string()], spy.function.arguments);
 }

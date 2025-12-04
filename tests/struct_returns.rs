@@ -8,7 +8,7 @@ trait MyTrait {
     fn function(&self) -> MyStruct;
 }
 
-fn use_trait<T: MyTrait>(trait_object: T) -> MyStruct {
+fn use_trait<T: MyTrait>(trait_object: &T) -> MyStruct {
     trait_object.function()
 }
 
@@ -23,7 +23,7 @@ fn non_clone_struct_can_be_returned_by_spy() {
         MyStruct {
             value: "hello".to_string()
         },
-        use_trait(spy)
+        use_trait(&spy)
     );
 }
 
@@ -36,7 +36,7 @@ trait MyTrait2 {
     fn function2(&self) -> NonDebugStruct;
 }
 
-fn use_trait2<T: MyTrait2>(trait_object: T) -> NonDebugStruct {
+fn use_trait2<T: MyTrait2>(trait_object: &T) -> NonDebugStruct {
     trait_object.function2()
 }
 
@@ -47,5 +47,5 @@ fn non_debug_struct_can_be_returned_by_spy() {
         value: "hello".to_string(),
     }]);
 
-    assert_eq!("hello", use_trait2(spy).value);
+    assert_eq!("hello", use_trait2(&spy).value);
 }

@@ -10,7 +10,7 @@ trait MyTrait {
     );
 }
 
-fn use_trait<T: MyTrait>(trait_object: T) {
+fn use_trait<T: MyTrait>(trait_object: &T) {
     trait_object.function(b"hello world!".to_vec());
 }
 
@@ -19,7 +19,7 @@ fn functions_with_into_with_attribute_return_that_type() {
     let spy = MyTraitSpy::default();
     spy.function.returns.set([()]);
 
-    use_trait(spy.clone());
+    use_trait(&spy);
 
     assert_eq!([Ok(String::from("hello world!"))], spy.function.arguments);
 }

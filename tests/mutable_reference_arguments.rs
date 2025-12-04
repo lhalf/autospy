@@ -4,7 +4,7 @@ trait MyTrait {
 }
 
 fn use_trait<T: MyTrait>(trait_object: &T) {
-    trait_object.function(&mut 10)
+    trait_object.function(&mut 10);
 }
 
 #[test]

@@ -12,7 +12,7 @@ trait Supertrait {
     fn super_function(&self);
 }
 
-fn use_trait<T: MyTrait>(trait_object: T) {
+fn use_trait<T: MyTrait>(trait_object: &T) {
     trait_object.function();
     trait_object.super_function();
 }
@@ -23,5 +23,5 @@ fn supertraits_are_supported() {
     spy.function.returns.set([()]);
     spy.super_function.returns.set([()]);
 
-    use_trait(spy);
+    use_trait(&spy);
 }

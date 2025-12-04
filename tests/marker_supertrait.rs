@@ -6,7 +6,7 @@ trait MyTrait: Unpin {
     }
 }
 
-fn use_trait<T: MyTrait>(trait_object: T) {
+fn use_trait<T: MyTrait>(trait_object: &T) {
     trait_object.function();
 }
 
@@ -15,5 +15,5 @@ fn marker_supertraits_are_supported() {
     let spy = MyTraitSpy::default();
     spy.function.returns.set([()]);
 
-    use_trait(spy);
+    use_trait(&spy);
 }

@@ -21,7 +21,7 @@ trait Ultratrait {
     fn ultra_function(&self);
 }
 
-fn use_trait<T: MyTrait>(trait_object: T) {
+fn use_trait<T: MyTrait>(trait_object: &T) {
     trait_object.function();
     trait_object.super_function();
     trait_object.ultra_function();
@@ -34,5 +34,5 @@ fn multiple_supertraits_are_supported() {
     spy.super_function.returns.set([()]);
     spy.ultra_function.returns.set([()]);
 
-    use_trait(spy);
+    use_trait(&spy);
 }

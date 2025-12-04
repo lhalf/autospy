@@ -7,7 +7,7 @@ trait TestTrait {
     fn function(&self, argument: Self::Argument) -> Self::Return;
 }
 
-fn use_trait<T: TestTrait<Argument = String, Return = String>>(trait_object: T) -> String {
+fn use_trait<T: TestTrait<Argument = String, Return = String>>(trait_object: &T) -> String {
     trait_object.function("hello".to_string())
 }
 
@@ -16,7 +16,7 @@ fn trait_with_associated_type_has_attribute_type_captured() {
     let spy = TestTraitSpy::default();
     spy.function.returns.set(["world!".to_string()]);
 
-    assert_eq!("world!", use_trait(spy.clone()));
+    assert_eq!("world!", use_trait(&spy));
 
     assert_eq!(["hello"], spy.function.arguments);
 }

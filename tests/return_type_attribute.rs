@@ -4,7 +4,7 @@ trait MyTrait {
     fn function(&self) -> impl ToString;
 }
 
-fn use_trait<T: MyTrait>(trait_object: T) -> String {
+fn use_trait<T: MyTrait>(trait_object: &T) -> String {
     trait_object.function().to_string()
 }
 
@@ -13,5 +13,5 @@ fn functions_with_return_attribute_return_that_type() {
     let spy = MyTraitSpy::default();
     spy.function.returns.set(["hello".to_string()]);
 
-    assert_eq!("hello", use_trait(spy));
+    assert_eq!("hello", use_trait(&spy));
 }

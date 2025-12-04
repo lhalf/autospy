@@ -8,11 +8,11 @@ trait TestTrait {
     }
 }
 
-fn use_test_trait<T: TestTrait>(trait_object: T) -> u64 {
+fn use_test_trait<T: TestTrait>(trait_object: &T) -> u64 {
     trait_object.function()
 }
 
 #[test]
 fn function_marked_with_use_default_is_not_spied() {
-    assert_eq!(120, use_test_trait(TestTraitSpy::default()));
+    assert_eq!(120, use_test_trait(&TestTraitSpy::default()));
 }

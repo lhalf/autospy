@@ -5,7 +5,7 @@ trait TestTrait {
     fn function(&self) -> Self::Item;
 }
 
-fn use_trait<T: TestTrait<Item = String>>(trait_object: T) -> String {
+fn use_trait<T: TestTrait<Item = String>>(trait_object: &T) -> String {
     trait_object.function()
 }
 
@@ -14,5 +14,5 @@ fn trait_with_associated_type_has_attribute_type_returned() {
     let spy = TestTraitSpy::default();
     spy.function.returns.set(["hello".to_string()]);
 
-    assert_eq!("hello", use_trait(spy));
+    assert_eq!("hello", use_trait(&spy));
 }
