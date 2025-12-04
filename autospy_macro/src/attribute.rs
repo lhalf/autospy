@@ -10,10 +10,7 @@ pub fn is_autospy_attribute(attribute: &Attribute) -> bool {
 }
 
 pub fn is_ignore_attribute(attribute: &Attribute) -> bool {
-    match autospy_attribute(attribute) {
-        Some(tokens) => tokens.to_string() == "ignore",
-        None => false,
-    }
+    autospy_attribute(attribute).is_some_and(|tokens| tokens.to_string() == "ignore")
 }
 
 pub fn has_use_default_attribute(attributes: &[Attribute]) -> bool {
@@ -21,14 +18,11 @@ pub fn has_use_default_attribute(attributes: &[Attribute]) -> bool {
 }
 
 pub fn associated_type(attributes: &[Attribute]) -> Option<Type> {
-    Some(
-        syn::parse2(autospy_attributes(attributes).next()?.clone())
-            .expect("invalid associated type"),
-    )
+    Some(syn::parse2(autospy_attributes(attributes).next()?).expect("invalid associated type"))
 }
 
 pub fn associated_const(attributes: &[Attribute]) -> Option<Expr> {
-    syn::parse2::<Expr>(autospy_attributes(attributes).next()?.clone()).ok()
+    syn::parse2::<Expr>(autospy_attributes(attributes).next()?).ok()
 }
 
 pub fn into_type(attributes: &[Attribute]) -> Option<Type> {
@@ -107,7 +101,7 @@ fn autospy_attribute(attribute: &Attribute) -> Option<TokenStream> {
                 && let Some(Meta::List(inner)) = inner.into_iter().nth(1)
                 && inner.path.is_ident("autospy")
             {
-                return Some(inner.tokens.clone());
+                return Some(inner.tokens);
             }
 
             None

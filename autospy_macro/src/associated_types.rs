@@ -4,21 +4,21 @@ use syn::{Generics, Ident, ItemTrait, Lifetime, TraitItem, TraitItemType, Type};
 
 pub type AssociatedSpyTypes = BTreeMap<Ident, AssociatedType>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct AssociatedType {
     pub r#type: Type,
     pub generics: Generics,
 }
 
 impl AssociatedType {
-    pub fn lifetime(&self) -> Option<&Lifetime> {
+    pub const fn lifetime(&self) -> Option<&Lifetime> {
         match &self.r#type {
             Type::Reference(reference) => reference.lifetime.as_ref(),
             _ => None,
         }
     }
 
-    pub fn has_lifetime(&self) -> bool {
+    pub const fn has_lifetime(&self) -> bool {
         self.lifetime().is_some()
     }
 }
@@ -32,7 +32,7 @@ pub fn get_associated_types(item_trait: &ItemTrait) -> AssociatedSpyTypes {
         .collect()
 }
 
-fn associated_types(item: &TraitItem) -> Option<&TraitItemType> {
+const fn associated_types(item: &TraitItem) -> Option<&TraitItemType> {
     match item {
         TraitItem::Type(trait_type) => Some(trait_type),
         _ => None,

@@ -7,7 +7,7 @@ fn use_test_trait<T: MyTrait>(trait_object: &T) {
     trait_object.function(eight);
 }
 
-fn eight() -> u8 {
+const fn eight() -> u8 {
     8
 }
 

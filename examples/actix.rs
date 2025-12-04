@@ -32,7 +32,7 @@ async fn handle_request(
 
 #[cfg_attr(test, autospy::autospy)]
 #[async_trait]
-trait SaveFile {
+trait SaveFile: Send + Sync {
     async fn save_file(&self, filename: String, contents: &[u8]) -> Result<(), anyhow::Error>;
 }
 

@@ -528,8 +528,8 @@ impl<A, R> ReturnQueue<A, R> {
 
     fn len(&self) -> usize {
         match self {
-            ReturnQueue::Finite(queue) => queue.len(),
-            ReturnQueue::Infinite(_) => 0,
+            Self::Finite(queue) => queue.len(),
+            Self::Infinite(_) => 0,
         }
     }
 }

@@ -2,7 +2,7 @@ set shell := ["bash", "-euc"]
 
 check:
     cargo fmt --check --all
-    cargo clippy --all-targets -- -Dwarnings
+    cargo clippy --all-targets --all-features -- -Dwarnings
 
 test:
     cargo test --locked --workspace --all-targets

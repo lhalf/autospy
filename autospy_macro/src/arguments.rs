@@ -7,7 +7,7 @@ use syn::{
     parse_quote,
 };
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct SpyArgument {
     pub name: Ident,
     pub into_type: Option<Type>,
