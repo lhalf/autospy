@@ -105,5 +105,9 @@ where
 {
     std::panic::catch_unwind(function)
         .err()
-        .and_then(|boxed_any| boxed_any.downcast_ref::<String>().map(|s| s.to_string()))
+        .and_then(|boxed_any| {
+            boxed_any
+                .downcast_ref::<String>()
+                .map(std::string::ToString::to_string)
+        })
 }

@@ -7,18 +7,17 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::ItemTrait;
 
-pub fn generate(item_trait: ItemTrait, external_trait: bool) -> TokenStream {
-    let associated_types = get_associated_types(&item_trait);
-    let stripped_item_trait = match external_trait {
-        true => TokenStream::new(),
-        false => {
-            let stripped_item_trait = strip_attributes(item_trait.clone());
-            quote! { #stripped_item_trait }
-        }
+pub fn generate(item_trait: &ItemTrait, external_trait: bool) -> TokenStream {
+    let associated_types = get_associated_types(item_trait);
+    let stripped_item_trait = if external_trait {
+        TokenStream::new()
+    } else {
+        let stripped_item_trait = strip_attributes(item_trait.clone());
+        quote! { #stripped_item_trait }
     };
-    let spy_struct = generate_spy_struct(&item_trait, &associated_types);
-    let spy_default = generate_spy_default(&item_trait, &associated_types);
-    let spy_trait = generate_spy_trait(&item_trait, &associated_types);
+    let spy_struct = generate_spy_struct(item_trait, &associated_types);
+    let spy_default = generate_spy_default(item_trait, &associated_types);
+    let spy_trait = generate_spy_trait(item_trait, &associated_types);
 
     quote! {
         #stripped_item_trait
@@ -42,7 +41,7 @@ mod tests {
     use syn::{ItemTrait, parse_quote};
 
     fn generate_pretty(item_trait: ItemTrait) -> String {
-        let expanded = generate(item_trait, false).to_string();
+        let expanded = generate(&item_trait, false).to_string();
         prettyplease::unparse(&syn::parse_file(&expanded).unwrap())
     }
 
@@ -53,7 +52,7 @@ mod tests {
                 fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize>;
             }
         };
-        let expanded = generate(item_trait, true).to_string();
+        let expanded = generate(&item_trait, true).to_string();
 
         insta::assert_snapshot!(prettyplease::unparse(&syn::parse_file(&expanded).unwrap()));
     }

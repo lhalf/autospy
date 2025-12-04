@@ -24,9 +24,10 @@ pub fn owned_trait_functions(item_trait: ItemTrait) -> impl Iterator<Item = Trai
 }
 
 pub fn cfg() -> TokenStream {
-    match cfg!(feature = "test") {
-        true => quote! { #[cfg(test)] },
-        false => TokenStream::new(),
+    if cfg!(feature = "test") {
+        quote! { #[cfg(test)] }
+    } else {
+        TokenStream::new()
     }
 }
 

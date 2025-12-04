@@ -19,9 +19,8 @@ impl VisitMut for AssociatedTypeReplacer<'_> {
 
 impl AssociatedTypeReplacer<'_> {
     fn associated_type_replacement(&self, r#type: &mut Type) -> Option<Type> {
-        let type_path = match r#type {
-            Type::Path(type_path) => type_path,
-            _ => return None,
+        let Type::Path(type_path) = r#type else {
+            return None;
         };
 
         if type_path.qself.is_some() || type_path.path.segments.len() != 2 {
@@ -53,7 +52,7 @@ pub fn non_self_signature_arguments_mut(
 ) -> impl Iterator<Item = &mut PatType> {
     signature.inputs.iter_mut().filter_map(|input| match input {
         FnArg::Typed(argument) => Some(argument),
-        _ => None,
+        FnArg::Receiver(_) => None,
     })
 }
 

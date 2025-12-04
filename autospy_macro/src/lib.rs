@@ -25,5 +25,5 @@ pub fn autospy(attributes: TokenStream, item: TokenStream) -> TokenStream {
         "external" => true,
         _ => panic!("invalid attribute"),
     };
-    TokenStream::from(generate(parse_quote! { #item }, external_trait))
+    TokenStream::from(generate(&parse_quote! { #item }, external_trait))
 }

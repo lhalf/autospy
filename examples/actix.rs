@@ -24,7 +24,7 @@ async fn handle_request(
     file_saver: web::Data<dyn SaveFile>,
 ) -> impl Responder {
     match file_saver.save_file(file.into_inner(), &body).await {
-        Ok(_) => HttpResponse::Ok(),
+        Ok(()) => HttpResponse::Ok(),
         Err(_) => HttpResponse::InternalServerError(),
     }
     .finish()

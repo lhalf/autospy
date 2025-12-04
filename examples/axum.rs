@@ -32,7 +32,7 @@ async fn handle_request(
     body: Bytes,
 ) -> StatusCode {
     match file_saver.save_file(file, &body).await {
-        Ok(_) => StatusCode::OK,
+        Ok(()) => StatusCode::OK,
         Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
     }
 }

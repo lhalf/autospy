@@ -158,16 +158,16 @@ fn spy_supertraits(
     item_trait: &ItemTrait,
 ) -> impl Iterator<Item = TokenStream> {
     supertraits::autospy_supertraits(item_trait)
-        .map(|supertrait| supertrait_as_spy_trait(cfg, supertrait, spy_name))
+        .map(|supertrait| supertrait_as_spy_trait(cfg, &supertrait, spy_name))
 }
 
 fn supertrait_as_spy_trait(
     cfg: &TokenStream,
-    supertrait: ItemTrait,
+    supertrait: &ItemTrait,
     spy_name: &Ident,
 ) -> TokenStream {
     let supertrait_name = &supertrait.ident;
-    let spy_function_definitions = trait_spy_function_definitions(&supertrait);
+    let spy_function_definitions = trait_spy_function_definitions(supertrait);
 
     quote! {
         #cfg

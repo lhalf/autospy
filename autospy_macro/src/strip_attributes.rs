@@ -29,8 +29,8 @@ fn strip_attributes_from_item(item: &mut TraitItem) {
             strip_autospy_attributes(&mut function.attrs);
             strip_attributes_from_signature(&mut function.sig);
         }
-        TraitItem::Type(_type) => strip_autospy_attributes(&mut _type.attrs),
-        TraitItem::Const(_const) => strip_autospy_attributes(&mut _const.attrs),
+        TraitItem::Type(r#type) => strip_autospy_attributes(&mut r#type.attrs),
+        TraitItem::Const(r#const) => strip_autospy_attributes(&mut r#const.attrs),
         _ => (),
     }
 }

@@ -18,7 +18,7 @@ pub struct SpyArgument {
 
 pub fn spy_arguments(function: &TraitItemFn) -> impl Iterator<Item = SpyArgument> {
     non_self_function_arguments(function)
-        .filter_map(|argument| spy_argument(generics_map(&function.sig.generics), argument))
+        .filter_map(|argument| spy_argument(&generics_map(&function.sig.generics), argument))
 }
 
 pub fn is_argument_marked_as_ignore(argument: &PatType) -> bool {
@@ -81,7 +81,7 @@ fn non_self_function_arguments(function: &TraitItemFn) -> impl Iterator<Item = &
 }
 
 fn spy_argument(
-    generics_map: HashMap<Ident, TokenStream>,
+    generics_map: &HashMap<Ident, TokenStream>,
     argument: &PatType,
 ) -> Option<SpyArgument> {
     let name = match *argument.pat {
