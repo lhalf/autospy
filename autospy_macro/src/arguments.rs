@@ -76,7 +76,7 @@ fn where_type_ident_and_bounds(predicate: &WherePredicate) -> Option<(Ident, Tok
 fn non_self_function_arguments(function: &TraitItemFn) -> impl Iterator<Item = &PatType> {
     function.sig.inputs.iter().filter_map(|input| match input {
         FnArg::Typed(argument) => Some(argument),
-        _ => None,
+        FnArg::Receiver(_) => None,
     })
 }
 
