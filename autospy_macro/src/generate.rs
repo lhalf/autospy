@@ -40,6 +40,7 @@ mod tests {
     use crate::generate::generate;
     use syn::{ItemTrait, parse_quote};
 
+    #[allow(clippy::needless_pass_by_value)]
     fn generate_pretty(item_trait: ItemTrait) -> String {
         let expanded = generate(&item_trait, false).to_string();
         prettyplease::unparse(&syn::parse_file(&expanded).unwrap())
@@ -169,7 +170,7 @@ mod tests {
             pub trait TestTrait {
                 fn function(&self);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -178,7 +179,7 @@ mod tests {
             pub(crate) trait TestTrait {
                 fn function(&self);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -187,7 +188,7 @@ mod tests {
             trait TestTrait {
                 fn function(&self) -> bool;
             }
-        }))
+        }));
     }
 
     #[test]
@@ -196,7 +197,7 @@ mod tests {
             trait TestTrait {
                 fn function(&self, argument: String);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -205,7 +206,7 @@ mod tests {
             trait TestTrait {
                 fn function(&self, argument: &str);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -214,7 +215,7 @@ mod tests {
             trait TestTrait {
                 fn function(&self, argument: &&&str);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -223,7 +224,7 @@ mod tests {
             trait TestTrait {
                 fn function(&self, argument1: String, argument2: String);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -232,7 +233,7 @@ mod tests {
             trait TestTrait {
                 fn function(&self, argument1: &str, argument2: &str);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -241,7 +242,7 @@ mod tests {
             trait TestTrait {
                 fn function(&self, argument1: &&&&str, argument2: &&&str);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -250,7 +251,7 @@ mod tests {
             trait TestTrait {
                 fn function(&self, argument: impl ToString + 'static);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -259,7 +260,7 @@ mod tests {
             trait TestTrait {
                 fn function(&self, argument: impl ToString + Debug + 'static);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -269,7 +270,7 @@ mod tests {
                 #[autospy(returns = "String")]
                 fn function(&self) -> impl ToString;
             }
-        }))
+        }));
     }
 
     #[test]
@@ -279,7 +280,7 @@ mod tests {
                 #[cfg_attr(test, autospy(returns = "String"))]
                 fn function(&self) -> impl ToString;
             }
-        }))
+        }));
     }
 
     #[test]
@@ -290,7 +291,7 @@ mod tests {
                 #[autospy(returns = "String")]
                 fn function(&self) -> impl ToString;
             }
-        }))
+        }));
     }
 
     #[test]
@@ -300,7 +301,7 @@ mod tests {
                 #[autospy(String)] type Item;
                 fn function(&self) -> Self::Item;
             }
-        }))
+        }));
     }
 
     #[test]
@@ -310,7 +311,7 @@ mod tests {
                 #[cfg_attr(test, autospy(String))] type Item;
                 fn function(&self) -> Self::Item;
             }
-        }))
+        }));
     }
 
     #[test]
@@ -320,7 +321,7 @@ mod tests {
                 #[autospy(String)] type Item;
                 fn function(&self, argument: Self::Item);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -333,7 +334,7 @@ mod tests {
                 type Return;
                 fn function(&self, argument: Self::Argument) -> Self::Return;
             }
-        }))
+        }));
     }
 
     #[test]
@@ -343,7 +344,7 @@ mod tests {
             trait TestTrait {
                 async fn function(&self);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -353,7 +354,7 @@ mod tests {
             trait TestTrait: Send + Sync + 'static {
                 async fn function(&self);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -364,7 +365,7 @@ mod tests {
                 const VALUE: &'static str;
                 fn function(&self);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -375,7 +376,7 @@ mod tests {
                 const VALUE: &'static str;
                 fn function(&self);
             }
-        }))
+        }));
     }
 
     #[test]
@@ -387,7 +388,7 @@ mod tests {
                     1
                 }
             }
-        }))
+        }));
     }
 
     #[test]
@@ -399,7 +400,7 @@ mod tests {
                     1
                 }
             }
-        }))
+        }));
     }
 
     #[test]
