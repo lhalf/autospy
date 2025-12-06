@@ -27,3 +27,8 @@ jobs:
 
       - name: check outdated dependencies
         run: cargo outdated --root-deps-only --exit-code 1
+
+      - name: check security vulnerabilities
+        uses: rustsec/audit-check@v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
