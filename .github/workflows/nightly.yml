@@ -13,8 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: extractions/setup-just@v3
-      - name: check-strict autospy
-        run: just check-strict .
-      - name: check-strict autospy_macro
-        run: just check-strict autospy_macro
+
+      - name: install rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: install tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just, cargo-outdated
+
+      - name: check strict
+        run: just check-strict . && just check-strict autospy_macro
+
+      - name: check outdated dependencies
+        run: cargo outdated --root-deps-only --exit-code 1
