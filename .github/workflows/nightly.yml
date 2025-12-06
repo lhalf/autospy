@@ -20,7 +20,7 @@ jobs:
       - name: install tools
         uses: taiki-e/install-action@v2
         with:
-          tool: just, cargo-outdated
+          tool: just, cargo-outdated, cargo-audit
 
       - name: check strict
         run: just check-strict . && just check-strict autospy_macro
@@ -29,6 +29,4 @@ jobs:
         run: cargo outdated --root-deps-only --exit-code 1
 
       - name: check security vulnerabilities
-        uses: rustsec/audit-check@v2.0.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        run: cargo audit
