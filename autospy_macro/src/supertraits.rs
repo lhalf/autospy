@@ -41,7 +41,7 @@ mod tests {
             }
         };
 
-        assert!(autospy_supertraits(&input).collect::<Vec<_>>().is_empty());
+        assert!(autospy_supertraits(&input).next().is_none());
     }
 
     #[test]
@@ -53,7 +53,7 @@ mod tests {
             }
         };
 
-        assert!(autospy_supertraits(&input).collect::<Vec<_>>().is_empty());
+        assert!(autospy_supertraits(&input).next().is_none());
     }
 
     #[test]
@@ -65,7 +65,7 @@ mod tests {
             }
         };
 
-        assert!(autospy_supertraits(&input).collect::<Vec<_>>().is_empty());
+        assert!(autospy_supertraits(&input).next().is_none());
     }
 
     #[test]
@@ -79,7 +79,7 @@ mod tests {
             }
         };
 
-        assert!(autospy_supertraits(&input).collect::<Vec<_>>().is_empty());
+        assert!(autospy_supertraits(&input).next().is_none());
     }
 
     #[test]
@@ -95,7 +95,7 @@ mod tests {
             }
         };
 
-        assert_eq!(1, autospy_supertraits(&input).collect::<Vec<_>>().len());
+        assert_eq!(1, autospy_supertraits(&input).count());
     }
 
     #[test]
@@ -111,7 +111,7 @@ mod tests {
             }
         };
 
-        assert_eq!(1, autospy_supertraits(&input).collect::<Vec<_>>().len());
+        assert_eq!(1, autospy_supertraits(&input).count());
     }
 
     #[test]
@@ -132,6 +132,6 @@ mod tests {
             }
         };
 
-        assert_eq!(2, autospy_supertraits(&input).collect::<Vec<_>>().len());
+        assert_eq!(2, autospy_supertraits(&input).count());
     }
 }

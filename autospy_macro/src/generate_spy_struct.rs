@@ -587,14 +587,13 @@ mod tests {
 
     #[allow(clippy::needless_pass_by_value)]
     fn associated_spy_types(ident: TokenStream, r#type: TokenStream) -> AssociatedSpyTypes {
-        [(
+        std::iter::once((
             parse_quote! { #ident },
             AssociatedType {
                 r#type: parse_quote! { #r#type },
                 generics: parse_quote! {},
             },
-        )]
-        .into_iter()
+        ))
         .collect()
     }
 }

@@ -10,3 +10,6 @@ test:
 
 build-docs:
     cargo doc --no-deps
+
+check-strict DIR:
+    pushd {{ DIR }} && cargo clippy --all-targets --all-features -- -D clippy::pedantic -D clippy::nursery
