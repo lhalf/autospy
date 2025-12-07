@@ -62,9 +62,7 @@ mod tests {
 
         let app = test::init_service(
             App::new()
-                .app_data(web::Data::from(
-                    Arc::new(save_file_spy.clone()) as Arc<dyn SaveFile>
-                ))
+                .app_data(web::Data::from(Arc::new(save_file_spy) as Arc<dyn SaveFile>))
                 .route("/{filename}", web::put().to(handle_request)),
         )
         .await;

@@ -81,14 +81,14 @@ impl<A, R> SpyFunction<A, R> {
 ///     fn foo(&self, bar: u8);
 /// }
 ///
-/// fn use_trait(trait_object: impl MyTrait) {
+/// fn use_trait(trait_object: &impl MyTrait) {
 ///     trait_object.foo(10)
 /// }
 ///
 /// let spy = MyTraitSpy::default();
 /// spy.foo.returns.set([()]);
 ///
-/// use_trait(spy.clone());
+/// use_trait(&spy);
 ///
 /// // all valid PartialEq implementations
 /// assert_eq!([10], spy.foo.arguments);

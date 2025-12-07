@@ -15,14 +15,14 @@
 //!     fn foo(&self, argument: u32) -> u32;
 //! }
 //!
-//! fn call_with_ten(x: impl MyTrait) -> u32 {
+//! fn call_with_ten(x: &impl MyTrait) -> u32 {
 //!     x.foo(10)
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.set([20]);
 //!
-//! assert_eq!(20, call_with_ten(spy.clone()));
+//! assert_eq!(20, call_with_ten(&spy));
 //! assert_eq!([10], spy.foo.arguments);
 //! ```
 //!
@@ -47,14 +47,14 @@
 //!     fn foo(&self, arg1: u32, arg2: String);
 //! }
 //!
-//! fn use_trait(x: impl MyTrait)  {
+//! fn use_trait(x: &impl MyTrait)  {
 //!     x.foo(10, "hello!".to_string())
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.set([()]);
 //!
-//! use_trait(spy.clone());
+//! use_trait(&spy);
 //!
 //! assert_eq!([(10, "hello!".to_string())], spy.foo.arguments);
 //! ```
@@ -69,14 +69,14 @@
 //!     fn foo(&self, argument: &str);
 //! }
 //!
-//! fn use_trait(x: impl MyTrait) {
+//! fn use_trait(x: &impl MyTrait) {
 //!     x.foo("hello!")
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.set([()]);
 //!
-//! use_trait(spy.clone());
+//! use_trait(&spy);
 //!
 //! assert_eq!(["hello!"], spy.foo.arguments);
 //! ```
@@ -112,14 +112,14 @@
 //!     fn foo(&self, #[autospy(ignore)] ignored: &str, argument: &str);
 //! }
 //!
-//! fn use_trait(x: impl MyTrait) {
+//! fn use_trait(x: &impl MyTrait) {
 //!     x.foo("ignored!", "capture me!")
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.set([()]);
 //!
-//! use_trait(spy.clone());
+//! use_trait(&spy);
 //!
 //! assert_eq!(["capture me!"], spy.foo.arguments);
 //! ```
@@ -132,14 +132,14 @@
 //!     fn foo(&self, _: &str, argument: &str);
 //! }
 //!
-//! fn use_trait(x: impl MyTrait) {
+//! fn use_trait(x: &impl MyTrait) {
 //!     x.foo("ignored!", "capture me!")
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.set([()]);
 //!
-//! use_trait(spy.clone());
+//! use_trait(&spy);
 //!
 //! assert_eq!(["capture me!"], spy.foo.arguments);
 //! ```
@@ -156,14 +156,14 @@
 //!     fn foo(&self, argument: Self::Item);
 //! }
 //!
-//! fn use_trait(x: impl MyTrait<Item=String>) {
+//! fn use_trait(x: &impl MyTrait<Item=String>) {
 //!     x.foo("hello!".to_string())
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.set([()]);
 //!
-//! use_trait(spy.clone());
+//! use_trait(&spy);
 //!
 //! assert_eq!(["hello!"], spy.foo.arguments);
 //! ```
@@ -254,14 +254,14 @@
 //!     fn foo(&self, argument: impl ToString + 'static);
 //! }
 //!
-//! fn use_trait(x: impl MyTrait) {
+//! fn use_trait(x: &impl MyTrait) {
 //!     x.foo("hello!")
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.set([()]);
 //!
-//! use_trait(spy.clone());
+//! use_trait(&spy);
 //!
 //! assert_eq!("hello!", spy.foo.arguments.take()[0].to_string())
 //! ```
@@ -276,14 +276,14 @@
 //!     fn foo(&self, argument: A) -> R;
 //! }
 //!
-//! fn use_trait(x: impl MyTrait<u32, String>) -> String {
+//! fn use_trait(x: &impl MyTrait<u32, String>) -> String {
 //!     x.foo(10)
 //! }
 //!
 //! let spy = MyTraitSpy::<u32, String>::default();
 //! spy.foo.returns.set(["hello!".to_string()]);
 //!
-//! assert_eq!("hello!", use_trait(spy.clone()));
+//! assert_eq!("hello!", use_trait(&spy));
 //!
 //! assert_eq!([10], spy.foo.arguments)
 //! ```
@@ -307,14 +307,14 @@
 //!     async fn foo(&self, argument: &str);
 //! }
 //!
-//! async fn use_async_trait(x: impl MyTrait) {
+//! async fn use_async_trait(x: &impl MyTrait) {
 //!     x.foo("hello async!").await
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.set([()]);
 //!
-//! use_async_trait(spy.clone()).block_on();
+//! use_async_trait(&spy).block_on();
 //!
 //! assert_eq!(["hello async!"], spy.foo.arguments)
 //! ```
@@ -364,14 +364,14 @@
 //!     fn foo(&self, #[autospy(into = "Ipv4Addr")] ip: [u8; 4]);
 //! }
 //!
-//! fn use_trait(x: impl MyTrait) {
+//! fn use_trait(x: &impl MyTrait) {
 //!     x.foo([192, 168, 0, 1])
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.set([()]);
 //!
-//! use_trait(spy.clone());
+//! use_trait(&spy);
 //!
 //! assert_eq!([Ipv4Addr::new(192, 168, 0, 1)], spy.foo.arguments)
 //! ```
@@ -389,14 +389,14 @@
 //!     fn foo(&self, #[autospy(into = "Result<String, FromUtf8Error>", with = "String::from_utf8")] bytes: Vec<u8>);
 //! }
 //!
-//! fn use_trait(x: impl MyTrait) {
+//! fn use_trait(x: &impl MyTrait) {
 //!     x.foo(b"hello!".to_vec())
 //! }
 //!
 //! let spy = MyTraitSpy::default();
 //! spy.foo.returns.set([()]);
 //!
-//! use_trait(spy.clone());
+//! use_trait(&spy);
 //!
 //! assert_eq!([Ok("hello!".to_string())], spy.foo.arguments)
 //! ```
