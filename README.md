@@ -27,7 +27,7 @@ trait MyTrait {
     fn foo(&self, x: u32) -> bool;
 }
 
-fn use_trait(trait_object: impl MyTrait) -> bool {
+fn use_trait(trait_object: &impl MyTrait) -> bool {
     trait_object.foo(10)
 }
 
@@ -41,7 +41,7 @@ mod tests {
         
         spy.foo.returns.set([true]); // set the return values
 
-        assert!(use_trait(spy.clone())); // use the spy
+        assert!(use_trait(&spy)); // use the spy
         assert_eq!([10], spy.foo.arguments) // check the captured arguments
     }
 }
