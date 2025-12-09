@@ -12,21 +12,32 @@ jobs:
   check-strict:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: install rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: install tools
-        uses: taiki-e/install-action@v2
-        with:
-          tool: just, cargo-outdated, cargo-audit
+      - uses: actions/checkout@v6
+      - uses: extractions/setup-just@v3
 
       - name: check strict
         run: just check-strict . && just check-strict autospy_macro
 
+  check-outdated-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-outdated
+
       - name: check outdated dependencies
         run: cargo outdated --root-deps-only --exit-code 1
+
+  check-security-vulnerabilities:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
 
       - name: check security vulnerabilities
         run: cargo audit
