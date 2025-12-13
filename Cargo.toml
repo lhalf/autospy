@@ -1,6 +1,6 @@
 [package]
 name = "autospy"
-version = "1.4.0"
+version = "1.5.0"
 edition = "2024"
 description = "A test spy object library."
 license = "MIT"

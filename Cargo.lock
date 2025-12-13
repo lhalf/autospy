@@ -257,7 +257,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "autospy"
-version = "1.4.0"
+version = "1.5.0"
 dependencies = [
  "actix-web",
  "anyhow",
@@ -275,7 +275,7 @@ dependencies = [
 
 [[package]]
 name = "autospy_macro"
-version = "1.4.0"
+version = "1.5.0"
 dependencies = [
  "insta",
  "prettyplease",
