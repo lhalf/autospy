@@ -49,7 +49,7 @@ fn generic_idents_with_and_without_elided_lifetime(
     (
         generics_idents(
             &item_trait.generics,
-            inspect::has_function_returning_no_lifetime_reference(item_trait)
+            inspect::has_function_returning_elided_lifetime_reference(item_trait)
                 || associated_spy_types
                     .values()
                     .any(AssociatedType::has_lifetime),
@@ -466,7 +466,7 @@ mod tests {
     }
 
     #[test]
-    fn trait_impl_has_elided_lifetime_if_function_has_no_lifetime_reference_return() {
+    fn trait_impl_has_elided_lifetime_if_function_has_elided_lifetime_reference_return() {
         let input: ItemTrait = parse_quote! {
             trait Example {
                 fn foo(&self) -> &str;
@@ -505,7 +505,7 @@ mod tests {
     }
 
     #[test]
-    fn trait_impl_is_generic_over_trait_lifetime_and_elided_lifetime_if_no_lifetime_reference_return()
+    fn trait_impl_is_generic_over_trait_lifetime_and_elided_lifetime_if_elided_lifetime_reference_return()
      {
         let input: ItemTrait = parse_quote! {
             trait Example<'a> {

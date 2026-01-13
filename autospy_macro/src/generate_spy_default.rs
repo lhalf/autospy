@@ -34,7 +34,7 @@ pub fn generate_spy_default(
 fn generic_idents(item_trait: &ItemTrait, associated_spy_types: &AssociatedSpyTypes) -> Generics {
     generics_idents(
         &item_trait.generics,
-        inspect::has_function_returning_no_lifetime_reference(item_trait)
+        inspect::has_function_returning_elided_lifetime_reference(item_trait)
             || associated_spy_types
                 .values()
                 .any(AssociatedType::has_lifetime),
@@ -315,7 +315,7 @@ mod tests {
     }
 
     #[test]
-    fn trait_with_no_lifetime_reference_return() {
+    fn trait_with_elided_lifetime_reference_return() {
         let input: ItemTrait = parse_quote! {
             trait Example {
                 fn foo(&self) -> &str;
@@ -339,7 +339,7 @@ mod tests {
     }
 
     #[test]
-    fn trait_with_lifetime_and_no_lifetime_reference_return() {
+    fn trait_with_lifetime_and_elided_lifetime_reference_return() {
         let input: ItemTrait = parse_quote! {
             trait Example<'a> {
                 fn foo(&self) -> &'a str;
@@ -365,7 +365,7 @@ mod tests {
     }
 
     #[test]
-    fn trait_with_no_lifetime_and_associated_type_with_lifetime_makes_default_impl_have_elided_lifetime()
+    fn trait_with_elided_lifetime_and_associated_type_with_lifetime_makes_default_impl_have_elided_lifetime()
      {
         let input: ItemTrait = parse_quote! {
             trait Example {
@@ -399,7 +399,7 @@ mod tests {
     }
 
     #[test]
-    fn trait_with_no_lifetime_reference_return_and_associated_type_with_lifetime_makes_only_one_elided_lifetime()
+    fn trait_with_elided_lifetime_reference_return_and_associated_type_with_lifetime_makes_only_one_elided_lifetime()
      {
         let input: ItemTrait = parse_quote! {
             trait Example {
