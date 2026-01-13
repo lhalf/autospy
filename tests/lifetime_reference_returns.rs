@@ -14,3 +14,20 @@ fn supports_returning_reference_values_with_trait_lifetime() {
 
     assert_eq!(&10, use_trait(&spy));
 }
+
+#[autospy::autospy]
+trait MyTrait2<'a> {
+    fn function(&self) -> Result<&'a u32, ()>;
+}
+
+fn use_trait2<'a, T: MyTrait2<'a>>(trait_object: &T) -> Result<&'a u32, ()> {
+    trait_object.function()
+}
+
+#[test]
+fn supports_returning_reference_values_within_other_structs() {
+    let spy = MyTrait2Spy::default();
+    spy.function.returns.set([Ok(&10)]);
+
+    assert_eq!(Ok(&10), use_trait2(&spy));
+}
