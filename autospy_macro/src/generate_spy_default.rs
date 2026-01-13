@@ -339,7 +339,7 @@ mod tests {
     }
 
     #[test]
-    fn trait_with_elided_lifetime_reference_within_struct_return() {
+    fn trait_function_returning_type_containing_elided_lifetime_reference() {
         let input: ItemTrait = parse_quote! {
             trait Example {
                 fn foo(&self) -> Result<&str, ()>;

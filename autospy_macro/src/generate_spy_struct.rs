@@ -231,7 +231,7 @@ mod tests {
     }
 
     #[test]
-    fn generated_spy_struct_captures_non_static_reference_returns_lifetimed_to_the_spy() {
+    fn generated_spy_struct_captures_elided_reference_returns_lifetimed_to_the_spy() {
         let input: ItemTrait = parse_quote! {
             trait Example {
                 fn foo(&self) -> &u32;
@@ -253,8 +253,8 @@ mod tests {
     }
 
     #[test]
-    fn generated_spy_struct_captures_non_static_reference_returns_within_struct_lifetimed_to_the_spy()
-     {
+    fn generated_spy_struct_captures_type_containing_elided_reference_return_lifetimed_to_the_spy()
+    {
         let input: ItemTrait = parse_quote! {
             trait Example {
                 fn foo(&self) -> Result<&u32, ()>;

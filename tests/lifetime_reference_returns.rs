@@ -25,7 +25,7 @@ fn use_trait2<'a, T: MyTrait2<'a>>(trait_object: &T) -> Result<&'a u32, ()> {
 }
 
 #[test]
-fn supports_returning_reference_values_within_other_structs() {
+fn supports_returning_type_containing_lifetime_reference_values() {
     let spy = MyTrait2Spy::default();
     spy.function.returns.set([Ok(&10)]);
 
