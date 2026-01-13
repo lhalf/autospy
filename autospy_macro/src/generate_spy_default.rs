@@ -34,7 +34,7 @@ pub fn generate_spy_default(
 fn generic_idents(item_trait: &ItemTrait, associated_spy_types: &AssociatedSpyTypes) -> Generics {
     generics_idents(
         &item_trait.generics,
-        inspect::has_function_returning_elided_lifetime_reference(item_trait)
+        inspect::has_function_returning_type_containing_elided_lifetime_reference(item_trait)
             || associated_spy_types
                 .values()
                 .any(AssociatedType::has_lifetime),
@@ -319,6 +319,30 @@ mod tests {
         let input: ItemTrait = parse_quote! {
             trait Example {
                 fn foo(&self) -> &str;
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Default for ExampleSpy<'_> {
+                fn default() -> Self {
+                    Self {
+                        foo: autospy::SpyFunction::from("foo")
+                    }
+                }
+            }
+        };
+
+        let actual = generate_spy_default(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_with_elided_lifetime_reference_within_struct_return() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                fn foo(&self) -> Result<&str, ()>;
             }
         };
 
