@@ -3,6 +3,7 @@ use crate::inspect::cfg;
 use crate::{arguments, attribute, edit, generate, inspect, supertraits};
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
+use syn::fold::Fold;
 use syn::visit_mut::VisitMut;
 use syn::{
     Generics, ItemStruct, ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait, TypeReference,
@@ -37,7 +38,7 @@ fn generate_struct_generics(
 ) -> Generics {
     let mut generics = item_trait.generics.clone();
 
-    if inspect::has_function_returning_elided_lifetime_reference(item_trait) {
+    if inspect::has_function_returning_type_containing_elided_lifetime_reference(item_trait) {
         generics.params.push(parse_quote! { 'spy });
     }
 
@@ -117,19 +118,24 @@ fn function_return_type(function: &TraitItemFn) -> TokenStream {
 
     match &function.sig.output {
         ReturnType::Default => quote! { () },
-        ReturnType::Type(_arrow, return_type) => match return_type.as_ref() {
-            Type::Reference(type_reference) if type_reference.lifetime.is_none() => {
-                to_spy_lifetime(type_reference)
-            }
-            _ => return_type.to_token_stream(),
-        },
+        ReturnType::Type(_, return_type) => {
+            let mut folder = ElidedLifetimeFolder;
+            let spy_lifetime_return_type = folder.fold_type(*return_type.clone());
+            spy_lifetime_return_type.to_token_stream()
+        }
     }
 }
 
-fn to_spy_lifetime(type_reference: &TypeReference) -> TokenStream {
-    let mut type_reference = type_reference.clone();
-    type_reference.lifetime = Some(parse_quote! { 'spy });
-    type_reference.to_token_stream()
+struct ElidedLifetimeFolder;
+
+impl Fold for ElidedLifetimeFolder {
+    fn fold_type_reference(&mut self, mut type_ref: TypeReference) -> TypeReference {
+        if type_ref.lifetime.is_none() {
+            type_ref.lifetime = Some(parse_quote! { 'spy });
+        }
+
+        syn::fold::fold_type_reference(self, type_ref)
+    }
 }
 
 #[cfg(test)]
@@ -237,6 +243,29 @@ mod tests {
             #[derive(Clone)]
             struct ExampleSpy<'spy> {
                 pub foo: autospy::SpyFunction< () , &'spy u32 >
+            }
+        };
+
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
+    }
+
+    #[test]
+    fn generated_spy_struct_captures_non_static_reference_returns_within_struct_lifetimed_to_the_spy()
+     {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                fn foo(&self) -> Result<&u32, ()>;
+            }
+        };
+
+        let expected: ItemStruct = parse_quote! {
+            #[cfg(test)]
+            #[derive(Clone)]
+            struct ExampleSpy<'spy> {
+                pub foo: autospy::SpyFunction< () , Result<&'spy u32, ()> >
             }
         };
 
