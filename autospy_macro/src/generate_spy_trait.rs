@@ -49,7 +49,7 @@ fn generic_idents_with_and_without_elided_lifetime(
     (
         generics_idents(
             &item_trait.generics,
-            inspect::has_function_returning_elided_lifetime_reference(item_trait)
+            inspect::has_function_returning_type_containing_elided_lifetime_reference(item_trait)
                 || associated_spy_types
                     .values()
                     .any(AssociatedType::has_lifetime),
@@ -478,6 +478,29 @@ mod tests {
             impl Example for ExampleSpy<'_> {
                 #[track_caller]
                 fn foo(&self) -> &str {
+                    self.foo.spy(())
+                }
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn trait_impl_has_elided_lifetime_if_function_return_type_contains_elided_lifetime_reference() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                fn foo(&self) -> Result<&str, ()>;
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Example for ExampleSpy<'_> {
+                #[track_caller]
+                fn foo(&self) -> Result<&str, ()> {
                     self.foo.spy(())
                 }
             }
