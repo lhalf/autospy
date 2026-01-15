@@ -17,3 +17,20 @@ fn generic_functions_can_have_arguments_with_lifetimes() {
 
     assert_eq!(["hello"], spy.function.arguments);
 }
+
+#[autospy::autospy]
+trait MyTrait2 {
+    fn function<'a>(&self) -> &'a str;
+}
+
+fn use_trait2<T: MyTrait2>(trait_object: &T) -> &str {
+    trait_object.function()
+}
+
+#[test]
+fn generic_functions_can_have_returns_with_lifetimes() {
+    let spy = MyTrait2Spy::default();
+    spy.function.returns.set(["hello"]);
+
+    assert_eq!("hello", use_trait2(&spy));
+}

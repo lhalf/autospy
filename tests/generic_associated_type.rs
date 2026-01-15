@@ -47,3 +47,29 @@ fn trait_with_generic_reference_associated_type_is_supported() {
 
     assert_eq!(Some("hello"), use_trait_two(&mut spy));
 }
+
+#[autospy::autospy]
+trait LendingIterator {
+    #[autospy(&'a str)]
+    type Item<'a>
+    where
+        Self: 'a;
+
+    #[allow(clippy::elidable_lifetime_names)]
+    fn next<'a>(&'a mut self) -> Self::Item<'a>;
+}
+
+fn use_trait<T>(lending_iterator: &mut T) -> &str
+where
+    T: for<'a> LendingIterator<Item<'a> = &'a str>,
+{
+    lending_iterator.next()
+}
+
+#[test]
+fn trait_with_lending_generic_reference_associated_type_is_supported() {
+    let mut spy = LendingIteratorSpy::default();
+    spy.next.returns.set(["hello!"]);
+
+    assert_eq!("hello!", use_trait(&mut spy));
+}

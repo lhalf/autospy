@@ -3,11 +3,12 @@ use crate::inspect::cfg;
 use crate::{arguments, attribute, edit, generate, inspect, supertraits};
 use proc_macro2::TokenStream;
 use quote::{ToTokens, format_ident, quote};
+use std::collections::HashSet;
 use syn::fold::Fold;
 use syn::visit_mut::VisitMut;
 use syn::{
-    Generics, ItemStruct, ItemTrait, ReturnType, TraitItemFn, Type, TypeImplTrait, TypeReference,
-    parse_quote,
+    GenericParam, Generics, ItemStruct, ItemTrait, Lifetime, LifetimeParam, ReturnType,
+    TraitItemFn, Type, TypeImplTrait, TypeReference, parse_quote,
 };
 
 pub fn generate_spy_struct(
@@ -21,7 +22,9 @@ pub fn generate_spy_struct(
     let generics = generate_struct_generics(item_trait, associated_spy_types);
     let generics_where_clause = &generics.where_clause;
 
-    let spy_fields = generate_spy_fields(item_trait, associated_spy_types);
+    let struct_lifetimes = extract_lifetimes(&generics);
+
+    let spy_fields = generate_spy_fields(item_trait, associated_spy_types, struct_lifetimes);
 
     parse_quote! {
         #cfg
@@ -52,21 +55,36 @@ fn generate_struct_generics(
     generics
 }
 
+fn extract_lifetimes(generics: &Generics) -> HashSet<&Lifetime> {
+    generics
+        .params
+        .iter()
+        .filter_map(|generic_param| match generic_param {
+            GenericParam::Lifetime(LifetimeParam { lifetime, .. }) => Some(lifetime),
+            _ => None,
+        })
+        .collect()
+}
+
 fn generate_spy_fields(
     item_trait: &ItemTrait,
     associated_spy_types: &AssociatedSpyTypes,
+    struct_lifetimes: HashSet<&syn::Lifetime>,
 ) -> impl Iterator<Item = TokenStream> {
     inspect::trait_functions(item_trait)
         .cloned()
         .chain(
             supertraits::autospy_supertraits(item_trait).flat_map(inspect::owned_trait_functions),
         )
-        .map(|function| function_as_spy_field(&function, associated_spy_types))
+        .map(move |function| {
+            function_as_spy_field(&function, associated_spy_types, &struct_lifetimes)
+        })
 }
 
 fn function_as_spy_field(
     function: &TraitItemFn,
     associated_spy_types: &AssociatedSpyTypes,
+    struct_lifetimes: &HashSet<&syn::Lifetime>,
 ) -> TokenStream {
     if attribute::has_use_default_attribute(&function.attrs) && function.default.is_some() {
         return TokenStream::new();
@@ -79,7 +97,7 @@ fn function_as_spy_field(
     let spy_argument_type =
         generate::tuple_or_single(arguments::spy_arguments(&function).map(argument_spy_type));
 
-    let return_type = function_return_type(&function);
+    let return_type = function_return_type(&function, struct_lifetimes);
 
     quote! {
         pub #function_name: autospy::SpyFunction<#spy_argument_type, #return_type>
@@ -110,25 +128,45 @@ fn argument_spy_type(argument: arguments::SpyArgument) -> TokenStream {
     }
 }
 
-fn function_return_type(function: &TraitItemFn) -> TokenStream {
-    // specifying the return attribute takes precedence over associated type
+fn function_return_type(
+    function: &TraitItemFn,
+    struct_lifetimes: &HashSet<&Lifetime>,
+) -> TokenStream {
     if let Some(specified_return_type) = attribute::return_type(&function.attrs) {
         return specified_return_type.to_token_stream();
     }
 
+    let function_lifetimes = extract_lifetimes(&function.sig.generics);
+
     match &function.sig.output {
         ReturnType::Default => quote! { () },
         ReturnType::Type(_, return_type) => {
-            let mut folder = ElidedLifetimeFolder;
-            let spy_lifetime_return_type = folder.fold_type(*return_type.clone());
-            spy_lifetime_return_type.to_token_stream()
+            let mut folder = LifetimeFolder {
+                function_lifetimes,
+                struct_lifetimes,
+            };
+            folder.fold_type(*return_type.clone()).to_token_stream()
         }
     }
 }
 
-struct ElidedLifetimeFolder;
+struct LifetimeFolder<'a> {
+    function_lifetimes: HashSet<&'a Lifetime>,
+    struct_lifetimes: &'a HashSet<&'a Lifetime>,
+}
 
-impl Fold for ElidedLifetimeFolder {
+impl Fold for LifetimeFolder<'_> {
+    fn fold_lifetime(&mut self, lifetime: Lifetime) -> Lifetime {
+        let is_function_lifetime = self.function_lifetimes.contains(&lifetime);
+        let is_struct_lifetime = self.struct_lifetimes.contains(&lifetime);
+
+        if is_function_lifetime && !is_struct_lifetime {
+            parse_quote! { 'static }
+        } else {
+            syn::fold::fold_lifetime(self, lifetime)
+        }
+    }
+
     fn fold_type_reference(&mut self, mut type_ref: TypeReference) -> TypeReference {
         if type_ref.lifetime.is_none() {
             type_ref.lifetime = Some(parse_quote! { 'spy });
@@ -316,6 +354,54 @@ mod tests {
         assert_eq!(
             expected,
             generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
+    }
+
+    #[test]
+    fn generated_spy_struct_converts_function_lifetime_references_on_returns_to_static() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                fn foo<'a>(&self) -> &'a u32;
+            }
+        };
+
+        let expected: ItemStruct = parse_quote! {
+            #[cfg(test)]
+            #[derive(Clone)]
+            struct ExampleSpy {
+                pub foo: autospy::SpyFunction< () , &'static u32 >
+            }
+        };
+
+        assert_eq!(
+            expected,
+            generate_spy_struct(&input, &AssociatedSpyTypes::new())
+        );
+    }
+
+    #[test]
+    fn generated_spy_struct_doesnt_convert_lifetime_references_to_static_if_specified_in_gat() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                type Item;
+                fn foo<'a>(&self) -> Self::Item;
+            }
+        };
+
+        let expected: ItemStruct = parse_quote! {
+            #[cfg(test)]
+            #[derive(Clone)]
+            struct ExampleSpy<'a> {
+                pub foo: autospy::SpyFunction< () , &'a u32 >
+            }
+        };
+
+        assert_eq!(
+            expected,
+            generate_spy_struct(
+                &input,
+                &associated_spy_types(quote! { Item }, quote! { &'a u32 })
+            )
         );
     }
 
