@@ -9,7 +9,7 @@ fn use_trait<T: MyTrait>(trait_object: &T) -> u8 {
 }
 
 #[test]
-fn trait_functions_can_have_lifetimes() {
+fn generic_functions_can_have_arguments_with_lifetimes() {
     let spy = MyTraitSpy::default();
     spy.function.returns.set([10]);
 
