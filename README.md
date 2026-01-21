@@ -61,3 +61,5 @@ largely personal preference; however, there are some advantages to using a spy o
 |-------------|------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------|
 | Mock        | Panics if expectations fail; error messages can be unclear | Less standard pattern, expectations are baked into object | More crate-specific syntax and usage patterns             |
 | Spy         | Asserts like any regular test                              | Assert after use, more standard test pattern              | Simple: set what's returned, then inspect what was called |
+
+For a further comparison between the two have a read of this [article](https://www.lhalf.uk/mockall.html).
