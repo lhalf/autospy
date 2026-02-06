@@ -37,3 +37,7 @@ actix-web = { version = "4.12.1", default-features = false, features = ["macros"
 
 [lints.rust]
 unsafe_code = "deny"
+
+[patch.crates-io]
+time = { git = "https://github.com/time-rs/time", tag = "v0.3.47" }
+bytes = { git = "https://github.com/tokio-rs/bytes", tag = "v1.11.1" }
