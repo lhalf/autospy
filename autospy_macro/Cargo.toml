@@ -24,9 +24,9 @@ doctest = false
 
 [dependencies]
 quote = { version = "1.0.45", default-features = false }
-syn = { version = "2.0.117", default-features = false, features = ["parsing", "proc-macro", "full", "printing", "clone-impls", "visit-mut", "extra-traits", "visit", "fold"] }
+syn = { version = "2.0.118", default-features = false, features = ["parsing", "proc-macro", "full", "printing", "clone-impls", "visit-mut", "extra-traits", "visit", "fold"] }
 proc-macro2 = { version = "1.0.106", default-features = false }
 
 [dev-dependencies]
-insta = { version = "1.47.2", default-features = false }
+insta = { version = "1.48.0", default-features = false }
 prettyplease = { version = "0.2.37", default-features = false }
