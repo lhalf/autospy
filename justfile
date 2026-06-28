@@ -13,3 +13,6 @@ build-docs:
 
 check-strict DIR:
     pushd {{ DIR }} && cargo clippy --all-targets --all-features -- -D clippy::pedantic -D clippy::nursery
+
+update:
+    cargo upgrade --incompatible
