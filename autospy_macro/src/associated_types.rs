@@ -1,4 +1,5 @@
 use crate::attribute;
+use crate::supertraits;
 use std::collections::BTreeMap;
 use syn::{Generics, Ident, ItemTrait, Lifetime, TraitItem, TraitItemType, Type};
 
@@ -21,6 +22,13 @@ impl AssociatedType {
     pub const fn has_lifetime(&self) -> bool {
         self.lifetime().is_some()
     }
+}
+
+pub fn get_all_associated_types(item_trait: &ItemTrait) -> AssociatedSpyTypes {
+    supertraits::autospy_supertraits(item_trait)
+        .flat_map(|supertrait| get_associated_types(&supertrait))
+        .chain(get_associated_types(item_trait))
+        .collect()
 }
 
 pub fn get_associated_types(item_trait: &ItemTrait) -> AssociatedSpyTypes {
@@ -53,7 +61,9 @@ fn associated_type_name_and_spy_type(
 
 #[cfg(test)]
 mod tests {
-    use crate::associated_types::{AssociatedSpyTypes, AssociatedType, get_associated_types};
+    use crate::associated_types::{
+        AssociatedSpyTypes, AssociatedType, get_all_associated_types, get_associated_types,
+    };
 
     use quote::format_ident;
     use syn::{ItemTrait, TraitItemType, Type, parse_quote};
@@ -183,6 +193,110 @@ mod tests {
         );
 
         assert_eq!(expected, get_associated_types(&input));
+    }
+
+    #[test]
+    fn get_all_associated_types_ignores_supertrait_blocks_when_getting_top_level_types() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                #[autospy(String)]
+                type Hello;
+                autospy::supertrait! {
+                    trait Supertrait {
+                        #[autospy(bool)]
+                        type Nope;
+                    }
+                }
+            }
+        };
+
+        let expected = to_associated_spy_types([("Hello", parse_quote! { String })]);
+
+        assert_eq!(expected, get_associated_types(&input));
+    }
+
+    #[test]
+    fn get_all_associated_types_includes_top_level_and_supertrait_types() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                #[autospy(String)]
+                type Hello;
+                autospy::supertrait! {
+                    trait Supertrait {
+                        #[autospy(bool)]
+                        type Nope;
+                    }
+                }
+            }
+        };
+
+        let expected = to_associated_spy_types([
+            ("Hello", parse_quote! { String }),
+            ("Nope", parse_quote! { bool }),
+        ]);
+
+        assert_eq!(expected, get_all_associated_types(&input));
+    }
+
+    #[test]
+    fn get_all_associated_types_includes_types_from_multiple_supertraits() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                autospy::supertrait! {
+                    trait ReadNorFlash {
+                        #[autospy(String)]
+                        type Reader;
+                    }
+                }
+                autospy::supertrait! {
+                    trait ErrorType {
+                        #[autospy(bool)]
+                        type Error;
+                    }
+                }
+            }
+        };
+
+        let expected = to_associated_spy_types([
+            ("Reader", parse_quote! { String }),
+            ("Error", parse_quote! { bool }),
+        ]);
+
+        assert_eq!(expected, get_all_associated_types(&input));
+    }
+
+    #[test]
+    fn get_all_associated_types_ignores_supertrait_types_without_attribute() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                autospy::supertrait! {
+                    trait Supertrait {
+                        type NotCaptured;
+                        #[autospy(bool)]
+                        type Captured;
+                    }
+                }
+            }
+        };
+
+        let expected = to_associated_spy_types([("Captured", parse_quote! { bool })]);
+
+        assert_eq!(expected, get_all_associated_types(&input));
+    }
+
+    #[test]
+    fn get_all_associated_types_of_trait_without_supertraits_matches_top_level_types() {
+        let input: ItemTrait = parse_quote! {
+            trait Example {
+                #[autospy(String)]
+                type Hello;
+            }
+        };
+
+        assert_eq!(
+            get_associated_types(&input),
+            get_all_associated_types(&input)
+        );
     }
 
     fn to_associated_spy_types(

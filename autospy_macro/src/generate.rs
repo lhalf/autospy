@@ -1,4 +1,4 @@
-use crate::associated_types::get_associated_types;
+use crate::associated_types::get_all_associated_types;
 use crate::generate_spy_default::generate_spy_default;
 use crate::generate_spy_struct::generate_spy_struct;
 use crate::generate_spy_trait::generate_spy_trait;
@@ -8,7 +8,7 @@ use quote::quote;
 use syn::ItemTrait;
 
 pub fn generate(item_trait: &ItemTrait, external_trait: bool) -> TokenStream {
-    let associated_types = get_associated_types(item_trait);
+    let associated_types = get_all_associated_types(item_trait);
     let stripped_item_trait = if external_trait {
         TokenStream::new()
     } else {

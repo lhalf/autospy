@@ -1,4 +1,4 @@
-use crate::associated_types::{AssociatedSpyTypes, AssociatedType};
+use crate::associated_types::{AssociatedSpyTypes, AssociatedType, get_associated_types};
 use crate::generics::generics_idents;
 use crate::inspect::cfg;
 use crate::strip_attributes::{strip_attributes_from_signature, strip_autospy_attributes};
@@ -24,7 +24,8 @@ pub fn generate_spy_trait(
         generic_idents_with_and_without_elided_lifetime(item_trait, associated_spy_types);
 
     let spy_name = format_ident!("{}Spy", trait_name);
-    let associated_type_definitions = associated_type_definitions(associated_spy_types);
+    let trait_associated_types = get_associated_types(item_trait);
+    let associated_type_definitions = associated_type_definitions(&trait_associated_types);
     let spy_associated_consts = spy_associated_consts(item_trait);
     let spy_function_definitions = trait_spy_function_definitions(item_trait);
 
@@ -167,11 +168,16 @@ fn supertrait_as_spy_trait(
     spy_name: &Ident,
 ) -> TokenStream {
     let supertrait_name = &supertrait.ident;
+    let supertrait_associated_types = get_associated_types(supertrait);
+    let associated_type_definitions = associated_type_definitions(&supertrait_associated_types);
+    let spy_associated_consts = spy_associated_consts(supertrait);
     let spy_function_definitions = trait_spy_function_definitions(supertrait);
 
     quote! {
         #cfg
         impl #supertrait_name for #spy_name {
+            #(#associated_type_definitions)*
+            #(#spy_associated_consts)*
             #(#spy_function_definitions)*
         }
     }
@@ -789,6 +795,72 @@ mod tests {
                 fn baz(&self) {
                     self.baz.spy(())
                 }
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn supertrait_associated_type_is_emitted_in_supertrait_impl() {
+        let input: ItemTrait = parse_quote! {
+            trait Example: Supertrait {
+                fn foo(&self);
+                autospy::supertrait! {
+                    trait Supertrait {
+                        #[autospy(String)]
+                        type Item;
+                    }
+                }
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Example for ExampleSpy {
+               #[track_caller]
+                fn foo(&self) {
+                    self.foo.spy(())
+                }
+            }
+            #[cfg(test)]
+            impl Supertrait for ExampleSpy {
+                type Item = String;
+            }
+        };
+
+        let actual = generate_spy_trait(&input, &AssociatedSpyTypes::new());
+
+        assert_eq!(actual.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn supertrait_associated_const_is_emitted_in_supertrait_impl() {
+        let input: ItemTrait = parse_quote! {
+            trait Example: Supertrait {
+                fn foo(&self);
+                autospy::supertrait! {
+                    trait Supertrait {
+                        #[autospy(1)]
+                        const READ_SIZE: usize;
+                    }
+                }
+            }
+        };
+
+        let expected = quote! {
+            #[cfg(test)]
+            impl Example for ExampleSpy {
+               #[track_caller]
+                fn foo(&self) {
+                    self.foo.spy(())
+                }
+            }
+            #[cfg(test)]
+            impl Supertrait for ExampleSpy {
+                const READ_SIZE: usize = 1;
             }
         };
 
