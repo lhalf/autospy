@@ -16,7 +16,6 @@ fn clear_bounds(param: &mut GenericParam) {
     if let GenericParam::Type(ty_param) = param {
         ty_param.bounds.clear();
         ty_param.colon_token = None;
-        ty_param.eq_token = None;
         ty_param.default = None;
     }
 }
