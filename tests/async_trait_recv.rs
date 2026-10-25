@@ -19,7 +19,7 @@ async fn async_function_argument_captured_and_can_be_taken_with_timeout() {
     use_trait(spy.clone());
 
     // spy not used yet
-    assert!(spy.function.arguments.take().is_empty());
+    assert_eq!(spy.function.arguments.take(), [] as [String; 0]);
 
     assert_eq!(
         vec!["argument".to_string()],
